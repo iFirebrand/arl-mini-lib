@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { createLibrary } from "../../actions/actions";
+import { handleGeoLocation } from "../components/maps/handleGeoLocation";
 
 export default function LibsClient({ libraries, librariesCount }) {
   const [isGeolocationAvailable, setIsGeolocationAvailable] = useState(false);
@@ -12,7 +13,7 @@ export default function LibsClient({ libraries, librariesCount }) {
   const [longitude, setLongitude] = useState("");
 
   // Dynamically import the Map component to avoid SSR issues
-  const Map = dynamic(() => import("../../components/Map"), { ssr: false });
+  const Map = dynamic(() => import("../../components/maps/Map"), { ssr: false });
 
   useEffect(() => {
     // Get URL parameters on the client side
@@ -44,20 +45,22 @@ export default function LibsClient({ libraries, librariesCount }) {
           </div>
         </div>
       ) : (
-        <div className="container mx-auto">
-          <button className="btn btn-accent mt-4" onClick={() => window.location.reload()}>
-            Enable Geolocation
-          </button>
+        <div className="container mx-auto text-center">
+          <h2 className="text-2xl font-bold">Please enable geolocation to proceed</h2>
         </div>
       )}
-      <div className="flex-grow bg-base-300 w-full mt-16 px-8 py-12">
-        <div className="flex justify-center items-center gap-12 flex-col sm:flex-row">
-          <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
-            <p className="my-2 font-medium">{/* ... existing content ... */}</p>
-            <button className="btn btn-accent mt-4">Add Library</button>
+      {!isGeolocationAvailable && (
+        <div className="flex-grow bg-base-300 w-full mt-16 px-8 py-12">
+          <div className="flex justify-center items-center gap-12 flex-col sm:flex-row">
+            <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
+              <p className="my-2 font-medium"></p>
+              <button className="btn btn-accent mt-4" onClick={handleGeoLocation}>
+                Enable Geolocation
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
       <main className="flex flex-col items-center gap-y-5 pt-24 text-center">
         <h1 className="text-3xl font-semibold">All Libraries ({librariesCount})</h1>
         <ul className="border-t border-b border-black/10 py-5 leading-8">
@@ -85,20 +88,7 @@ export default function LibsClient({ libraries, librariesCount }) {
           {!isGeolocationAvailable && (
             <p className="text-red-500">
               Geolocation must be enabled to take action. Try again.
-              <button
-                className="link"
-                onClick={async () => {
-                  if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(position => {
-                      const latitude = position.coords.latitude;
-                      const longitude = position.coords.longitude;
-                      window.location.href = `/libs?latitude=${latitude}&longitude=${longitude}`;
-                    });
-                  } else {
-                    alert("Geolocation is not supported by this browser.");
-                  }
-                }}
-              >
+              <button className="link" onClick={handleGeoLocation}>
                 via geolocation
               </button>
             </p>

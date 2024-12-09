@@ -22,7 +22,7 @@ export const menuLinks: HeaderMenuLink[] = [
 
   {
     label: "Libs",
-    href: "/lib",
+    href: "/libs",
     icon: <HomeIcon className="h-4 w-4" />,
   },
   {
@@ -99,7 +99,7 @@ export const Header = () => {
             <Image alt="logo" className="cursor-pointer" fill src="/logo.svg" />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold leading-tight">Arlib.app</span>
+            <span className="font-bold leading-tight">ARLib.me</span>
             <span className="text-xs">Arlington Mini Libraries</span>
           </div>
         </Link>

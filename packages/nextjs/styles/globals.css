@@ -33,10 +33,10 @@ p {
 }
 
 .leaflet-div-icon {
-  background-image: url("/leaflet/images/marker-icon.png") !important;
+  background-image: url("/images/marker-icon.png") !important;
 }
 
 .leaflet-marker-icon,
 .leaflet-marker-shadow {
-  background-image: url("/leaflet/images/marker-shadow.png") !important;
+  background-image: url("/images/marker-shadow.png") !important;
 }
