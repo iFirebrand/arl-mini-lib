@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createLibrary } from "../../actions/actions";
 import prisma from "../../lib/db";
@@ -29,6 +30,23 @@ export default async function LibsPage() {
     },
   });
 
+  const [isGeolocationAvailable, setIsGeolocationAvailable] = useState(false);
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+
+  useEffect(() => {
+    // Get URL parameters on the client side
+    const urlParams = new URLSearchParams(window.location.search);
+    const lat = urlParams.get("latitude");
+    const long = urlParams.get("longitude");
+
+    if (lat && long) {
+      setLatitude(lat);
+      setLongitude(long);
+      setIsGeolocationAvailable(true);
+    }
+  }, []); // Empty dependency array to run only once on mount
+
   return (
     <>
       <div className="container mx-auto">Libs</div>
@@ -38,25 +56,7 @@ export default async function LibsPage() {
             <p className="my-2 font-medium">{/* ... existing content ... */}</p>
             {/* Add Search Button */}
 
-            {/* <button
-              className="btn btn-accent mt-4"
-              onClick={async () => {
-                if (navigator.geolocation) {
-                  navigator.geolocation.getCurrentPosition(position => {
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
-
-                    // Set the hidden input values
-                    document.getElementById("latitude").value = latitude.toString();
-                    document.getElementById("longitude").value = longitude.toString();
-                  });
-                } else {
-                  alert("Geolocation is not supported by this browser.");
-                }
-              }}
-            >
-              Add Library
-            </button> */}
+            <button className="btn btn-accent mt-4">Add Library</button>
           </div>
         </div>
       </div>
@@ -75,11 +75,16 @@ export default async function LibsPage() {
 
         <form action={createLibrary} className="flex flex-col gap-y-2 w-[300px]">
           <input type="text" name="locationName" placeholder="Location Name" className="px-2 py-1 rounded-sm" />
-          <input type="hidden" id="latitude" name="latitude" />
-          <input type="hidden" id="longitude" name="longitude" />
-          <button type="submit" className="bg-blue-500 py-2 text-white rounded-sm">
+          <input type="hidden" id="latitude" name="latitude" value={isGeolocationAvailable ? latitude : ""} />
+          <input type="hidden" id="longitude" name="longitude" value={isGeolocationAvailable ? longitude : ""} />
+          <button
+            type="submit"
+            className={`bg-blue-500 py-2 text-white rounded-sm ${isGeolocationAvailable ? "" : "opacity-50 cursor-not-allowed"}`}
+            disabled={!isGeolocationAvailable}
+          >
             Add Library
           </button>
+          {!isGeolocationAvailable && <p className="text-red-500">Geolocation must be enabled to add a library</p>}
         </form>
       </main>
     </>
