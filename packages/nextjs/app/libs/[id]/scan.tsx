@@ -3,17 +3,19 @@
 import React, { useState } from "react";
 import BarcodeScannerComponent from "react-qr-barcode-scanner";
 
-function Scan() {
+function Scan({ libraryId }) {
   const [barcode, setBarcode] = useState("Not Found");
   const [isScanning, setIsScanning] = useState(false);
-  const [bookData, setBookData] = useState(null);
+  const [bookDataList, setBookDataList] = useState([]);
+  const [scannedCount, setScannedCount] = useState(0);
   const apiKey = "AIzaSyA8Y5xWU_S2NaN6NPYgxV_XFS_8iv5OVfk";
 
   const handleScanToggle = () => {
-    setIsScanning(!isScanning); // Toggle scanning state
-    if (isScanning) {
-      setBarcode("Not Found"); // Reset barcode when stopping the scan
-      setBookData(null); // Reset book data
+    setIsScanning(!isScanning);
+    if (!isScanning) {
+      setBarcode("Not Found");
+      setBookDataList([]);
+      setScannedCount(0);
     }
   };
 
@@ -22,14 +24,38 @@ function Scan() {
       const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${apiKey}`);
       const data = await response.json();
       if (data.items && data.items.length > 0) {
-        setBookData(data.items[0].volumeInfo); // Get the first book's info
-      } else {
-        setBookData(null); // No book found
+        const bookInfo = data.items[0].volumeInfo;
+
+        const isBookAlreadyScanned = bookDataList.some(book => book.title === bookInfo.title);
+        if (!isBookAlreadyScanned) {
+          await saveBookToDatabase(
+            {
+              title: bookInfo.title,
+              authors: bookInfo.authors?.join(", "),
+              thumbnail: bookInfo.imageLinks?.thumbnail,
+              description: bookInfo.description,
+              isbn10: isbn,
+            },
+            libraryId,
+          );
+
+          setBookDataList(prev => [...prev, bookInfo]);
+          setScannedCount(prev => prev + 1);
+        }
       }
     } catch (error) {
       console.error("Error fetching book data:", error);
-      setBookData(null); // Handle error
     }
+  };
+
+  const saveBookToDatabase = async (book, libraryId) => {
+    await fetch("/api/saveBook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ...book, libraryId }),
+    });
   };
 
   return (
@@ -41,28 +67,24 @@ function Scan() {
           height={500}
           onUpdate={(err, result) => {
             if (result) {
-              setBarcode(result.text); // Store the result in the state
-              console.log(result.text); // Log the result to the console
-              fetchBookData(result.text); // Fetch book data using the scanned barcode
-              setIsScanning(false); // Stop scanning after capturing the QR code
+              setBarcode(result.text);
+              console.log(result.text);
+              fetchBookData(result.text);
             } else {
               setBarcode("Not Found");
             }
           }}
         />
       )}
-      <p>{barcode}</p>
-      {bookData && (
-        <div>
-          <h2>{bookData.title}</h2>
-          <p>{bookData.authors?.join(", ")}</p>
-          <img src={bookData.imageLinks?.thumbnail} alt={bookData.title} />
-          <p>{bookData.description}</p>
-          <a href={bookData.infoLink} target="_blank" rel="noopener noreferrer">
-            More Info
-          </a>
-        </div>
-      )}
+      <p>Scanned Books: {scannedCount}</p>
+      <div>
+        {bookDataList.map((book, index) => (
+          <div key={index}>
+            <h2>{book.title}</h2>
+            <img src={book.imageLinks?.thumbnail} alt={book.title} />
+          </div>
+        ))}
+      </div>
     </>
   );
 }

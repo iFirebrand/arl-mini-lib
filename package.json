@@ -47,6 +47,7 @@
   "dependencies": {
     "@prisma/client": "6.0.1",
     "leaflet": "^1.9.4",
+    "node-fetch": "^3.3.2",
     "react-leaflet": "^4.2.1",
     "react-qr-barcode-scanner": "^2.0.0"
   }
