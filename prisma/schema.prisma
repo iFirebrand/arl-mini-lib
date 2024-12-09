@@ -36,6 +36,7 @@ model Library {
   active Boolean @default(true)
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
+  items Item[] @relation("LibraryItems")
 }
 
 model User {
@@ -58,4 +59,6 @@ model Item {
   isbn13 String? @unique
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
+  library Library? @relation("LibraryItems", fields: [libraryId], references: [id])
+  libraryId String?
 }
