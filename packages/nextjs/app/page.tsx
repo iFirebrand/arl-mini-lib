@@ -30,9 +30,22 @@ const Home: NextPage = () => {
               <HomeIcon className="h-8 w-8 fill-secondary" />
               <p>
                 Find{" "}
-                <Link href="/libs" passHref className="link">
+                <button
+                  className="link"
+                  onClick={async () => {
+                    if (navigator.geolocation) {
+                      navigator.geolocation.getCurrentPosition(position => {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+                        window.location.href = `/libs?latitude=${latitude}&longitude=${longitude}`;
+                      });
+                    } else {
+                      alert("Geolocation is not supported by this browser.");
+                    }
+                  }}
+                >
                   lib
-                </Link>
+                </button>
               </p>
             </div>
             {/* <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">

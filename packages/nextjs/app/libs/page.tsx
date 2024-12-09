@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createLibrary } from "../../actions/actions";
-import prisma from "../lib/db";
+import prisma from "../../lib/db";
 
 export default async function LibsPage() {
   const libraries = await prisma.library.findMany({

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import prisma from "../app/lib/db";
+import prisma from "../lib/db";
 import { Prisma } from "@prisma/client";
 
 export async function createLibrary(formData: FormData) {
