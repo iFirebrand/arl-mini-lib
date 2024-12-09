@@ -6,11 +6,11 @@ import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 
 // Set default icon for markers
 const DefaultIcon = L.icon({
-  iconUrl: require("leaflet/dist/images/marker-icon.png"), // Path to marker icon
+  iconUrl: "/images/marker-icon.png", // Direct path to marker icon in public folder
   iconSize: [25, 41], // Size of the icon
   iconAnchor: [12, 41], // Point of the icon which will correspond to marker's location
   popupAnchor: [1, -34], // Point from which the popup should open relative to the iconAnchor
-  shadowUrl: require("leaflet/dist/images/marker-shadow.png"), // Path to shadow icon
+  shadowUrl: "/images/marker-shadow.png", // Direct path to shadow icon in public folder
   shadowSize: [41, 41], // Size of the shadow
 });
 

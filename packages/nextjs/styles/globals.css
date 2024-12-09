@@ -31,3 +31,12 @@ p {
 .btn.btn-ghost {
   @apply shadow-none;
 }
+
+.leaflet-div-icon {
+  background-image: url("/leaflet/images/marker-icon.png") !important;
+}
+
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+  background-image: url("/leaflet/images/marker-shadow.png") !important;
+}
