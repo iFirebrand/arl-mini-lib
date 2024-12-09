@@ -33,6 +33,7 @@ model Library {
   latitude Float?
   curators User[] @relation("LibraryCurators")
   imageUrl String?
+  active Boolean @default(true)
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 }

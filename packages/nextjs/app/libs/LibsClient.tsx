@@ -50,7 +50,7 @@ export default function LibsClient({ libraries, librariesCount }) {
               <Link href={`/libs/${library.id}`} className="underline">
                 {library.locationName}
               </Link>{" "}
-              {library.id}
+              {/* {library.id} */}
             </li>
           ))}
         </ul>
@@ -66,7 +66,27 @@ export default function LibsClient({ libraries, librariesCount }) {
           >
             Add Library
           </button>
-          {!isGeolocationAvailable && <p className="text-red-500">Geolocation must be enabled to add a library</p>}
+          {!isGeolocationAvailable && (
+            <p className="text-red-500">
+              Geolocation must be enabled to take action. Try again.
+              <button
+                className="link"
+                onClick={async () => {
+                  if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(position => {
+                      const latitude = position.coords.latitude;
+                      const longitude = position.coords.longitude;
+                      window.location.href = `/libs?latitude=${latitude}&longitude=${longitude}`;
+                    });
+                  } else {
+                    alert("Geolocation is not supported by this browser.");
+                  }
+                }}
+              >
+                via geolocation
+              </button>
+            </p>
+          )}
         </form>
       </main>
     </>
