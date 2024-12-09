@@ -2005,6 +2005,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-leaflet/core@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "@react-leaflet/core@npm:2.1.0"
+  peerDependencies:
+    leaflet: ^1.9.0
+    react: ^18.0.0
+    react-dom: ^18.0.0
+  checksum: c11a15fb71a9929b809f346d8f784d0f32afa373bc096aa1f0d0fa6a2ef0ce632a563c31876abf8b255a12a19d6e80ece31e2ef505f79a678bbf073e7a6c5c60
+  languageName: node
+  linkType: hard
+
 "@rollup/pluginutils@npm:^4.0.0":
   version: 4.2.1
   resolution: "@rollup/pluginutils@npm:4.2.1"
@@ -2754,6 +2765,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/geojson@npm:*":
+  version: 7946.0.15
+  resolution: "@types/geojson@npm:7946.0.15"
+  checksum: 226d7ab59540632b19f7889c76c4c586a5104c18c43a81f32974aa035eafe557f86bd5a79ca5568bb63cbe5bfa9014c8e9a29cb0bb3d2f0bd71b0cc13ad8ccb3
+  languageName: node
+  linkType: hard
+
 "@types/glob@npm:^7.1.1":
   version: 7.2.0
   resolution: "@types/glob@npm:7.2.0"
@@ -2775,6 +2793,15 @@ __metadata:
   version: 0.0.29
   resolution: "@types/json5@npm:0.0.29"
   checksum: e60b153664572116dfea673c5bda7778dbff150498f44f998e34b5886d8afc47f16799280e4b6e241c0472aef1bc36add771c569c68fc5125fc2ae519a3eb9ac
+  languageName: node
+  linkType: hard
+
+"@types/leaflet@npm:^1":
+  version: 1.9.15
+  resolution: "@types/leaflet@npm:1.9.15"
+  dependencies:
+    "@types/geojson": "*"
+  checksum: 7038c61ec62908cf12a36cc1f70b4ca8466c60d3bf6524cf015b3960288463ad14e3c18e376c0bfcc8a661c51249d65ba85813d24badfa7fc92654e2dc82f2f0
   languageName: node
   linkType: hard
 
@@ -9326,6 +9353,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"leaflet@npm:^1.9.4":
+  version: 1.9.4
+  resolution: "leaflet@npm:1.9.4"
+  checksum: bfc79f17a247b37b92d84b3c78702501603392d6589fde606de4a825d11f1609d90225388834f2e0709dac327e52dcd4b4b9cc9fd3d590060c5b1e53b84fa6c6
+  languageName: node
+  linkType: hard
+
 "levn@npm:^0.4.1":
   version: 0.4.1
   resolution: "levn@npm:0.4.1"
@@ -11496,6 +11530,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-leaflet@npm:^4.2.1":
+  version: 4.2.1
+  resolution: "react-leaflet@npm:4.2.1"
+  dependencies:
+    "@react-leaflet/core": ^2.1.0
+  peerDependencies:
+    leaflet: ^1.9.0
+    react: ^18.0.0
+    react-dom: ^18.0.0
+  checksum: 79222c2ba0c62facaa3dfee18f7a692f917a4fb744ba8d22269a77f9779fc9634962230eb51265ff2563a1a5e3287d2ec16640ee7f5de459458027e05cd756ba
+  languageName: node
+  linkType: hard
+
 "react-native-webview@npm:^11.26.0":
   version: 11.26.1
   resolution: "react-native-webview@npm:11.26.1"
@@ -12057,9 +12104,12 @@ __metadata:
   resolution: "se-2@workspace:."
   dependencies:
     "@prisma/client": 6.0.1
+    "@types/leaflet": ^1
     husky: ~8.0.3
+    leaflet: ^1.9.4
     lint-staged: ~13.2.2
     prisma: ^6.0.1
+    react-leaflet: ^4.2.1
   languageName: unknown
   linkType: soft
 

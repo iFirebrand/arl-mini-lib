@@ -2,6 +2,7 @@
 
 // Mark this component as a Client Component
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { createLibrary } from "../../actions/actions";
 
@@ -9,6 +10,9 @@ export default function LibsClient({ libraries, librariesCount }) {
   const [isGeolocationAvailable, setIsGeolocationAvailable] = useState(false);
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
+
+  // Dynamically import the Map component to avoid SSR issues
+  const Map = dynamic(() => import("../../components/Map"), { ssr: false });
 
   useEffect(() => {
     // Get URL parameters on the client side
@@ -33,7 +37,19 @@ export default function LibsClient({ libraries, librariesCount }) {
 
   return (
     <>
-      <div className="container mx-auto">Libs</div>
+      {isGeolocationAvailable ? (
+        <div className="container mx-auto">
+          <div id="map" style={{ height: "100vh", width: "100%" }}>
+            <Map />
+          </div>
+        </div>
+      ) : (
+        <div className="container mx-auto">
+          <button className="btn btn-accent mt-4" onClick={() => window.location.reload()}>
+            Enable Geolocation
+          </button>
+        </div>
+      )}
       <div className="flex-grow bg-base-300 w-full mt-16 px-8 py-12">
         <div className="flex justify-center items-center gap-12 flex-col sm:flex-row">
           <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
