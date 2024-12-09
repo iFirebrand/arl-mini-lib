@@ -1,17 +1,32 @@
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 
-const Map = () => {
-  const position = [38.87997, -77.10677]; // Example: Arlington, VA coordinates
+// Import Leaflet
+
+// Set default icon for markers
+const DefaultIcon = L.icon({
+  iconUrl: require("leaflet/dist/images/marker-icon.png"), // Path to marker icon
+  iconSize: [25, 41], // Size of the icon
+  iconAnchor: [12, 41], // Point of the icon which will correspond to marker's location
+  popupAnchor: [1, -34], // Point from which the popup should open relative to the iconAnchor
+  shadowUrl: require("leaflet/dist/images/marker-shadow.png"), // Path to shadow icon
+  shadowSize: [41, 41], // Size of the shadow
+});
+
+L.Marker.prototype.options.icon = DefaultIcon; // Set the default icon for all markers
+
+const Map = ({ latitude, longitude }) => {
+  const position = [latitude, longitude]; // Example: Arlington, VA coordinates
 
   return (
-    <MapContainer center={position} zoom={13} style={{ height: "100%", width: "100%" }}>
+    <MapContainer center={position} zoom={18} style={{ height: "100%", width: "100%" }}>
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       <Marker position={position}>
-        <Popup>Welcome to Arlington!</Popup>
+        <Popup>Arlington Mini Library</Popup>
       </Marker>
     </MapContainer>
   );
