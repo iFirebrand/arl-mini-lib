@@ -18,7 +18,7 @@ const Home: NextPage = () => {
             <span className="block text-4xl font-bold">Arlington Mini Libraries</span>
           </h1>
           <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
-            <p className="my-2 font-medium">Look up libs, books in them, or add libs and catalog them.</p>
+            <p className="my-2 font-medium">Discover libs, their contents, or curate them</p>
           </div>
 
           {/* <p className="text-center text-lg">Get started by editing </p> */}
@@ -29,19 +29,26 @@ const Home: NextPage = () => {
             <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
               <HomeIcon className="h-8 w-8 fill-secondary" />
               <p>
-                Find your lib to{" "}
+                Find{" "}
                 <Link href="/libs" passHref className="link">
-                  view or add books
+                  lib
                 </Link>
               </p>
             </div>
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
+            {/* <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
               <CurrencyDollarIcon className="h-8 w-8 fill-secondary" />
               <p>
                 Your can sponsor seeding this{" "}
                 <Link href="/about" passHref className="link">
                   site
                 </Link>
+              </p>
+            </div> */}
+            <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
+              <p className="my-2 font-medium">
+                Discover the hidden gems in your neighborhood! ARLib makes it easy to find, catalog, and share mini
+                libraries near you. Use your phone to map libraries, scan books, and explore what’s available—all while
+                building a community of readers.
               </p>
             </div>
           </div>
