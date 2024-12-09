@@ -4,7 +4,7 @@ import React, { useCallback, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bars3Icon, NewspaperIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon, HomeIcon, InformationCircleIcon, NewspaperIcon } from "@heroicons/react/24/outline";
 import { FaucetButton, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useOutsideClick } from "~~/hooks/scaffold-eth";
 
@@ -21,9 +21,14 @@ export const menuLinks: HeaderMenuLink[] = [
   },
 
   {
-    label: "Ken's Events",
-    href: "/events",
-    icon: <NewspaperIcon className="h-4 w-4" />,
+    label: "Libs",
+    href: "/lib",
+    icon: <HomeIcon className="h-4 w-4" />,
+  },
+  {
+    label: "About",
+    href: "/about",
+    icon: <InformationCircleIcon className="h-4 w-4" />,
   },
 ];
 
@@ -91,11 +96,11 @@ export const Header = () => {
         </div>
         <Link href="/" passHref className="hidden lg:flex items-center gap-2 ml-4 mr-6 shrink-0">
           <div className="flex relative w-10 h-10">
-            <Image alt="SE2 logo" className="cursor-pointer" fill src="/logo.svg" />
+            <Image alt="logo" className="cursor-pointer" fill src="/logo.svg" />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold leading-tight">Ukrainian DC</span>
-            <span className="text-xs">For 🇺🇸 community</span>
+            <span className="font-bold leading-tight">Arlib.app</span>
+            <span className="text-xs">Arlington Mini Libraries</span>
           </div>
         </Link>
         <ul className="hidden lg:flex lg:flex-nowrap menu menu-horizontal px-1 gap-2">

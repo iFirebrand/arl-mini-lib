@@ -29,7 +29,8 @@ export const Footer = () => {
           <div className="flex justify-center items-center gap-2 text-sm w-full">
             <div className="flex justify-center items-center gap-2">
               <p className="m-0 text-center">
-                Experimental. <HeartIcon className="inline-block h-4 w-4" />
+                <HeartIcon className="inline-block h-4 w-4" />
+                {` `}Experimental community project
               </p>
             </div>
           </div>
