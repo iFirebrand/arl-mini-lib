@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import BarcodeScannerComponent from "react-qr-barcode-scanner";
 
 function Scan({ libraryId }) {
-  const [barcode, setBarcode] = useState("Not Found");
   const [isScanning, setIsScanning] = useState(false);
   const [bookDataList, setBookDataList] = useState([]);
   const [scannedCount, setScannedCount] = useState(0);
@@ -12,11 +12,6 @@ function Scan({ libraryId }) {
 
   const handleScanToggle = () => {
     setIsScanning(!isScanning);
-    if (!isScanning) {
-      setBarcode("Not Found");
-      setBookDataList([]);
-      setScannedCount(0);
-    }
   };
 
   const fetchBookData = async isbn => {
@@ -67,11 +62,8 @@ function Scan({ libraryId }) {
           height={500}
           onUpdate={(err, result) => {
             if (result) {
-              setBarcode(result.text);
               console.log(result.text);
               fetchBookData(result.text);
-            } else {
-              setBarcode("Not Found");
             }
           }}
         />
@@ -81,7 +73,7 @@ function Scan({ libraryId }) {
         {bookDataList.map((book, index) => (
           <div key={index}>
             <h2>{book.title}</h2>
-            <img src={book.imageLinks?.thumbnail} alt={book.title} />
+            <Image src={book.imageLinks?.thumbnail || "/placeholder.jpg"} alt={book.title} width={128} height={192} />
           </div>
         ))}
       </div>
