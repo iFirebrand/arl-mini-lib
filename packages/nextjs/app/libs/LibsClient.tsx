@@ -1,13 +1,22 @@
 "use client";
 
-// Mark this component as a Client Component
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { createLibrary } from "../../actions/actions";
 import { handleGeoLocation } from "../components/maps/handleGeoLocation";
 
-export default function LibsClient({ libraries, librariesCount }) {
+type Library = {
+  id: string;
+  locationName: string;
+};
+
+interface LibsClientProps {
+  libraries: Library[];
+  librariesCount: number;
+}
+
+export default function LibsClient({ libraries, librariesCount }: LibsClientProps) {
   const [isGeolocationAvailable, setIsGeolocationAvailable] = useState(false);
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
