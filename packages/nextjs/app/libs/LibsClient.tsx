@@ -80,7 +80,9 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
         existingLibraryName && ( // Display existing library name if it exists
           <h2 className="text-xl font-semibold text-center">You are at {existingLibraryName} lib</h2>
         )}
-      {!libraryExists && <h2 className="text-xl font-semibold text-center">You discovered a new library. Book it!</h2>}
+      {!libraryExists && isGeolocationAvailable && (
+        <h2 className="text-xl font-semibold text-center">You discovered a new library. Book it!</h2>
+      )}
       {isGeolocationAvailable ? (
         <div className="container mx-auto">
           <div id="map" style={{ height: "33vh", width: "100%" }}>
@@ -138,15 +140,7 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
           >
             Add Library
           </button>
-          {!isGeolocationAvailable && (
-            <p className="text-red-500">
-              Geolocation must be enabled to add a library.
-              <button className="link" onClick={handleGeoLocation}>
-                {" "}
-                Geolocate Yourself.
-              </button>
-            </p>
-          )}
+          {!isGeolocationAvailable && <p className="text-red-500">Enable geolocation please.</p>}
         </form>
       </main>
     </>

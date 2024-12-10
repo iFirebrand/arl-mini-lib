@@ -174,6 +174,19 @@ const App = ({ libraryId }) => {
       <div className="flex items-center flex-col flex-grow pt-10">
         <div className="px-5">
           <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
+            {cameras.length === 0 ? (
+              <p>Enumerating Cameras, browser may be prompting for permissions beforehand</p>
+            ) : (
+              <form>
+                <select onChange={event => setCameraId(event.target.value)}>
+                  {cameras.map(camera => (
+                    <option key={camera.deviceId} value={camera.deviceId}>
+                      {camera.label || camera.deviceId}
+                    </option>
+                  ))}
+                </select>
+              </form>
+            )}
             <BookList results={results} />
           </div>
         </div>
