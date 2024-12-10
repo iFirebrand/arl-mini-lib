@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import Image from "next/image";
+import debounce from "lodash.debounce";
 import BarcodeScannerComponent from "react-qr-barcode-scanner";
 
 interface ScanProps {
@@ -27,6 +28,7 @@ function Scan({ libraryId }: ScanProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [bookDataList, setBookDataList] = useState<BookInfo[]>([]);
   const [scannedCount, setScannedCount] = useState(0);
+  const [toastMessage, setToastMessage] = useState("");
   const apiKey = "AIzaSyA8Y5xWU_S2NaN6NPYgxV_XFS_8iv5OVfk";
 
   const handleScanToggle = () => {
@@ -72,22 +74,24 @@ function Scan({ libraryId }: ScanProps) {
     });
   };
 
+  const handleUpdate = useRef(
+    debounce((err, result) => {
+      if (result?.getText()) {
+        const text = result.getText();
+        console.log(text);
+        fetchBookData(text);
+        setToastMessage(`ISBN scanned successfully! ${text}`);
+        setTimeout(() => setToastMessage(""), 3000);
+      }
+    }, 900),
+  ).current;
+
   return (
     <>
-      <button onClick={handleScanToggle}>{isScanning ? "Stop Scanning" : "Start Scanning"}</button>
-      {isScanning && (
-        <BarcodeScannerComponent
-          width={500}
-          height={500}
-          onUpdate={(err, result) => {
-            if (result?.getText()) {
-              const text = result.getText();
-              console.log(text);
-              fetchBookData(text);
-            }
-          }}
-        />
-      )}
+      <button className="btn btn-accent mt-4" onClick={handleScanToggle}>
+        {isScanning ? "Stop Scanning" : "Start Scanning"}
+      </button>
+      {isScanning && <BarcodeScannerComponent width={300} height={300} onUpdate={handleUpdate} />}
       <p>Scanned Books: {scannedCount}</p>
       <div>
         {bookDataList.map((book, index) => (
@@ -97,6 +101,16 @@ function Scan({ libraryId }: ScanProps) {
           </div>
         ))}
       </div>
+
+      {toastMessage && (
+        <div className="toast toast-top toast-center">
+          <div className="alert alert-success">
+            <div>
+              <span>{toastMessage}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
