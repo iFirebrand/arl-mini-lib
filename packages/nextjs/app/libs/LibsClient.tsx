@@ -37,7 +37,7 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
     }
   }, []); // Empty dependency array to run only once on mount
 
-  const handleSubmit = async event => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault(); // Prevent default form submission
     const formData = new FormData(event.target); // Get form data
 
