@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { createLibrary } from "../../actions/actions";
+import { checkLibraryExists, createLibrary } from "../../actions/actions";
 import { handleGeoLocation } from "../components/maps/handleGeoLocation";
 
 type Library = {
@@ -20,6 +20,8 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
   const [isGeolocationAvailable, setIsGeolocationAvailable] = useState(false);
   const [latitude, setLatitude] = useState<string | null>(null);
   const [longitude, setLongitude] = useState<string | null>(null);
+  const [libraryExists, setLibraryExists] = useState<string | null>(null);
+  const [existingLibraryName, setExistingLibraryName] = useState<string | null>(null);
 
   // Dynamically import the Map component to avoid SSR issues
   const Map = dynamic(() => import("../../components/maps/Map"), { ssr: false });
@@ -35,7 +37,20 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
       setLongitude(long);
       setIsGeolocationAvailable(true);
     }
-  }, []); // Empty dependency array to run only once on mount
+
+    // Check if the library already exists based on the location name
+    const checkExistingLibrary = async () => {
+      if (latitude && longitude) {
+        const exists = await checkLibraryExists(latitude, longitude); // Call the function to check existence
+        setLibraryExists(exists);
+        if (exists) {
+          setExistingLibraryName(`${exists}`); // Set the existing library name
+        }
+      }
+    };
+
+    checkExistingLibrary(); // Call the function to check for existing library
+  }, [latitude, longitude]); // Add latitude and longitude as dependencies
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault(); // Prevent default form submission
@@ -58,6 +73,10 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
 
   return (
     <>
+      {libraryExists &&
+        existingLibraryName && ( // Display existing library name if it exists
+          <h2 className="text-xl font-semibold text-center">You are at {existingLibraryName} lib</h2>
+        )}
       {isGeolocationAvailable ? (
         <div className="container mx-auto">
           <div id="map" style={{ height: "33vh", width: "100%" }}>
@@ -105,16 +124,17 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
           />
           <button
             type="submit"
-            className={`bg-blue-500 py-2 text-white rounded-sm ${isGeolocationAvailable ? "" : "opacity-50 cursor-not-allowed"}`}
-            disabled={!isGeolocationAvailable}
+            className={`bg-blue-500 py-2 text-white rounded-sm ${libraryExists ? "opacity-50 cursor-not-allowed" : ""}`}
+            disabled={libraryExists} // Disable button if library exists
           >
             Add Library
           </button>
           {!isGeolocationAvailable && (
             <p className="text-red-500">
-              Geolocation must be enabled to take action. Try again.
+              Geolocation must be enabled to add a library.
               <button className="link" onClick={handleGeoLocation}>
-                via geolocation
+                {" "}
+                Geolocate Yourself.
               </button>
             </p>
           )}
