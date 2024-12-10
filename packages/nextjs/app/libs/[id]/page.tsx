@@ -36,7 +36,7 @@ export default async function LibraryPage({ params }: { params: { id: string } }
     <main className="flex flex-col items-center gap-y-5 pt-24, text-center">
       <h1 className="text-3xl font-semibold">{library?.locationName}</h1>
       <p>{library?.id}</p>
-      <Scan libraryId={library?.id} />
+      {library?.id && <Scan libraryId={library.id} />}
     </main>
   );
 }

@@ -96,8 +96,13 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-y-2 w-[300px]">
           <input type="text" name="locationName" placeholder="Location Name" className="px-2 py-1 rounded-sm" />
-          <input type="hidden" id="latitude" name="latitude" value={isGeolocationAvailable ? latitude : ""} />
-          <input type="hidden" id="longitude" name="longitude" value={isGeolocationAvailable ? longitude : ""} />
+          <input type="hidden" id="latitude" name="latitude" value={isGeolocationAvailable ? (latitude ?? "") : ""} />
+          <input
+            type="hidden"
+            id="longitude"
+            name="longitude"
+            value={isGeolocationAvailable ? (longitude ?? "") : ""}
+          />
           <button
             type="submit"
             className={`bg-blue-500 py-2 text-white rounded-sm ${isGeolocationAvailable ? "" : "opacity-50 cursor-not-allowed"}`}

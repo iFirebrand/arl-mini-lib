@@ -4,9 +4,28 @@ import React, { useState } from "react";
 import Image from "next/image";
 import BarcodeScannerComponent from "react-qr-barcode-scanner";
 
-function Scan({ libraryId }) {
+interface ScanProps {
+  libraryId: string;
+}
+
+interface BookInfo {
+  title: string;
+  imageLinks?: {
+    thumbnail?: string;
+  };
+}
+
+interface BookData {
+  title: string;
+  authors?: string;
+  thumbnail?: string;
+  description?: string;
+  isbn10: string;
+}
+
+function Scan({ libraryId }: ScanProps) {
   const [isScanning, setIsScanning] = useState(false);
-  const [bookDataList, setBookDataList] = useState([]);
+  const [bookDataList, setBookDataList] = useState<BookInfo[]>([]);
   const [scannedCount, setScannedCount] = useState(0);
   const apiKey = "AIzaSyA8Y5xWU_S2NaN6NPYgxV_XFS_8iv5OVfk";
 
@@ -14,7 +33,7 @@ function Scan({ libraryId }) {
     setIsScanning(!isScanning);
   };
 
-  const fetchBookData = async isbn => {
+  const fetchBookData = async (isbn: string) => {
     try {
       const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${apiKey}`);
       const data = await response.json();
@@ -43,7 +62,7 @@ function Scan({ libraryId }) {
     }
   };
 
-  const saveBookToDatabase = async (book, libraryId) => {
+  const saveBookToDatabase = async (book: BookData, libraryId: string) => {
     await fetch("/api/saveBook", {
       method: "POST",
       headers: {
@@ -61,9 +80,10 @@ function Scan({ libraryId }) {
           width={500}
           height={500}
           onUpdate={(err, result) => {
-            if (result) {
-              console.log(result.text);
-              fetchBookData(result.text);
+            if (result?.getText()) {
+              const text = result.getText();
+              console.log(text);
+              fetchBookData(text);
             }
           }}
         />
