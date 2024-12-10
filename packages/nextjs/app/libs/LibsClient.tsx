@@ -18,8 +18,8 @@ interface LibsClientProps {
 
 export default function LibsClient({ libraries, librariesCount }: LibsClientProps) {
   const [isGeolocationAvailable, setIsGeolocationAvailable] = useState(false);
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
+  const [latitude, setLatitude] = useState<string | null>(null);
+  const [longitude, setLongitude] = useState<string | null>(null);
 
   // Dynamically import the Map component to avoid SSR issues
   const Map = dynamic(() => import("../../components/maps/Map"), { ssr: false });
@@ -39,10 +39,21 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault(); // Prevent default form submission
-    const formData = new FormData(event.target); // Get form data
+    const formData = new FormData(event.currentTarget); // Use event.currentTarget instead of event.target
 
-    // Call createLibrary with form data
-    await createLibrary(formData);
+    // Basic validation
+    if (!formData.get("locationName")) {
+      alert("Location Name is required."); // Simple alert for validation
+      return;
+    }
+
+    try {
+      // Call createLibrary with form data
+      await createLibrary(formData);
+    } catch (error) {
+      console.error("Error creating library:", error); // Log error for debugging
+      alert("Failed to create library. Please try again."); // Notify user of failure
+    }
   };
 
   return (
