@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import Result from "./Result";
+import BookList from "./BookList";
 import Scanner from "./Scanner";
 import Quagga from "@ericblade/quagga2";
 
@@ -14,15 +14,6 @@ const App = ({ libraryId }) => {
   const [torchOn, setTorch] = useState(false); // toggleable state for "should torch be on"
   const scannerRef = useRef(null); // reference to the scanner element in the DOM
   const apiKey = "AIzaSyA8Y5xWU_S2NaN6NPYgxV_XFS_8iv5OVfk";
-
-  // at start, we need to get a list of the available cameras.  We can do that with Quagga.CameraAccess.enumerateVideoDevices.
-  // HOWEVER, Android will not allow enumeration to occur unless the user has granted camera permissions to the app/page.
-  // AS WELL, Android will not ask for permission until you actually try to USE the camera, just enumerating the devices is not enough to trigger the permission prompt.
-  // THEREFORE, if we're going to be running in Android, we need to first call Quagga.CameraAccess.request() to trigger the permission prompt.
-  // AND THEN, we need to call Quagga.CameraAccess.release() to release the camera so that it can be used by the scanner.
-  // AND FINALLY, we can call Quagga.CameraAccess.enumerateVideoDevices() to get the list of cameras.
-
-  // Normally, I would place this in an application level "initialization" event, but for this demo, I'm just going to put it in a useEffect() hook in the App component.
 
   useEffect(() => {
     const enableCamera = async () => {
@@ -116,61 +107,40 @@ const App = ({ libraryId }) => {
   return (
     <>
       <div>
-        {cameraError ? (
-          <p>ERROR INITIALIZING CAMERA ${JSON.stringify(cameraError)} -- DO YOU HAVE PERMISSION?</p>
-        ) : null}
+        {cameraError ? <p>Error starting camera. ${JSON.stringify(cameraError)} -- Do you give permssion?</p> : null}
 
         <button className="btn btn-accent mt-4" onClick={onTorchClick}>
-          {torchOn ? "Disable Flashlight" : "Enable Flashlight"}
+          {torchOn ? "Flashlight On" : "Flashlight Off"}
         </button>
         <button className="btn btn-accent mt-4" onClick={() => setScanning(!scanning)}>
           {scanning ? "Stop Scanning" : "Start Scanning"}
         </button>
+        <p>
+          Books added: <span class="badge badge-info">{results.length}</span>
+        </p>
+        {scanning && (
+          <div ref={scannerRef} style={{ position: "relative", border: "0px solid red", height: "25vh" }}>
+            <canvas
+              className="drawingBuffer"
+              style={{
+                position: "absolute",
+                top: "0px",
+                width: "100%",
+                height: "100%",
+                zIndex: -1,
+              }}
+              width="320"
+              height="240"
+            />
 
-        <div ref={scannerRef} style={{ position: "relative", border: "0px solid red" }}>
-          {/* <video style={{ width: window.innerWidth, height: 480, border: '3px solid orange' }}/> */}
-          <canvas
-            className="drawingBuffer"
-            style={{
-              position: "absolute",
-              top: "0px",
-              // left: '0px',
-              // height: '100%',
-              // width: '100%',
-              // border: "3px solid green",
-            }}
-            width="640"
-            height="480"
-          />
-
-          {scanning ? <Scanner scannerRef={scannerRef} cameraId={cameraId} onDetected={handleDetected} /> : null}
-          {cameras.length === 0 ? (
-            <p>Enumerating Cameras, browser may be prompting for permissions beforehand</p>
-          ) : (
-            <form>
-              <select onChange={event => setCameraId(event.target.value)}>
-                {cameras.map(camera => (
-                  <option key={camera.deviceId} value={camera.deviceId}>
-                    {camera.label || camera.deviceId}
-                  </option>
-                ))}
-              </select>
-            </form>
-          )}
-        </div>
+            <Scanner scannerRef={scannerRef} cameraId={cameraId} onDetected={handleDetected} />
+          </div>
+        )}
       </div>
       <div className="flex items-center flex-col flex-grow pt-10">
         <div className="px-5">
-          <h1 className="text-center">
-            <span className="block text-4xl font-bold">Your Work</span>
-          </h1>
           <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
-            <ul className="results">
-              {results.map(
-                result =>
-                  result.codeResult && <Result key={result.codeResult.code} result={result} libraryId={libraryId} />,
-              )}
-            </ul>
+            <BookList results={results} />
           </div>
         </div>
       </div>
