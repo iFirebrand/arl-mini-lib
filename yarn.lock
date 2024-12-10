@@ -2236,6 +2236,7 @@ __metadata:
     "@rainbow-me/rainbowkit": 2.1.6
     "@tanstack/react-query": ~5.59.15
     "@trivago/prettier-plugin-sort-imports": ~4.3.0
+    "@types/lodash.debounce": ^4.0.9
     "@types/node": ~18.19.50
     "@types/react": ~18.3.5
     "@typescript-eslint/eslint-plugin": ~5.40.0
@@ -2804,6 +2805,22 @@ __metadata:
   dependencies:
     "@types/geojson": "*"
   checksum: 7038c61ec62908cf12a36cc1f70b4ca8466c60d3bf6524cf015b3960288463ad14e3c18e376c0bfcc8a661c51249d65ba85813d24badfa7fc92654e2dc82f2f0
+  languageName: node
+  linkType: hard
+
+"@types/lodash.debounce@npm:^4.0.9":
+  version: 4.0.9
+  resolution: "@types/lodash.debounce@npm:4.0.9"
+  dependencies:
+    "@types/lodash": "*"
+  checksum: 8183a152e01928e3b97ca773f6ae6038b8695e76493ba8bf6b743ec143948a62294fbc9d49fa4a78b52265b3ba4892ef57534e0c13d04aa0f111671b5a944feb
+  languageName: node
+  linkType: hard
+
+"@types/lodash@npm:*":
+  version: 4.17.13
+  resolution: "@types/lodash@npm:4.17.13"
+  checksum: d0bf8fbd950be71946e0076b30fd40d492293baea75f05931b6b5b906fd62583708c6229abdb95b30205ad24ce1ed2f48bc9d419364f682320edd03405cc0c7e
   languageName: node
   linkType: hard
 
