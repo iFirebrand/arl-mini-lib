@@ -1,6 +1,6 @@
 import { unstable_cache as cache } from "next/cache";
 import prisma from "../../../lib/db";
-import Scan from "./scan";
+import Scan from "../../scan/App";
 
 //  you can pregenerate all the paths at build time
 // export async function getStaticParams() {
@@ -27,7 +27,7 @@ export default async function LibraryPage({ params }: { params: { id: string } }
     return (
       <main className="flex flex-col items-center gap-y-5 pt-24, text-center">
         <h1 className="text-3xl font-semibold">{cachedLibrary.locationName}</h1>
-        <p>{cachedLibrary.id}</p>
+
         <Scan libraryId={cachedLibrary.id} />
       </main>
     );
@@ -35,7 +35,7 @@ export default async function LibraryPage({ params }: { params: { id: string } }
   return (
     <main className="flex flex-col items-center gap-y-5 pt-24, text-center">
       <h1 className="text-3xl font-semibold">{library?.locationName}</h1>
-      <p>{library?.id}</p>
+
       {library?.id && <Scan libraryId={library.id} />}
     </main>
   );
