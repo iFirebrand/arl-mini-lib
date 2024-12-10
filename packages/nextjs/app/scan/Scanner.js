@@ -34,7 +34,6 @@ const defaultLocatorSettings = {
 const defaultDecoders = ["ean_reader"];
 
 const Scanner = ({
-  libraryId,
   onDetected,
   scannerRef,
   onScannerReady,
@@ -53,10 +52,10 @@ const Scanner = ({
       const err = getMedianOfCodeErrors(result.codeResult.decodedCodes);
       // if Quagga is at least 75% certain that it read correctly, then accept the code.
       if (err < 0.25) {
-        onDetected({ code: result.codeResult.code, libraryId });
+        onDetected({ code: result.codeResult.code });
       }
     },
-    [onDetected, libraryId],
+    [onDetected],
   );
 
   const handleProcessed = result => {
@@ -176,7 +175,6 @@ Scanner.propTypes = {
   locator: PropTypes.object,
   decoders: PropTypes.array,
   locate: PropTypes.bool,
-  libraryId: PropTypes.string,
 };
 
 export default Scanner;

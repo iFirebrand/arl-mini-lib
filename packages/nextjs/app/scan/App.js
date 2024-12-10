@@ -14,6 +14,7 @@ const App = ({ libraryId }) => {
   const [results, setResults] = useState([]); // list of scanned results
   const [torchOn, setTorch] = useState(false); // toggleable state for "should torch be on"
   const scannerRef = useRef(null); // reference to the scanner element in the DOM
+  const apiKey = "AIzaSyA8Y5xWU_S2NaN6NPYgxV_XFS_8iv5OVfk";
 
   // at start, we need to get a list of the available cameras.  We can do that with Quagga.CameraAccess.enumerateVideoDevices.
   // HOWEVER, Android will not allow enumeration to occur unless the user has granted camera permissions to the app/page.
@@ -55,6 +56,64 @@ const App = ({ libraryId }) => {
       Quagga.CameraAccess.disableTorch();
     }
   }, [torchOn, setTorch]);
+
+  const saveBookToDatabase = useCallback(
+    async book => {
+      console.log("saveBookToDatabase called", book, libraryId);
+      await fetch("/api/saveBook", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ...book, libraryId }),
+      });
+    },
+    [libraryId],
+  );
+
+  const fetchBookData = useCallback(
+    async isbn => {
+      try {
+        const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${apiKey}`);
+        const data = await response.json();
+        console.log("fetchBookData called with isbn and data", isbn, data);
+        if (data.items && data.items.length > 0) {
+          const bookInfo = data.items[0].volumeInfo;
+          // Check if the book has already been scanned
+          const isBookAlreadyScanned = results.some(result => result.codeResult && result.codeResult.code === isbn);
+          if (!isBookAlreadyScanned) {
+            await saveBookToDatabase({
+              title: bookInfo.title,
+              authors: bookInfo.authors?.join(", "),
+              thumbnail: bookInfo.imageLinks?.thumbnail,
+              description: bookInfo.description,
+              isbn10: isbn,
+            });
+
+            // Update results state directly instead of using a separate bookDataList
+            setResults(prev => [...prev, { codeResult: { code: isbn }, bookInfo }]);
+            // Increment scanned count directly
+            setScannedCount(prev => prev + 1);
+            console.log("Book added to results", bookInfo);
+            console.log("Results", results);
+            console.log("Books Already Scanned", isBookAlreadyScanned);
+          }
+        } // end of if - here we'll try with Library of Congress API
+      } catch (error) {
+        console.error("Error fetching book data:", error);
+      }
+    },
+    [results, saveBookToDatabase],
+  );
+
+  const handleDetected = useCallback(
+    result => {
+      console.log("handleDetected called", result);
+      setResults(prevResults => [...prevResults, result]);
+      fetchBookData(result.code); // Call the book lookup function here
+    },
+    [fetchBookData],
+  );
 
   return (
     <div>
@@ -99,14 +158,7 @@ const App = ({ libraryId }) => {
             </select>
           </form>
         )}
-        {scanning ? (
-          <Scanner
-            scannerRef={scannerRef}
-            cameraId={cameraId}
-            libraryId={libraryId}
-            onDetected={result => setResults([...results, result])}
-          />
-        ) : null}
+        {scanning ? <Scanner scannerRef={scannerRef} cameraId={cameraId} onDetected={handleDetected} /> : null}
       </div>
     </div>
   );
