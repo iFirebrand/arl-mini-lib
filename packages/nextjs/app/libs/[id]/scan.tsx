@@ -91,7 +91,7 @@ function Scan({ libraryId }: ScanProps) {
       <button className="btn btn-accent mt-4" onClick={handleScanToggle}>
         {isScanning ? "Stop Scanning" : "Start Scanning"}
       </button>
-      {isScanning && <BarcodeScannerComponent width={300} height={300} onUpdate={handleUpdate} />}
+      {isScanning && <BarcodeScannerComponent width={500} height={500} onUpdate={handleUpdate} />}
       <p>Scanned Books: {scannedCount}</p>
       <div>
         {bookDataList.map((book, index) => (
