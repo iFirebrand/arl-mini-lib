@@ -1,7 +1,5 @@
 "use client";
 
-import App from "./App";
-
 const Scan = () => {
   return (
     <>
@@ -10,7 +8,7 @@ const Scan = () => {
           <h1 className="text-center">
             <span className="block text-4xl font-bold">Scanning</span>
           </h1>
-          <Scan />
+          {/* <Scan /> */}
         </div>
       </div>
     </>
