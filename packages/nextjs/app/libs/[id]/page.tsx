@@ -1,6 +1,6 @@
 import { unstable_cache as cache } from "next/cache";
 import prisma from "../../../lib/db";
-import Scan from "./scan";
+import Scan from "../../scan/App";
 
 //  you can pregenerate all the paths at build time
 // export async function getStaticParams() {
