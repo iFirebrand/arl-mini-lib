@@ -6,7 +6,6 @@ import Scanner from "./Scanner";
 import Quagga from "@ericblade/quagga2";
 
 const App = ({ libraryId }) => {
-  console.log("App called with libraryId", libraryId);
   const [scanning, setScanning] = useState(false); // toggleable state for "should render scanner"
   const [cameras, setCameras] = useState([]); // array of available cameras, as returned by Quagga.CameraAccess.enumerateVideoDevices()
   const [cameraId, setCameraId] = useState(null); // id of the active camera device
@@ -76,7 +75,6 @@ const App = ({ libraryId }) => {
       try {
         const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${apiKey}`);
         const data = await response.json();
-        console.log("fetchBookData called with isbn and data", isbn, data);
         if (data.items && data.items.length > 0) {
           const bookInfo = data.items[0].volumeInfo;
           // Check if the book has already been scanned
@@ -116,51 +114,67 @@ const App = ({ libraryId }) => {
   );
 
   return (
-    <div>
-      {cameraError ? <p>ERROR INITIALIZING CAMERA ${JSON.stringify(cameraError)} -- DO YOU HAVE PERMISSION?</p> : null}
+    <>
+      <div>
+        {cameraError ? (
+          <p>ERROR INITIALIZING CAMERA ${JSON.stringify(cameraError)} -- DO YOU HAVE PERMISSION?</p>
+        ) : null}
 
-      <button className="btn btn-accent mt-4" onClick={onTorchClick}>
-        {torchOn ? "Disable Flashlight" : "Enable Flashlight"}
-      </button>
-      <button className="btn btn-accent mt-4" onClick={() => setScanning(!scanning)}>
-        {scanning ? "Stop Scanning" : "Start Scanning"}
-      </button>
-      <ul className="results">
-        {results.map(
-          result => result.codeResult && <Result key={result.codeResult.code} result={result} libraryId={libraryId} />,
-        )}
-      </ul>
-      <div ref={scannerRef} style={{ position: "relative", border: "0px solid red" }}>
-        {/* <video style={{ width: window.innerWidth, height: 480, border: '3px solid orange' }}/> */}
-        <canvas
-          className="drawingBuffer"
-          style={{
-            position: "absolute",
-            top: "0px",
-            // left: '0px',
-            // height: '100%',
-            // width: '100%',
-            // border: "3px solid green",
-          }}
-          width="640"
-          height="480"
-        />
-        {cameras.length === 0 ? (
-          <p>Enumerating Cameras, browser may be prompting for permissions beforehand</p>
-        ) : (
-          <form>
-            <select onChange={event => setCameraId(event.target.value)}>
-              {cameras.map(camera => (
-                <option key={camera.deviceId} value={camera.deviceId}>
-                  {camera.label || camera.deviceId}
-                </option>
-              ))}
-            </select>
-          </form>
-        )}
-        {scanning ? <Scanner scannerRef={scannerRef} cameraId={cameraId} onDetected={handleDetected} /> : null}
+        <button className="btn btn-accent mt-4" onClick={onTorchClick}>
+          {torchOn ? "Disable Flashlight" : "Enable Flashlight"}
+        </button>
+        <button className="btn btn-accent mt-4" onClick={() => setScanning(!scanning)}>
+          {scanning ? "Stop Scanning" : "Start Scanning"}
+        </button>
+
+        <div ref={scannerRef} style={{ position: "relative", border: "0px solid red" }}>
+          {/* <video style={{ width: window.innerWidth, height: 480, border: '3px solid orange' }}/> */}
+          <canvas
+            className="drawingBuffer"
+            style={{
+              position: "absolute",
+              top: "0px",
+              // left: '0px',
+              // height: '100%',
+              // width: '100%',
+              // border: "3px solid green",
+            }}
+            width="640"
+            height="480"
+          />
+
+          {scanning ? <Scanner scannerRef={scannerRef} cameraId={cameraId} onDetected={handleDetected} /> : null}
+          {cameras.length === 0 ? (
+            <p>Enumerating Cameras, browser may be prompting for permissions beforehand</p>
+          ) : (
+            <form>
+              <select onChange={event => setCameraId(event.target.value)}>
+                {cameras.map(camera => (
+                  <option key={camera.deviceId} value={camera.deviceId}>
+                    {camera.label || camera.deviceId}
+                  </option>
+                ))}
+              </select>
+            </form>
+          )}
+        </div>
       </div>
-    </div>
+      <div className="flex items-center flex-col flex-grow pt-10">
+        <div className="px-5">
+          <h1 className="text-center">
+            <span className="block text-4xl font-bold">Your Work</span>
+          </h1>
+          <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
+            <ul className="results">
+              {results.map(
+                result =>
+                  result.codeResult && <Result key={result.codeResult.code} result={result} libraryId={libraryId} />,
+              )}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </>
   );
 };
 

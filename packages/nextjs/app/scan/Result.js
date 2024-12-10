@@ -3,7 +3,7 @@
 import PropTypes from "prop-types";
 
 const Result = ({ result }) => {
-  return <li>{result.codeResult.code}</li>;
+  return <li>ISBN {result.codeResult.code} scanned</li>;
 };
 
 Result.propTypes = {
