@@ -20,7 +20,7 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
   const [isGeolocationAvailable, setIsGeolocationAvailable] = useState(false);
   const [latitude, setLatitude] = useState<string | null>(null);
   const [longitude, setLongitude] = useState<string | null>(null);
-  const [libraryExists, setLibraryExists] = useState<string | null>(null);
+  const [libraryExists, setLibraryExists] = useState<boolean>(false);
   const [existingLibraryName, setExistingLibraryName] = useState<string | null>(null);
 
   // Dynamically import the Map component to avoid SSR issues
@@ -42,8 +42,10 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
     const checkExistingLibrary = async () => {
       if (latitude && longitude) {
         const exists = await checkLibraryExists(latitude, longitude); // Call the function to check existence
-        setLibraryExists(exists);
-        if (exists) {
+        if (exists == "an undiscovered 🤩") {
+          setLibraryExists(false);
+        } else {
+          setLibraryExists(true);
           setExistingLibraryName(`${exists}`); // Set the existing library name
         }
       }
@@ -65,6 +67,7 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
     try {
       // Call createLibrary with form data
       await createLibrary(formData);
+      window.location.reload(); // Reload the page after successful submission
     } catch (error) {
       console.error("Error creating library:", error); // Log error for debugging
       alert("Failed to create library. Please try again."); // Notify user of failure
@@ -77,6 +80,7 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
         existingLibraryName && ( // Display existing library name if it exists
           <h2 className="text-xl font-semibold text-center">You are at {existingLibraryName} lib</h2>
         )}
+      {!libraryExists && <h2 className="text-xl font-semibold text-center">You discovered a new library. Book it!</h2>}
       {isGeolocationAvailable ? (
         <div className="container mx-auto">
           <div id="map" style={{ height: "33vh", width: "100%" }}>
@@ -101,7 +105,7 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
         </div>
       )}
       <main className="flex flex-col items-center gap-y-5 pt-24 text-center">
-        <h1 className="text-3xl font-semibold">All Libraries ({librariesCount})</h1>
+        <h1 className="text-3xl font-semibold">Discovered Mini Libraries ({librariesCount})</h1>
         <ul className="border-t border-b border-black/10 py-5 leading-8">
           {libraries.map(library => (
             <li key={library.id} className="flex items-center justify-between px-5">
@@ -114,7 +118,12 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
         </ul>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-y-2 w-[300px]">
-          <input type="text" name="locationName" placeholder="Location Name" className="px-2 py-1 rounded-sm" />
+          <input
+            type="text"
+            name="locationName"
+            placeholder="Discover a new library to name it!"
+            className="px-2 py-1 rounded-sm"
+          />
           <input type="hidden" id="latitude" name="latitude" value={isGeolocationAvailable ? (latitude ?? "") : ""} />
           <input
             type="hidden"
@@ -125,7 +134,7 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
           <button
             type="submit"
             className={`bg-blue-500 py-2 text-white rounded-sm ${libraryExists ? "opacity-50 cursor-not-allowed" : ""}`}
-            disabled={libraryExists} // Disable button if library exists
+            disabled={false} // Disable button if library exists
           >
             Add Library
           </button>

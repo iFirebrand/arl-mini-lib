@@ -51,7 +51,7 @@ export async function checkLibraryExists(latitude: string, longitude: string): P
       },
     });
 
-    return library ? library.locationName : "New Library Discovered!"; // Return the library locationName if no library found, then return "New Library Discovered!"
+    return library ? library.locationName : "an undiscovered 🤩"; // Return the library locationName if no library found, then return "New Library Discovered!"
   } catch (error) {
     console.error("Error checking library existence:", error);
     return "Error checking library existence"; // Return false if an error occurs
