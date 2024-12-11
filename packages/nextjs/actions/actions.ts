@@ -37,14 +37,14 @@ export async function checkLibraryExists(latitude: string, longitude: string): P
         AND: [
           {
             latitude: {
-              gte: parseFloat(latitude) - 0.0045, // Approximate latitude range
-              lte: parseFloat(latitude) + 0.0045,
+              gte: parseFloat(latitude) - 0.000549, // Adjusted latitude range for 200 feet
+              lte: parseFloat(latitude) + 0.000549,
             },
           },
           {
             longitude: {
-              gte: parseFloat(longitude) - 0.0045, // Approximate longitude range
-              lte: parseFloat(longitude) + 0.0045,
+              gte: parseFloat(longitude) - 0.000549, // Adjusted longitude range for 200 feet
+              lte: parseFloat(longitude) + 0.000549,
             },
           },
         ],
