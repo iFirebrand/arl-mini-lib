@@ -18,12 +18,28 @@ export default function ViewItems({ libraryId }: { libraryId: string }) {
 
   return (
     <div className="w-full flex flex-col gap-4">
-      {items.map((item, index) => (
-        <div key={index} className="flex items-center gap-4">
-          <Image src={item.coverUrl} alt={item.title} width={80} height={120} className="object-contain" />
-          <span>{item.title}</span>
-        </div>
-      ))}
+      <table className="table">
+        <tbody>
+          {/* Dynamic rows from items */}
+          {items.map((item, index) => (
+            <tr key={index}>
+              <td>
+                <div className="flex items-center gap-3">
+                  <div className="avatar">
+                    <div className="h-20 w-16">
+                      <Image src={item.coverUrl} alt={item.title} width={80} height={120} className="object-cover" />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-bold">{item.title}</div>
+                  </div>
+                </div>
+              </td>
+              <td>last scan to be updated</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
       <div className="flex justify-center items-center gap-4 mt-4">
         <button className="btn" onClick={() => setPage(p => p - 1)} disabled={page === 1}>
           Previous

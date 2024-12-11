@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
 
 type Library = {
   id: string;
@@ -17,11 +16,6 @@ interface LibsClientProps {
 }
 
 export default function BrowseClient({ libraries, librariesCount }: LibsClientProps) {
-  const [isGeolocationAvailable, setIsGeolocationAvailable] = useState(true);
-  const [latitude, setLatitude] = useState<string | null>(null);
-  const [longitude, setLongitude] = useState<string | null>(null);
-  // const [libraryExists, setLibraryExists] = useState<boolean>(false);
-
   // Dynamically import the Map component to avoid SSR issues
   const BrowseMap = dynamic(() => import("../../components/maps/BrowseMap"), { ssr: false });
 

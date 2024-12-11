@@ -73,6 +73,10 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
     }
   };
 
+  const handleGeoLocationClick = () => {
+    handleGeoLocation("/libs");
+  };
+
   return (
     <>
       {libraryExists &&
@@ -98,7 +102,7 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
           <div className="flex justify-center items-center gap-12 flex-col sm:flex-row">
             <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
               <p className="my-2 font-medium"></p>
-              <button className="btn btn-accent mt-4" onClick={handleGeoLocation}>
+              <button className="btn btn-accent mt-4" onClick={handleGeoLocationClick}>
                 Enable Geolocation
               </button>
             </div>

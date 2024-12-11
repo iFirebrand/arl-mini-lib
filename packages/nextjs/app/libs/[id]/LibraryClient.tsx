@@ -14,7 +14,6 @@ interface LibraryClientProps {
 }
 
 export default function LibraryClient({ library }: LibraryClientProps) {
-  const [userLocation, setUserLocation] = useState<GeolocationPosition | null>(null);
   const [isAtLibrary, setIsAtLibrary] = useState(false);
 
   useEffect(() => {
@@ -28,7 +27,6 @@ export default function LibraryClient({ library }: LibraryClientProps) {
       try {
         if (library) {
           const position = await getPosition();
-          setUserLocation(position);
           setIsAtLibrary(
             checkIfLocationMatches({
               libraryLatitude: library.latitude,

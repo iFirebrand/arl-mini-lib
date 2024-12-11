@@ -14,7 +14,7 @@ interface Location {
 
 export function checkIfLocationMatches(location: Location): boolean {
   // Convert 20 feet to kilometers (1 foot = 0.0003048 kilometers)
-  const distanceInKm = 20 * 0.0003048;
+  const distanceInKm = 120 * 0.0003048;
 
   // Radius of the Earth in kilometers
   const earthRadius = 6371;
