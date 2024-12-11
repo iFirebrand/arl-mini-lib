@@ -154,6 +154,15 @@ const App = ({ libraryId }) => {
           Books added: <span class="badge badge-info">{results.length}</span>
           <span class="badge badge-info">{getSmiley(results.length)}</span>
         </p>
+        <p>
+          Status:{" "}
+          {results.length > 0
+            ? results[results.length - 1].bookInfo
+              ? results[results.length - 1].bookInfo.title
+              : "Keep scanning book after book..."
+            : "No books added yet"}
+        </p>
+
         {scanning && (
           <div ref={scannerRef} style={{ position: "relative", border: "0px solid red", height: "25vh" }}>
             <canvas

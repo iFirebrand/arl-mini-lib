@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { handleGeoLocation } from "./components/maps/handleGeoLocation";
+import { handleGeoLocation } from "../components/maps/handleGeoLocation";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
 import { HomeIcon } from "@heroicons/react/24/outline";
 
 const Home: NextPage = () => {
-  const [isGeolocationAvailable, setIsGeolocationAvailable] = useState(false);
+  const [isGeolocationRequested, setIsGeolocationRequested] = useState(false);
   useAccount();
 
   const handleGeoLocationClick = () => {
-    setIsGeolocationAvailable(true);
-    handleGeoLocation();
+    setIsGeolocationRequested(true);
+    handleGeoLocation("/libs");
   };
 
   return (
@@ -31,12 +31,11 @@ const Home: NextPage = () => {
           <div className="flex justify-center items-center gap-12 flex-col sm:flex-row">
             <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
               <HomeIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Start here by enabling location
-                <button className="btn btn-accent mt-4" onClick={handleGeoLocationClick}>
-                  {isGeolocationAvailable ? "📡 Hold On..." : "Enable Geolocation"}
-                </button>
-              </p>
+              <p className="mb-2">Start here to identify a lib</p>
+              <button className="btn btn-accent mt-4" onClick={handleGeoLocationClick}>
+                {isGeolocationRequested ? "📡 Hold On..." : "Enable Geolocation"}
+              </button>
+              <p className="mt-2">Browser location services must be enabled in settings</p>
             </div>
             <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
               <p className="my-2 font-medium">

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { checkLibraryExists, createLibrary } from "../../actions/actions";
-import { handleGeoLocation } from "../components/maps/handleGeoLocation";
+import { handleGeoLocation } from "../../components/maps/handleGeoLocation";
 
 type Library = {
   id: string;
