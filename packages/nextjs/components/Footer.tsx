@@ -1,5 +1,4 @@
 import React from "react";
-import { hardhat } from "viem/chains";
 import { HeartIcon } from "@heroicons/react/24/outline";
 
 /**
