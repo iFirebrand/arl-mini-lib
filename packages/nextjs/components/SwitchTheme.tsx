@@ -25,9 +25,9 @@ export const SwitchTheme = ({ className }: { className?: string }) => {
   if (!mounted) return null;
 
   return (
-    <div className={`flex space-x-2 h-8 items-center justify-center text-sm ${className}`}>
+    <div className={`h-5 w-5 ${className}`}>
       <div onClick={handleToggle} className="cursor-pointer">
-        {isDarkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
+        {isDarkMode ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-5 w-5" />}
       </div>
     </div>
   );

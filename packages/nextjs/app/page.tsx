@@ -44,7 +44,7 @@ const Home: NextPage = () => {
               <button className="btn btn-accent mt-4" onClick={handleGeoLocationClick}>
                 {isGeolocationRequested ? (
                   <>
-                    📡 Getting Location <span className="loading loading-spinner loading-xs"></span>
+                    📡 Getting Location <span className="loading loading-ring loading-lg"></span>
                   </>
                 ) : (
                   "Enable Geolocation"

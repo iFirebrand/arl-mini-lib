@@ -4,7 +4,7 @@ import React, { useCallback, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bars3Icon, HomeIcon, InformationCircleIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon, HomeIcon, InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
 import { SwitchTheme } from "~~/components/SwitchTheme";
 import { useOutsideClick } from "~~/hooks/scaffold-eth";
 
@@ -20,6 +20,11 @@ export const menuLinks: HeaderMenuLink[] = [
     href: "/",
   },
 
+  {
+    label: "Map",
+    href: "/browse",
+    icon: <MapIcon className="h-4 w-4" />,
+  },
   {
     label: "Libs",
     href: "/libs",
@@ -62,6 +67,12 @@ export const HeaderMenuLinks = () => {
                 {label}
               </span>
             </Link>
+            <InformationCircleIcon
+              className="h-4 w-4 cursor-pointer"
+              onClick={() => {
+                // Trigger the SwitchTheme action here
+              }}
+            />
           </li>
         );
       })}
