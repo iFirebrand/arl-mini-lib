@@ -1,24 +1,37 @@
-"use client";
+// This is a server component
+import prisma from "../../lib/db";
+import BrowseClient from "./BrowseClient";
 
-import { HomeIcon } from "@heroicons/react/24/outline";
+// Import the client component
 
-export default function Browse() {
-  return (
-    <>
-      <div className="flex items-center flex-col flex-grow pt-10">
-        <div className="flex-grow bg-base-300 w-full mt-16 px-8 py-12">
-          <div className="flex justify-center items-center gap-12 flex-col sm:flex-row">
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <HomeIcon className="h-8 w-8 fill-secondary" />
-            </div>
-            <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
-              <p className="my-2 font-medium">
-                This page is finding its meaning still. Will be used to browse books in libraries.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
+async function fetchLibraries() {
+  const libraries = await prisma.library.findMany({
+    where: {
+      locationName: {
+        not: {
+          equals: "",
+        },
+      },
+    },
+    orderBy: { createdAt: "asc" },
+    select: { id: true, locationName: true, latitude: true, longitude: true },
+  });
+
+  const librariesCount = await prisma.library.count({
+    where: {
+      locationName: {
+        not: {
+          equals: "",
+        },
+      },
+    },
+  });
+
+  return { libraries, librariesCount };
+}
+
+export default async function BrowsePage() {
+  const { libraries, librariesCount } = await fetchLibraries(); // Fetch libraries data
+
+  return <BrowseClient libraries={libraries} librariesCount={librariesCount} />;
 }
