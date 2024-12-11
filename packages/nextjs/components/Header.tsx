@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bars3Icon, HomeIcon, InformationCircleIcon } from "@heroicons/react/24/outline";
+import { SwitchTheme } from "~~/components/SwitchTheme";
 import { useOutsideClick } from "~~/hooks/scaffold-eth";
 
 type HeaderMenuLink = {
@@ -29,6 +30,11 @@ export const menuLinks: HeaderMenuLink[] = [
     href: "/about",
     icon: <InformationCircleIcon className="h-4 w-4" />,
   },
+  {
+    label: "",
+    href: "#",
+    icon: <SwitchTheme className="h-4 w-4" />,
+  },
 ];
 
 export const HeaderMenuLinks = () => {
@@ -48,7 +54,13 @@ export const HeaderMenuLinks = () => {
               } hover:bg-secondary hover:shadow-md focus:!bg-secondary active:!text-neutral py-1.5 px-3 text-sm rounded-full gap-2 grid grid-flow-col`}
             >
               {icon}
-              <span>{label}</span>
+              <span
+                onClick={() => {
+                  /* Trigger the same action as the icon click */
+                }}
+              >
+                {label}
+              </span>
             </Link>
           </li>
         );
