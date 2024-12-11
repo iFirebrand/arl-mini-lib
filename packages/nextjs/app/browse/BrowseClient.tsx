@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import { InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
 
 type Library = {
   id: string;
@@ -36,19 +37,42 @@ export default function BrowseClient({ libraries, librariesCount }: LibsClientPr
             <BrowseMap libraries={libraries} position={position} />
           </div>
         </div>
-        <ul className="border-t border-b border-black/10 py-5 leading-8">
-          {libraries.map(library => (
-            <li key={library.id} className="flex flex-col items-center justify-center px-5">
-              <span className="text-lg font-semibold">{library.locationName}</span>
-              <div className="flex gap-4 mt-4">
-                <a href={`/browse/${library.id}`} className="btn btn-accent">
-                  Browse
-                </a>
-              </div>
-              {/* {library.id} */}
-            </li>
-          ))}
-        </ul>
+        <div className="container mx-auto">
+          <div className="overflow-x-auto">
+            <table className="table">
+              <tbody>
+                {/* Dynamic rows from libraries */}
+                {libraries.map(library => (
+                  <tr key={library.id}>
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <div className="avatar">
+                          <div className="mask mask-squircle h-12 w-12">
+                            <InformationCircleIcon className="h-12 w-12" />
+                          </div>
+                        </div>
+                        <div>
+                          <div className="font-bold">
+                            {library.locationName.length > 50
+                              ? `${library.locationName.substring(0, 50)}...`
+                              : library.locationName}
+                          </div>
+                          <div className="text-sm opacity-50">{library.id}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>onboarding</td>
+                    <td>
+                      <a href={`http://localhost:3000/browse/${library.id}`} className="btn btn-accent">
+                        Browse Books
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </main>
     </>
   );
