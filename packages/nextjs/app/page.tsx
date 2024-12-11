@@ -4,7 +4,7 @@ import { useState } from "react";
 import { handleGeoLocation } from "../components/maps/handleGeoLocation";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
-import { HomeIcon, MapIcon } from "@heroicons/react/24/outline";
+import { InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
 
 const Home: NextPage = () => {
   const [isGeolocationRequested, setIsGeolocationRequested] = useState(false);
@@ -39,7 +39,7 @@ const Home: NextPage = () => {
             </div>
 
             <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <HomeIcon className="h-8 w-8 fill-secondary" />
+              <span className="loading loading-ring loading-lg"></span>
               <p className="mb-2">In front of a library? </p>
               <button className="btn btn-accent mt-4" onClick={handleGeoLocationClick}>
                 {isGeolocationRequested ? (
@@ -53,14 +53,13 @@ const Home: NextPage = () => {
               <p className="mt-2">Browser location service must be enabled in settings</p>
             </div>
 
-            <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
-              <div className="card bg-base-100 shadow-lg p-6 max-w-md">
-                <p className="text-lg font-semibold text-center">
-                  Discover the hidden gems in your neighborhood! ARLib makes it easy to find, catalog, and share mini
-                  libraries near you. Use your phone to map libraries, scan books, and explore what is available—all
-                  while building a community of readers.
-                </p>
-              </div>
+            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
+              <InformationCircleIcon className="h-8 w-8 fill-secondary" />
+              <p className="mb-2">About ARLib.me</p>
+              <a href="/about" className="btn btn-accent mt-4">
+                Learn More
+              </a>
+              <p className="mt-2">How. Why. Sponsor. Curate. Go on mapping & cataloging quests.</p>
             </div>
           </div>
         </div>
