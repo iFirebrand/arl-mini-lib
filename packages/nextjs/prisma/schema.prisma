@@ -32,8 +32,8 @@ datasource db {
 model Library {
   id String @id @default(cuid())
   locationName String
-  longitude Float?
-  latitude Float?
+  longitude Float
+  latitude Float
   curators User[] @relation("LibraryCurators")
   imageUrl String?
   active Boolean @default(true)

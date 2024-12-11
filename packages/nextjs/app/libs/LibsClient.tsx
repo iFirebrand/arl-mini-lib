@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { checkLibraryExists, createLibrary } from "../../actions/actions";
 import { handleGeoLocation } from "../../components/maps/handleGeoLocation";
 
@@ -110,19 +109,16 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
         <h1 className="text-3xl font-semibold">Discovered Mini Libraries ({librariesCount})</h1>
         <ul className="border-t border-b border-black/10 py-5 leading-8">
           {libraries.map(library => (
-            <li key={library.id} className="flex items-center justify-between px-5">
-              {library.locationName}
-              <span className="badge badge-info">
-                <Link href={`/libs/${library.id}`} className="underline">
+            <li key={library.id} className="flex flex-col items-center justify-center px-5">
+              <span className="text-lg font-semibold">{library.locationName}</span>
+              <div className="flex gap-4 mt-4">
+                <a href={`/libs/${library.id}`} className="btn btn-accent">
                   Add Books
-                </Link>
-              </span>
-
-              <span className="badge badge-info">
-                <Link href={`/browse/${library.id}`} className="underline">
+                </a>
+                <a href={`/browse/${library.id}`} className="btn btn-accent">
                   Browse
-                </Link>
-              </span>
+                </a>
+              </div>
               {/* {library.id} */}
             </li>
           ))}
