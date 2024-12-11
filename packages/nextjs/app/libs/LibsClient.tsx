@@ -144,8 +144,8 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
           />
           <button
             type="submit"
-            className={`bg-blue-500 py-2 text-white rounded-sm ${libraryExists ? "opacity-50 cursor-not-allowed" : ""}`}
-            disabled={false} // Disable button if library exists
+            className={`bg-blue-500 py-2 text-white rounded-sm ${libraryExists || !isGeolocationAvailable ? "opacity-50 cursor-not-allowed" : ""}`}
+            disabled={libraryExists || !isGeolocationAvailable} // Disable button if library exists or geolocation is not available
           >
             Add Library
           </button>
