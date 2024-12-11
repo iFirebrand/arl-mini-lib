@@ -47,17 +47,19 @@ export default function BrowseClient({ libraries, librariesCount }: LibsClientPr
                         </div>
                         <div>
                           <div className="font-bold">
-                            {library.locationName.length > 50
-                              ? `${library.locationName.substring(0, 50)}...`
-                              : library.locationName}
+                            <a href={`/browse/${library.id}`}>
+                              {library.locationName.length > 50
+                                ? `${library.locationName.substring(0, 50)}...`
+                                : library.locationName}
+                            </a>
                           </div>
-                          <div className="text-sm opacity-50">{library.id}</div>
+                          <div className="text-sm opacity-50">experimental</div>
                         </div>
                       </div>
                     </td>
-                    <td>onboarding</td>
+
                     <td>
-                      <a href={`http://localhost:3000/browse/${library.id}`} className="btn btn-accent">
+                      <a href={`/browse/${library.id}`} className="btn btn-accent">
                         Browse Books
                       </a>
                     </td>
