@@ -1,11 +1,19 @@
 "use client";
 
+import { useState } from "react";
+import { handleGeoLocation } from "./components/maps/handleGeoLocation";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
 import { HomeIcon } from "@heroicons/react/24/outline";
 
 const Home: NextPage = () => {
+  const [isGeolocationAvailable, setIsGeolocationAvailable] = useState(false);
   useAccount();
+
+  const handleGeoLocationClick = () => {
+    setIsGeolocationAvailable(true);
+    handleGeoLocation();
+  };
 
   return (
     <>
@@ -24,24 +32,10 @@ const Home: NextPage = () => {
             <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
               <HomeIcon className="h-8 w-8 fill-secondary" />
               <p>
-                Find libraries{" "}
-                <button
-                  className="link"
-                  onClick={async () => {
-                    if (navigator.geolocation) {
-                      navigator.geolocation.getCurrentPosition(position => {
-                        const latitude = position.coords.latitude;
-                        const longitude = position.coords.longitude;
-                        window.location.href = `/libs?latitude=${latitude}&longitude=${longitude}`;
-                      });
-                    } else {
-                      alert("Geolocation is not supported by this browser.");
-                    }
-                  }}
-                >
-                  via geolocation
-                </button>{" "}
-                (takes a few secs to activate)
+                Start here by enabling location
+                <button className="btn btn-accent mt-4" onClick={handleGeoLocationClick}>
+                  {isGeolocationAvailable ? "📡 Hold On..." : "Enable Geolocation"}
+                </button>
               </p>
             </div>
             <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
