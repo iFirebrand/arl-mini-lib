@@ -40,7 +40,8 @@ const Home: NextPage = () => {
                   }}
                 >
                   via geolocation
-                </button>
+                </button>{" "}
+                (takes a few secs to activate)
               </p>
             </div>
             <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">

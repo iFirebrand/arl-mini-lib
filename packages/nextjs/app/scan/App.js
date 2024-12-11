@@ -108,7 +108,7 @@ const App = ({ libraryId }) => {
       // Pause for 2 seconds before allowing another scan
       setTimeout(() => {
         setIsScanning(false); // Reset scanning status after 2 seconds
-      }, 2000);
+      }, 2500);
     },
     [fetchBookData, isScanning], // Add isScanning to dependencies
   );
@@ -142,12 +142,14 @@ const App = ({ libraryId }) => {
       <div>
         {cameraError ? <p>Error starting camera. ${JSON.stringify(cameraError)} -- Do you give permssion?</p> : null}
 
-        <button className="btn btn-accent mt-4" onClick={onTorchClick}>
-          {torchOn ? "Flashlight On" : "Flashlight Off"}
-        </button>
         <button className="btn btn-accent mt-4" onClick={() => setScanning(!scanning)}>
           {scanning ? "Stop Scanning" : "Start Scanning"}
         </button>
+        {scanning && (
+          <button className="btn btn-accent mt-4" onClick={onTorchClick}>
+            {torchOn ? "Turn Flashlight On" : "Flashlight Off"}
+          </button>
+        )}
         <p>
           Books added: <span class="badge badge-info">{results.length}</span>
           <span class="badge badge-info">{getSmiley(results.length)}</span>
@@ -175,7 +177,7 @@ const App = ({ libraryId }) => {
         <div className="px-5">
           <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
             {cameras.length === 0 ? (
-              <p>Enumerating Cameras, browser may be prompting for permissions beforehand</p>
+              <p>Finding Cameras. May ask for permission.</p>
             ) : (
               <form>
                 <select onChange={event => setCameraId(event.target.value)}>

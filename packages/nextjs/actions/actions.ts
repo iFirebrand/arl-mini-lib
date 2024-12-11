@@ -57,3 +57,29 @@ export async function checkLibraryExists(latitude: string, longitude: string): P
     return "Error checking library existence"; // Return false if an error occurs
   }
 }
+
+// Function to get items (books) by library ID with pagination
+export async function getItemsByLibraryId(libraryId: string, page = 1): Promise<{ title: string; coverUrl: string }[]> {
+  const pageSize = 30;
+  const skip = (page - 1) * pageSize;
+
+  try {
+    const items = await prisma.item.findMany({
+      where: { libraryId },
+      select: {
+        title: true,
+        thumbnail: true,
+      },
+      skip,
+      take: pageSize,
+    });
+
+    return items.map(item => ({
+      title: item.title ?? "",
+      coverUrl: item.thumbnail ?? "",
+    }));
+  } catch (error) {
+    console.error("Error fetching items:", error);
+    throw new Error("Could not fetch items");
+  }
+}

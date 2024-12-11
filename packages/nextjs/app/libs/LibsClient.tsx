@@ -111,9 +111,18 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
         <ul className="border-t border-b border-black/10 py-5 leading-8">
           {libraries.map(library => (
             <li key={library.id} className="flex items-center justify-between px-5">
-              <Link href={`/libs/${library.id}`} className="underline">
-                {library.locationName}
-              </Link>{" "}
+              {library.locationName}
+              <span className="badge badge-info">
+                <Link href={`/libs/${library.id}`} className="underline">
+                  Add Books
+                </Link>
+              </span>
+
+              <span className="badge badge-info">
+                <Link href={`/browse/${library.id}`} className="underline">
+                  Browse
+                </Link>
+              </span>
               {/* {library.id} */}
             </li>
           ))}
