@@ -24,14 +24,13 @@ const App = ({ libraryId }) => {
     };
     const enumerateCameras = async () => {
       const cameras = await Quagga.CameraAccess.enumerateVideoDevices();
-      console.log("Cameras Detected: ", cameras);
       return cameras;
     };
     enableCamera()
       .then(disableCamera)
       .then(enumerateCameras)
       .then(cameras => setCameras(cameras))
-      .then(() => Quagga.CameraAccess.disableTorch()) // disable torch at start, in case it was enabled before and we hot-reloaded
+      .then(() => Quagga.CameraAccess.disableTorch())
       .catch(err => setCameraError(err));
     return () => disableCamera();
   }, []);
@@ -49,7 +48,6 @@ const App = ({ libraryId }) => {
 
   const saveBookToDatabase = useCallback(
     async book => {
-      console.log("1. Starting saveBookToDatabase with data:", book);
       try {
         const response = await fetch("/api/saveBook", {
           method: "POST",
@@ -58,12 +56,10 @@ const App = ({ libraryId }) => {
           },
           body: JSON.stringify({ ...book, libraryId }),
         });
-        console.log("2. Save book API response:", response.status, await response.text());
         if (!response.ok) {
           throw new Error(`Save book API failed with status: ${response.status}`);
         }
       } catch (error) {
-        console.error("3. Error in saveBookToDatabase:", error);
         throw error;
       }
     },
@@ -72,18 +68,13 @@ const App = ({ libraryId }) => {
 
   const fetchBookData = useCallback(
     async isbn => {
-      console.log("4. Fetching book data for ISBN:", isbn);
       try {
         const response = await fetch(`/api/openlibrary?isbn=${isbn}`);
-        console.log("5. Raw API Response:", response);
-
         const data = await response.json();
-        console.log("5a. Full OpenLibrary Response:", data);
 
         if (data.records && Object.keys(data.records).length > 0) {
           const recordKey = Object.keys(data.records)[0];
           const record = data.records[recordKey];
-          console.log("6. Processing record:", record);
 
           const bookInfo = {
             title: record.data.title,
@@ -95,15 +86,10 @@ const App = ({ libraryId }) => {
             libraryId: libraryId,
           };
 
-          console.log("7. Saving book:", bookInfo);
           await saveBookToDatabase(bookInfo);
           setResults(prev => [...prev, { codeResult: { code: isbn }, bookInfo }]);
-          console.log("8. Book saved successfully");
-        } else {
-          console.log("6. No records found for ISBN:", isbn);
         }
       } catch (error) {
-        console.error("Error in fetchBookData:", error);
         throw error;
       }
     },
@@ -112,25 +98,20 @@ const App = ({ libraryId }) => {
 
   const handleDetected = useCallback(
     async result => {
-      console.log("1. Barcode detected:", result.code);
       if (isScanning) {
-        console.log("2. Already scanning, skipping...");
         return;
       }
 
       setIsScanning(true);
-      console.log("3. Starting book lookup...");
 
       try {
         await fetchBookData(result.code);
-        console.log("Final. Ready for next scan");
       } catch (error) {
-        console.error("Error processing barcode:", error);
+        // Error handling remains silent
       } finally {
-        // Use a shorter timeout since we're waiting for the API call to complete
         setTimeout(() => {
           setIsScanning(false);
-        }, 1000);
+        }, 2000);
       }
     },
     [fetchBookData, isScanning],
@@ -142,7 +123,7 @@ const App = ({ libraryId }) => {
     if (count === 2) return "😊"; // Slightly more smiling
     if (count === 3) return "😄"; // Happy face
     if (count === 4) return "😁"; // Grinning face
-    if (count === 5) return "���"; // Laughing face
+    if (count === 5) return "😂"; // Laughing face
     if (count === 6) return "😃"; // Big smile
     if (count === 7) return "😅"; // Sweaty smile
     if (count === 8) return "😇"; // Smiling with halo
