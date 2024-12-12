@@ -19,6 +19,12 @@ export default function ViewItems({ libraryId }: { libraryId: string }) {
   return (
     <div className="w-full flex flex-col gap-4">
       <table className="table">
+        <thead>
+          <tr>
+            <th></th>
+            <th></th>
+          </tr>
+        </thead>
         <tbody>
           {/* Dynamic rows from items */}
           {items.map((item, index) => (
@@ -43,7 +49,6 @@ export default function ViewItems({ libraryId }: { libraryId: string }) {
                 </div>
               </td>
               <td>
-                Last seen:{" "}
                 {new Date(item.updatedAt).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",

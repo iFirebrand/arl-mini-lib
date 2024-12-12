@@ -63,7 +63,7 @@ export async function getItemsByLibraryId(
   libraryId: string,
   page = 1,
 ): Promise<{ title: string; coverUrl: string; itemInfo: string; updatedAt: Date }[]> {
-  const pageSize = 30;
+  const pageSize = 50;
   const skip = (page - 1) * pageSize;
 
   try {

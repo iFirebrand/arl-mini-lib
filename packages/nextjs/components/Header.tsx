@@ -26,9 +26,9 @@ export const menuLinks: HeaderMenuLink[] = [
     icon: <MapIcon className="h-4 w-4" />,
   },
   {
-    label: "Libs",
+    label: "@Lib",
     href: "/libs",
-    icon: <HomeIcon className="h-4 w-4" />,
+    icon: <span className="loading loading-ring loading-sm"></span>,
   },
   {
     label: "About",
