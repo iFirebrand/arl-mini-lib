@@ -154,17 +154,19 @@ const App = ({ libraryId }) => {
             {torchOn ? "Turn Flashlight On" : "Flashlight Off"}
           </button>
         )}
-        <p>
-          Books added: <span class="badge badge-info">{results.length}</span>
+        {/* <p>
+          Books added: <span class="badge badge-info">📚 {results.length}</span>
           <span class="badge badge-info">{getSmiley(results.length)}</span>
-        </p>
-        <p>
+        </p> */}
+        <p className="text-2xl">
           Status:{" "}
           {results.length > 0
             ? results[results.length - 1].bookInfo
               ? results[results.length - 1].bookInfo.title
               : "Keep scanning book after book..."
-            : "No books added yet"}
+            : "scan barcode to add book to catalog"}
+          <span class="badge badge-info">{getSmiley(results.length)}</span>
+          <span class="badge badge-info">📚 {results.length}</span>
         </p>
 
         {scanning && (
