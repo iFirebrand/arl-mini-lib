@@ -59,7 +59,10 @@ export async function checkLibraryExists(latitude: string, longitude: string): P
 }
 
 // Function to get items (books) by library ID with pagination
-export async function getItemsByLibraryId(libraryId: string, page = 1): Promise<{ title: string; coverUrl: string }[]> {
+export async function getItemsByLibraryId(
+  libraryId: string,
+  page = 1,
+): Promise<{ title: string; coverUrl: string; itemInfo: string; updatedAt: Date }[]> {
   const pageSize = 30;
   const skip = (page - 1) * pageSize;
 
@@ -69,6 +72,9 @@ export async function getItemsByLibraryId(libraryId: string, page = 1): Promise<
       select: {
         title: true,
         thumbnail: true,
+        itemInfo: true,
+        isbn13: true,
+        updatedAt: true,
       },
       skip,
       take: pageSize,
@@ -77,9 +83,11 @@ export async function getItemsByLibraryId(libraryId: string, page = 1): Promise<
     return items.map(item => ({
       title: item.title ?? "",
       coverUrl: item.thumbnail ?? "",
+      itemInfo: item.itemInfo ? `https://openlibrary.org/isbn/${item.isbn13}` : "#",
+      updatedAt: item.updatedAt,
     }));
   } catch (error) {
-    console.error("Error fetching items:", error);
-    throw new Error("Could not fetch items");
+    console.error("Error details:", error); // Log the actual error
+    return []; // Return empty array instead of throwing
   }
 }

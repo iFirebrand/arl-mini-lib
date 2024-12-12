@@ -97,11 +97,11 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
           <h2 className="text-2xl font-bold">Please enable geolocation to identify a library</h2>
           <p className="text-sm">
             {" "}
-            Or you can just {""}
-            <a href={`/browse}`} className="btn btn-accent">
+            Or you can {""}
+            <a className="link" href="/browse">
               browse
             </a>{" "}
-            {""} the map to find your library.
+            {""} the map to find a library
           </p>
         </div>
       )}

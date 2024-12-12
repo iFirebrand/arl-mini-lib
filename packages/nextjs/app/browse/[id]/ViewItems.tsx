@@ -5,7 +5,7 @@ import Image from "next/image";
 import { getItemsByLibraryId } from "../../../actions/actions";
 
 export default function ViewItems({ libraryId }: { libraryId: string }) {
-  const [items, setItems] = useState<Array<{ title: string; coverUrl: string }>>([]);
+  const [items, setItems] = useState<Array<{ title: string; coverUrl: string; itemInfo: string; updatedAt: Date }>>([]);
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -25,17 +25,31 @@ export default function ViewItems({ libraryId }: { libraryId: string }) {
             <tr key={index}>
               <td>
                 <div className="flex items-center gap-3">
-                  <div className="avatar">
-                    <div className="h-20 w-16">
-                      <Image src={item.coverUrl} alt={item.title} width={80} height={120} className="object-cover" />
+                  <a
+                    href={item.itemInfo}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 hover:opacity-80"
+                  >
+                    <div className="avatar">
+                      <div className="h-20 w-16">
+                        <Image src={item.coverUrl} alt={item.title} width={80} height={120} className="object-cover" />
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <div className="font-bold">{item.title}</div>
-                  </div>
+                    <div>
+                      <div className="font-bold">{item.title}</div>
+                    </div>
+                  </a>
                 </div>
               </td>
-              <td>last scan to be updated</td>
+              <td>
+                Last seen:{" "}
+                {new Date(item.updatedAt).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "2-digit",
+                })}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -53,8 +67,8 @@ export default function ViewItems({ libraryId }: { libraryId: string }) {
           <div className="card-body">
             <h2 className="card-title">🎉 You can improve the catalog!</h2>
             <p>
-              You must be physically present at the library to add new or catalog existing books. It is simple. Just
-              scan the barcodes and earn points!
+              You must be physically present at the library to add new or catalog existing books. Simply scan book
+              barcodes with phone camera and earn points!
             </p>
             <div className="card-actions justify-end">
               <a href={`/libs/${libraryId}`} className="btn btn-primary">
