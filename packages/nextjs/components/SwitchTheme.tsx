@@ -7,15 +7,24 @@ import { MoonIcon, SunIcon } from "@heroicons/react/24/outline";
 export const SwitchTheme = ({ className }: { className?: string }) => {
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const isDarkMode = resolvedTheme === "dark";
 
   const handleToggle = () => {
+    if (isTransitioning) return;
+
+    setIsTransitioning(true);
     if (isDarkMode) {
       setTheme("light");
-      return;
+    } else {
+      setTheme("dark");
     }
-    setTheme("dark");
+
+    // Prevent multiple toggles for 500ms
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 500);
   };
 
   useEffect(() => {

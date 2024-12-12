@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
 
@@ -15,7 +16,22 @@ interface LibsClientProps {
   librariesCount: number;
 }
 
-export default function BrowseClient({ libraries, librariesCount }: LibsClientProps) {
+export default function BrowseClient({ libraries: initialLibraries, librariesCount: initialCount }: LibsClientProps) {
+  const [libraries, setLibraries] = useState(initialLibraries);
+  const [librariesCount, setLibrariesCount] = useState(initialCount);
+
+  useEffect(() => {
+    // Fetch fresh data on component mount
+    const fetchLibraries = async () => {
+      const response = await fetch("/api/libraries", { cache: "no-store" });
+      const data = await response.json();
+      setLibraries(data.libraries);
+      setLibrariesCount(data.librariesCount);
+    };
+
+    fetchLibraries();
+  }, []);
+
   // Dynamically import the Map component to avoid SSR issues
   const BrowseMap = dynamic(() => import("../../components/maps/BrowseMap"), { ssr: false });
 
