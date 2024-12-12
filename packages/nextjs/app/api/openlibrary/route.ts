@@ -25,3 +25,5 @@ export async function GET(request: Request) {
     return Response.json({ error: "An unknown error occurred" }, { status: 500 });
   }
 }
+// https://openlibrary.org/dev/docs/api/books#data
+//  % curl -X GET "http://openlibrary.org/api/volumes/brief/isbn/9780063345164.json"

@@ -1,26 +1,27 @@
 "use client";
 
+import React from "react";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { checkLibraryExists, createLibrary } from "../../actions/actions";
+import { AddLibraryForm } from "../../components/forms/AddLibraryForm";
 import { handleGeoLocation } from "../../components/maps/handleGeoLocation";
+import { ShowLibraryCard } from "~~/components/minilibs/ShowLibraryCard";
 
-type Library = {
-  id: string;
+type ExistingLibrary = {
   locationName: string;
+  id: string;
+  imageUrl: string | null;
+  active: boolean;
 };
 
-interface LibsClientProps {
-  libraries: Library[];
-  librariesCount: number;
-}
-
-export default function LibsClient({ libraries, librariesCount }: LibsClientProps) {
+export default function LibsClient() {
   const [isGeolocationAvailable, setIsGeolocationAvailable] = useState(false);
   const [latitude, setLatitude] = useState<string | null>(null);
   const [longitude, setLongitude] = useState<string | null>(null);
   const [libraryExists, setLibraryExists] = useState<boolean>(false);
-  const [existingLibraryName, setExistingLibraryName] = useState<string | null>(null);
+  const [existingLibrary, setExistingLibrary] = useState<ExistingLibrary | null>(null);
+  const [isGeolocationRequested, setIsGeolocationRequested] = useState(false);
 
   // Dynamically import the Map component to avoid SSR issues
   const Map = dynamic(() => import("../../components/maps/Map"), { ssr: false });
@@ -40,12 +41,13 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
     // Check if the library already exists based on the location name
     const checkExistingLibrary = async () => {
       if (latitude && longitude) {
-        const exists = await checkLibraryExists(latitude, longitude); // Call the function to check existence
-        if (exists == "an undiscovered 🤩") {
+        const result = await checkLibraryExists(latitude, longitude);
+        if (result === "not found") {
           setLibraryExists(false);
+          setExistingLibrary(null);
         } else {
           setLibraryExists(true);
-          setExistingLibraryName(`${exists}`); // Set the existing library name
+          setExistingLibrary(result as ExistingLibrary);
         }
       }
     };
@@ -74,15 +76,17 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
   };
 
   const handleGeoLocationClick = () => {
+    setIsGeolocationRequested(true);
     handleGeoLocation("/libs");
   };
 
   return (
     <>
-      {libraryExists &&
-        existingLibraryName && ( // Display existing library name if it exists
-          <h1 className="text-2xl font-semibold text-center">You are at {existingLibraryName} library</h1>
-        )}
+      {libraryExists && existingLibrary && (
+        <div className="text-center">
+          <ShowLibraryCard existingLibrary={existingLibrary} />
+        </div>
+      )}
       {!libraryExists && isGeolocationAvailable && (
         <h1 className="text-xl font-semibold text-center">You discovered a new library. Book it!</h1>
       )}
@@ -101,64 +105,37 @@ export default function LibsClient({ libraries, librariesCount }: LibsClientProp
             <a className="link" href="/browse">
               browse
             </a>{" "}
-            {""} the map to find a library
+            {""} the map to find a discovered library
           </p>
         </div>
       )}
       {!isGeolocationAvailable && (
-        <div className="flex-grow bg-base-300 w-full mt-16 px-8 py-12">
-          <div className="flex justify-center items-center gap-12 flex-col sm:flex-row">
-            <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
-              <p className="my-2 font-medium"></p>
-              <button className="btn btn-accent mt-4" onClick={handleGeoLocationClick}>
-                Enable Geolocation
-              </button>
-            </div>
+        <div className="bg-base-300 w-full py-6">
+          <div className="flex justify-center">
+            <button className="btn btn-accent" onClick={handleGeoLocationClick}>
+              {isGeolocationRequested ? (
+                <>
+                  Getting Location <span className="loading loading-ring loading-lg"></span>
+                </>
+              ) : (
+                "Enable Geolocation"
+              )}
+            </button>
           </div>
         </div>
       )}
       <main className="flex flex-col items-center gap-y-5 pt-24 text-center">
-        <h1 className="text-3xl font-semibold">Discovered Mini Libraries ({librariesCount})</h1>
-        <ul className="border-t border-b border-black/10 py-5 leading-8">
-          {libraries.map(library => (
-            <li key={library.id} className="flex flex-col items-center justify-center px-5">
-              <span className="text-lg font-semibold">{library.locationName}</span>
-              <div className="flex gap-4 mt-4">
-                <a href={`/libs/${library.id}`} className="btn btn-accent">
-                  Add Books
-                </a>
-                <a href={`/browse/${library.id}`} className="btn btn-accent">
-                  Browse
-                </a>
-              </div>
-              {/* {library.id} */}
-            </li>
-          ))}
-        </ul>
+        {/* <h1 className="text-3xl font-semibold">Temp Discovered Mini Libraries ({librariesCount})</h1> */}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-y-2 w-[300px]">
-          <input
-            type="text"
-            name="locationName"
-            placeholder="Discover a new library to name it!"
-            className="px-2 py-1 rounded-sm"
+        {!libraryExists && isGeolocationAvailable && (
+          <AddLibraryForm
+            isGeolocationAvailable={isGeolocationAvailable}
+            latitude={latitude}
+            longitude={longitude}
+            libraryExists={libraryExists}
+            onSubmit={handleSubmit}
           />
-          <input type="hidden" id="latitude" name="latitude" value={isGeolocationAvailable ? (latitude ?? "") : ""} />
-          <input
-            type="hidden"
-            id="longitude"
-            name="longitude"
-            value={isGeolocationAvailable ? (longitude ?? "") : ""}
-          />
-          <button
-            type="submit"
-            className={`bg-blue-500 py-2 text-white rounded-sm ${libraryExists || !isGeolocationAvailable ? "opacity-50 cursor-not-allowed" : ""}`}
-            disabled={libraryExists || !isGeolocationAvailable} // Disable button if library exists or geolocation is not available
-          >
-            Add Library
-          </button>
-          {!isGeolocationAvailable && <p className="text-red-500">Enable geolocation please.</p>}
-        </form>
+        )}
       </main>
     </>
   );

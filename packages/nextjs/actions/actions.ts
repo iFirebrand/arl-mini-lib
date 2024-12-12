@@ -28,33 +28,44 @@ export async function createLibrary(formData: FormData) {
 }
 
 // Function to check if a library exists based on latitude and longitude
-export async function checkLibraryExists(latitude: string, longitude: string): Promise<string | null> {
+export async function checkLibraryExists(latitude: string, longitude: string) {
   try {
-    // Query the database to check for existing library
     const library = await prisma.library.findFirst({
       where: {
-        // Use a raw SQL query to calculate distance
         AND: [
           {
             latitude: {
-              gte: parseFloat(latitude) - 0.000549, // Adjusted latitude range for 200 feet
+              gte: parseFloat(latitude) - 0.000549,
               lte: parseFloat(latitude) + 0.000549,
             },
           },
           {
             longitude: {
-              gte: parseFloat(longitude) - 0.000549, // Adjusted longitude range for 200 feet
+              gte: parseFloat(longitude) - 0.000549,
               lte: parseFloat(longitude) + 0.000549,
             },
           },
         ],
       },
+      select: {
+        id: true,
+        locationName: true,
+        imageUrl: true,
+        active: true,
+      },
     });
 
-    return library ? library.locationName : "an undiscovered 🤩"; // Return the library locationName if no library found, then return "New Library Discovered!"
+    return library
+      ? {
+          locationName: library.locationName,
+          id: library.id,
+          imageUrl: library.imageUrl,
+          active: library.active,
+        }
+      : "not found";
   } catch (error) {
     console.error("Error checking library existence:", error);
-    return "Error checking library existence"; // Return false if an error occurs
+    throw new Error("Error checking library existence");
   }
 }
 

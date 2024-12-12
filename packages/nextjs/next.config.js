@@ -15,7 +15,7 @@ const nextConfig = {
     return config;
   },
   images: {
-    domains: ["books.google.com", "covers.openlibrary.org"],
+    domains: ["books.google.com", "covers.openlibrary.org", "img.daisyui.com"],
   },
 };
 
