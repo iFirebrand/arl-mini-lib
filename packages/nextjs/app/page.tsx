@@ -59,7 +59,7 @@ const Home: NextPage = () => {
               <a href="/about" className="btn btn-accent mt-4">
                 Learn More
               </a>
-              <p className="mt-2">How. Why. Sponsor. Curate. Go on mapping & cataloging quests.</p>
+              <p className="mt-2">Why? Catalog. Map. Sponsor. Quests & points.</p>
             </div>
           </div>
         </div>
