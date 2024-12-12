@@ -76,18 +76,21 @@ const App = ({ libraryId }) => {
           const recordKey = Object.keys(data.records)[0];
           const record = data.records[recordKey];
 
-          const bookInfo = {
-            title: record.data.title,
-            authors: record.data.authors?.map(author => author.name).join(", "),
-            thumbnail: record.data.cover?.medium,
-            description: record.data.subtitle || "",
-            isbn13: isbn,
-            itemInfo: record.recordURL,
-            libraryId: libraryId,
-          };
-
-          await saveBookToDatabase(bookInfo);
-          setResults(prev => [...prev, { codeResult: { code: isbn }, bookInfo }]);
+          try {
+            const bookInfo = {
+              title: record.data.title,
+              authors: record.data.authors?.map(author => author.name).join(", "),
+              thumbnail: record.data.cover?.medium,
+              description: record.data.subtitle || "",
+              isbn13: record.data.identifiers.isbn_13[0],
+              itemInfo: record.recordURL,
+              libraryId: libraryId,
+            };
+            await saveBookToDatabase(bookInfo);
+            setResults(prev => [...prev, { codeResult: { code: isbn }, bookInfo }]);
+          } catch (error) {
+            console.error("Error creating bookInfo:", error);
+          }
         }
       } catch (error) {
         throw error;

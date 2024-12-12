@@ -4,7 +4,7 @@ import prisma from "../../../lib/db";
 // Adjust the import path based on your project structure
 
 export async function POST(req: Request) {
-  const { title, authors, thumbnail, description, isbn10, libraryId } = await req.json();
+  const { title, authors, thumbnail, description, isbn13, itemInfo, libraryId } = await req.json();
 
   try {
     // Save the book data to the database
@@ -12,9 +12,10 @@ export async function POST(req: Request) {
       data: {
         title,
         authors,
-        thumbnail,
         description,
-        isbn13: isbn10,
+        thumbnail,
+        isbn13,
+        itemInfo,
         // Correctly use the library relation
         library: { connect: { id: libraryId } }, // Use connect to link to Library
       },

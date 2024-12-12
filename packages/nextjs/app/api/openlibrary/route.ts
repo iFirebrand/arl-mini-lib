@@ -7,7 +7,6 @@ export async function GET(request: Request) {
       return Response.json({ error: "ISBN is required" }, { status: 400 });
     }
 
-    // Using the Books API with jscmd=data to get full book information
     const url = `http://openlibrary.org/api/volumes/brief/isbn/${isbn}.json`;
 
     const response = await fetch(url);
