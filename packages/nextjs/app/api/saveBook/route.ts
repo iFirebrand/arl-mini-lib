@@ -14,7 +14,7 @@ export async function POST(req: Request) {
         authors,
         thumbnail,
         description,
-        isbn10,
+        isbn13: isbn10,
         // Correctly use the library relation
         library: { connect: { id: libraryId } }, // Use connect to link to Library
       },

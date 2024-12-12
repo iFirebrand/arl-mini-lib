@@ -13,7 +13,6 @@ const App = ({ libraryId }) => {
   const [results, setResults] = useState([]); // list of scanned results
   const [torchOn, setTorch] = useState(false); // toggleable state for "should torch be on"
   const scannerRef = useRef(null); // reference to the scanner element in the DOM
-  const apiKey = "AIzaSyA8Y5xWU_S2NaN6NPYgxV_XFS_8iv5OVfk";
   const [isScanning, setIsScanning] = useState(false); // New state to track scanning status
 
   useEffect(() => {
@@ -50,67 +49,91 @@ const App = ({ libraryId }) => {
 
   const saveBookToDatabase = useCallback(
     async book => {
-      console.log("saveBookToDatabase called", book, libraryId);
-      await fetch("/api/saveBook", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ...book, libraryId }),
-      });
+      console.log("1. Starting saveBookToDatabase with data:", book);
+      try {
+        const response = await fetch("/api/saveBook", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ...book, libraryId }),
+        });
+        console.log("2. Save book API response:", response.status, await response.text());
+        if (!response.ok) {
+          throw new Error(`Save book API failed with status: ${response.status}`);
+        }
+      } catch (error) {
+        console.error("3. Error in saveBookToDatabase:", error);
+        throw error;
+      }
     },
     [libraryId],
   );
 
   const fetchBookData = useCallback(
     async isbn => {
+      console.log("4. Fetching book data for ISBN:", isbn);
       try {
-        const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${apiKey}`);
-        const data = await response.json();
-        if (data.items && data.items.length > 0) {
-          const bookInfo = data.items[0].volumeInfo;
-          // Check if the book has already been scanned
-          const isBookAlreadyScanned = results.some(result => result.codeResult && result.codeResult.code === isbn);
-          if (!isBookAlreadyScanned) {
-            await saveBookToDatabase({
-              title: bookInfo.title,
-              authors: bookInfo.authors?.join(", "),
-              thumbnail: bookInfo.imageLinks?.thumbnail,
-              description: bookInfo.description,
-              isbn10: isbn,
-            });
+        const response = await fetch(`/api/openlibrary?isbn=${isbn}`);
+        console.log("5. Raw API Response:", response);
 
-            // Update results state directly instead of using a separate bookDataList
-            setResults(prev => [...prev, { codeResult: { code: isbn }, bookInfo }]);
-            // Increment scanned count directly
-            setScannedCount(prev => prev + 1);
-            console.log("Book added to results", bookInfo);
-            console.log("Results", results);
-            console.log("Books Already Scanned", isBookAlreadyScanned);
-          }
-        } // end of if - here we'll try with Library of Congress API
+        const data = await response.json();
+        console.log("5a. Full OpenLibrary Response:", data);
+
+        if (data.records && Object.keys(data.records).length > 0) {
+          const recordKey = Object.keys(data.records)[0];
+          const record = data.records[recordKey];
+          console.log("6. Processing record:", record);
+
+          const bookInfo = {
+            title: record.data.title,
+            authors: record.data.authors?.map(author => author.name).join(", "),
+            thumbnail: record.data.cover?.medium,
+            description: record.data.subtitle || "",
+            isbn13: isbn,
+            itemInfo: record.recordURL,
+            libraryId: libraryId,
+          };
+
+          console.log("7. Saving book:", bookInfo);
+          await saveBookToDatabase(bookInfo);
+          setResults(prev => [...prev, { codeResult: { code: isbn }, bookInfo }]);
+          console.log("8. Book saved successfully");
+        } else {
+          console.log("6. No records found for ISBN:", isbn);
+        }
       } catch (error) {
-        console.error("Error fetching book data:", error);
+        console.error("Error in fetchBookData:", error);
+        throw error;
       }
     },
-    [results, saveBookToDatabase],
+    [saveBookToDatabase, libraryId, setResults],
   );
 
   const handleDetected = useCallback(
-    result => {
-      if (isScanning) return; // Prevent further scans if already scanning
-      setIsScanning(true); // Set scanning status to true
+    async result => {
+      console.log("1. Barcode detected:", result.code);
+      if (isScanning) {
+        console.log("2. Already scanning, skipping...");
+        return;
+      }
 
-      console.log("handleDetected called", result);
-      setResults(prevResults => [...prevResults, result]);
-      fetchBookData(result.code); // Call the book lookup function here
+      setIsScanning(true);
+      console.log("3. Starting book lookup...");
 
-      // Pause for 2 seconds before allowing another scan
-      setTimeout(() => {
-        setIsScanning(false); // Reset scanning status after 2 seconds
-      }, 2500);
+      try {
+        await fetchBookData(result.code);
+        console.log("Final. Ready for next scan");
+      } catch (error) {
+        console.error("Error processing barcode:", error);
+      } finally {
+        // Use a shorter timeout since we're waiting for the API call to complete
+        setTimeout(() => {
+          setIsScanning(false);
+        }, 1000);
+      }
     },
-    [fetchBookData, isScanning], // Add isScanning to dependencies
+    [fetchBookData, isScanning],
   );
 
   const getSmiley = count => {
@@ -119,7 +142,7 @@ const App = ({ libraryId }) => {
     if (count === 2) return "😊"; // Slightly more smiling
     if (count === 3) return "😄"; // Happy face
     if (count === 4) return "😁"; // Grinning face
-    if (count === 5) return "😆"; // Laughing face
+    if (count === 5) return "���"; // Laughing face
     if (count === 6) return "😃"; // Big smile
     if (count === 7) return "😅"; // Sweaty smile
     if (count === 8) return "😇"; // Smiling with halo

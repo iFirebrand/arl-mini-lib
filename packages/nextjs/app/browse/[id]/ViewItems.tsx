@@ -51,10 +51,10 @@ export default function ViewItems({ libraryId }: { libraryId: string }) {
       <div className="flex justify-center">
         <div className="card bg-base-100 w-96 shadow-xl">
           <div className="card-body">
-            <h2 className="card-title">You can add to the catalog!</h2>
+            <h2 className="card-title">🎉 You can improve the catalog!</h2>
             <p>
-              If you are physically present at the library you can add books or catalog existing books by simply by
-              scanning the barcodes!
+              You must be physically present at the library to add new or catalog existing books. It's simple. Just scan
+              the barcodes and earn points!
             </p>
             <div className="card-actions justify-end">
               <a href={`/libs/${libraryId}`} className="btn btn-primary">

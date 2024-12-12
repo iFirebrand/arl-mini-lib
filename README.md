@@ -33,3 +33,42 @@ To know more about its features, check out our [website](https://scaffoldeth.io)
 We welcome contributions to Scaffold-ETH 2!
 
 Please see [CONTRIBUTING.MD](https://github.com/scaffold-eth/scaffold-eth-2/blob/main/CONTRIBUTING.md) for more information and guidelines for contributing to Scaffold-ETH 2.
+
+## Fetching Book Data
+
+Google inplementation.
+
+const fetchBookData = useCallback(
+async isbn => {
+try {
+const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${apiKey}`);
+const data = await response.json();
+if (data.items && data.items.length > 0) {
+const bookInfo = data.items[0].volumeInfo;
+// Check if the book has already been scanned
+const isBookAlreadyScanned = results.some(result => result.codeResult && result.codeResult.code === isbn);
+if (!isBookAlreadyScanned) {
+await saveBookToDatabase({
+title: bookInfo.title,
+authors: bookInfo.authors?.join(", "),
+thumbnail: bookInfo.imageLinks?.thumbnail,
+description: bookInfo.description,
+isbn10: isbn,
+});
+
+            // Update results state directly instead of using a separate bookDataList
+            setResults(prev => [...prev, { codeResult: { code: isbn }, bookInfo }]);
+            // Increment scanned count directly
+            setScannedCount(prev => prev + 1);
+            console.log("Book added to results", bookInfo);
+            console.log("Results", results);
+            console.log("Books Already Scanned", isBookAlreadyScanned);
+          }
+        } // end of if - here we'll try with Library of Congress API
+      } catch (error) {
+        console.error("Error fetching book data:", error);
+      }
+    },
+    [results, saveBookToDatabase],
+
+);

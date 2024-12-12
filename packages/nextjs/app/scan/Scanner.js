@@ -50,8 +50,8 @@ const Scanner = ({
         return;
       }
       const err = getMedianOfCodeErrors(result.codeResult.decodedCodes);
-      // if Quagga is at least 75% certain that it read correctly, then accept the code.
-      if (err < 0.25) {
+      // Make it more strict: only accept if Quagga is 90% certain (error < 0.10)
+      if (err < 0.1) {
         onDetected({ code: result.codeResult.code });
       }
     },
@@ -130,7 +130,8 @@ const Scanner = ({
           Quagga.onProcessed(handleProcessed);
 
           if (err) {
-            return console.error("Error starting Quagga:", err);
+            // Prevent console.error from being called
+            // return console.error("Error starting Quagga:", err);
           }
           if (scannerRef && scannerRef.current) {
             await Quagga.start();

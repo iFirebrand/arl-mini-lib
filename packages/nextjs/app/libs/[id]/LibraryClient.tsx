@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import Scan from "../../../app/scan/App";
 import { checkIfLocationMatches } from "../../../components/maps/checkIfLocationMatches";
 
@@ -61,9 +62,9 @@ export default function LibraryClient({ library }: LibraryClientProps) {
                 scanning feature.
               </p>
               <div className="card-actions justify-end">
-                <a href="javascript:history.back()" className="btn btn-primary">
-                  Go Back
-                </a>
+                <Link href="/" className="btn btn-primary">
+                  Go Home
+                </Link>
               </div>
             </div>
             <div className="card-body">

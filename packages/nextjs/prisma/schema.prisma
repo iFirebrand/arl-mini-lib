@@ -52,15 +52,13 @@ model User {
 model Item {
   id String @id @default(cuid())
   title String?
-  content String?
+  sourceURL String?
   authors String?
-  publisher String?
-  publishedDate DateTime?
   description String?
   thumbnail String?
-  isbn10 String? 
   isbn13 String? 
   libraryId String?
+  itemInfo String?
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
   library Library? @relation("LibraryItems", fields: [libraryId], references: [id])
