@@ -4,7 +4,7 @@ function AboutPage() {
   return (
     <div className="container mx-auto px-4 max-w-4xl py-8">
       <h1 className="text-center mb-8">
-        <span className="block text-4xl font-bold">About ARLib</span>
+        <span className="block text-4xl font-bold">About ARLib.me</span>
       </h1>
       <div className="flex flex-col gap-8">
         <div className="card bg-base-300 rounded-box p-6">
