@@ -12,7 +12,8 @@ function AboutPage() {
             Mini libraries are more than book collections—they’re neighborhood gems of creativity and connection. ARLib
             puts these spaces on the map and in your pocket, making it easy to explore, share, and discover books
             nearby. Each listed book links to its openlibrary.org page, helping you decide your next great read
-            effortlessly!
+            effortlessly! What can the contents of a mini library tell you? Let's scan the books and let AI develp a
+            narrative.
           </p>
         </div>
 
@@ -21,8 +22,8 @@ function AboutPage() {
             <span className="block text-2xl font-bold">Go on a discovery quest!</span>
           </h3>
           <p className="text-lg mb-4">
-            Do you know of a local mini library not on the <a href="/browse">map?</a> Bring it online! With ARLib,
-            it&apos;s simple and fun. Use your phone to:
+            Let's put all mini libraries on the <a href="/browse">map</a>! With ARLib, it&apos;s simple and fun. Use
+            your phone to:
           </p>
           <ol className="list-decimal pl-8 space-y-2 text-lg">
             <li>
@@ -31,15 +32,11 @@ function AboutPage() {
               get to name it!{" "}
             </li>
             <li>
-              <strong>Catalog Books:</strong> Rescan the barcode on all the books with your phone to refesh the catalog
-              and earn points. Since there is no check-in and check-out system information can get stale. But a 5 minute
-              re-scan of all or some of the books will keep it up to date.
+              <strong>Catalog Books:</strong> For mapped libraries you can rescan the barcode on all the books with your
+              phone to refesh the catalog and earn points. Over time the catalog can get stale. But a 5 minute re-scan
+              of all or some of the books will keep it up to date.
             </li>
           </ol>
-          <p className="text-lg mt-4">
-            Every library and book you add becomes part of a growing, mapped network that anyone can explore. It&apos;s
-            a community-driven way to make books more accessible while celebrating the stories in our neighborhoods.
-          </p>
         </div>
 
         <div className="card bg-base-300 rounded-box p-6">
@@ -57,18 +54,19 @@ function AboutPage() {
 
         <div className="card bg-base-300 rounded-box p-6">
           <h3 className="text-center mb-8">
-            <span className="block text-2xl font-bold">Be a Sponsor</span>
+            <span className="block text-2xl font-bold">Sponsor Mappig Quest</span>
           </h3>
 
           <p className="text-lg mt-4">
-            Season &quot;Alpha&quot; needs to solve the cold start problem and get as many mini-libraries as possible by
-            the end of January. Enter quests. People hunt to discover new libraries and catalog its contents to complete
-            for points. Quests are more fun with real rewards! Sure, bragging rights are cool, but how about points that
-            can turn into something tangible, like money or gift cards to local businesses? Imagine earning $1 to $10
-            for putting a library online—or $2-5 for refreshing its catalog. The prize-to-points ratio? That&apos;s the
-            exciting part—it depends on how many sponsors and funds join the quest! Gamification ideas are flowing, and
-            we&apos;re just getting started. Got thoughts or want to chip in ideas or funds? Let&apos;s team up and make
-            it happen—reach out and help shape something awesome! This is a fun community project. Don&apos;t be shy.
+            Mini libraries are a public goods concept. ARLib needs to solve the cold start problem and get as many
+            mini-libraries as possible by the end of January. Enter quests. People hunt to discover new libraries and
+            catalog its contents to complete for points. Quests are more fun with real rewards! Sure, bragging rights
+            are cool, but how about points that can turn into something tangible, like money or gift cards to local
+            businesses? Imagine earning $1 to $10 for putting a library online—or $2-5 for refreshing its catalog. The
+            prize-to-points ratio? That&apos;s the exciting part—it depends on how many sponsors and funds join the
+            quest! Gamification ideas are flowing, and we&apos;re just getting started. Got thoughts or want to chip in
+            ideas or funds? Let&apos;s team up and make it happen—reach out and help shape something awesome! This is a
+            fun community project. Don&apos;t be shy.
           </p>
         </div>
 
