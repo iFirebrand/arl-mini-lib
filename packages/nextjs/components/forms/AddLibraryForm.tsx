@@ -27,6 +27,9 @@ export const AddLibraryForm = ({
       setIsUploading(true);
       try {
         const url = await handleImageUpload(file);
+        if (!url) {
+          throw new Error("Failed to upload image - no URL returned");
+        }
         setImageUrl(url);
       } catch (error) {
         console.error("Error uploading image:", error);
