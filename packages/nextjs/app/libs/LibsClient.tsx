@@ -95,7 +95,7 @@ export default function LibsClient() {
       {isGeolocationAvailable ? (
         <div className="container mx-auto">
           <div id="map" style={{ height: "33vh", width: "100%", position: "relative", zIndex: 10 }}>
-            <Map latitude={existingLibrary?.latitude} longitude={existingLibrary?.longitude} />
+            <Map latitude={latitude} longitude={longitude} />
           </div>
         </div>
       ) : (
