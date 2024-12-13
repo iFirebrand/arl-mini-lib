@@ -16,29 +16,7 @@ interface LibsClientProps {
   librariesCount: number;
 }
 
-export default function BrowseClient({ libraries: initialLibraries, librariesCount: initialCount }: LibsClientProps) {
-  const [libraries, setLibraries] = useState(initialLibraries);
-  const [librariesCount, setLibrariesCount] = useState(initialCount);
-
-  useEffect(() => {
-    // Fetch fresh data on component mount
-    const fetchLibraries = async () => {
-      const response = await fetch("/api/libraries", {
-        cache: "no-store",
-        headers: {
-          "Cache-Control": "no-cache",
-          Pragma: "no-cache",
-        },
-        next: { revalidate: 0 }, // Disable Next.js cache
-      });
-      const data = await response.json();
-      setLibraries(data.libraries);
-      setLibrariesCount(data.librariesCount);
-    };
-
-    fetchLibraries();
-  }, []); // Empty dependency array to run only on mount
-
+export default function BrowseClient({ libraries: libraries, librariesCount: librariesCount }: LibsClientProps) {
   // Dynamically import the Map component to avoid SSR issues
   const BrowseMap = dynamic(() => import("../../components/maps/BrowseMap"), { ssr: false });
 
