@@ -72,8 +72,8 @@ export default function ViewItems({ libraryId }: { libraryId: string }) {
           <div className="card-body">
             <h2 className="card-title">🎉 You can improve the catalog!</h2>
             <p>
-              You must be physically present at the library to add new or catalog existing books. Simply scan book
-              barcodes with phone camera and earn points!
+              Come to the library to add new or catalog existing books. Simply scan book barcodes with phone camera to
+              refresh the catalog and earn points!
             </p>
             <div className="card-actions justify-end">
               <a href={`/libs/${libraryId}`} className="btn btn-primary">
