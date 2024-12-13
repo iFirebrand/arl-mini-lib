@@ -27,7 +27,7 @@ export default function BrowseClient({ libraries: libraries, librariesCount: lib
         <h1 className="text-3xl font-semibold">Discovered Mini Libraries ({librariesCount})</h1>
 
         <div className="container mx-auto">
-          <div id="map" style={{ height: "33vh", width: "100%" }}>
+          <div id="map" style={{ height: "33vh", width: "100%", position: "relative", zIndex: 10 }}>
             <BrowseMap libraries={libraries} position={position} />
           </div>
         </div>

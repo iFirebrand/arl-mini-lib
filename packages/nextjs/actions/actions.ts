@@ -35,14 +35,14 @@ export async function checkLibraryExists(latitude: string, longitude: string) {
         AND: [
           {
             latitude: {
-              gte: parseFloat(latitude) - 0.000549,
-              lte: parseFloat(latitude) + 0.000549,
+              gte: parseFloat(latitude) - 0.000225,
+              lte: parseFloat(latitude) + 0.000225,
             },
           },
           {
             longitude: {
-              gte: parseFloat(longitude) - 0.000549,
-              lte: parseFloat(longitude) + 0.000549,
+              gte: parseFloat(longitude) - 0.000225,
+              lte: parseFloat(longitude) + 0.000225,
             },
           },
         ],
@@ -100,5 +100,36 @@ export async function getItemsByLibraryId(
   } catch (error) {
     console.error("Error details:", error); // Log the actual error
     return []; // Return empty array instead of throwing
+  }
+}
+
+// Function to get ArlibSettings
+export async function getArlibSettings() {
+  try {
+    const settings = await prisma.arlibSettings.findFirst({
+      where: {
+        id: "1",
+      },
+      select: {
+        id: true,
+        booksNeededToNameLibrary: true,
+        seasonEndsAt: true,
+        totalItems: true,
+        totalLibraries: true,
+      },
+    });
+
+    return settings
+      ? {
+          id: settings.id,
+          booksNeededToNameLibrary: settings.booksNeededToNameLibrary,
+          seasonEndsAt: settings.seasonEndsAt,
+          totalItems: settings.totalItems,
+          totalLibraries: settings.totalLibraries,
+        }
+      : "settings not found";
+  } catch (error) {
+    console.error("Error getting ArlibSettings:", error);
+    throw new Error("Error getting ArlibSettings");
   }
 }

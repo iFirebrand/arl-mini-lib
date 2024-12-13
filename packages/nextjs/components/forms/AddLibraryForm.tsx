@@ -64,7 +64,7 @@ export const AddLibraryForm = ({
       <input
         type="text"
         name="locationName"
-        placeholder="Choose a nice name. It will be reviewed."
+        placeholder="Choose a lib name. Be nice."
         className="px-2 py-1 rounded-sm"
       />
 

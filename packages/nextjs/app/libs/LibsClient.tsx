@@ -88,11 +88,11 @@ export default function LibsClient() {
         </div>
       )}
       {!libraryExists && isGeolocationAvailable && (
-        <h1 className="text-xl font-semibold text-center">You discovered a new library. Book it!</h1>
+        <h1 className="text-xl font-semibold text-center">New library discovered. Add it!</h1>
       )}
       {isGeolocationAvailable ? (
         <div className="container mx-auto">
-          <div id="map" style={{ height: "33vh", width: "100%" }}>
+          <div id="map" style={{ height: "33vh", width: "100%", position: "relative", zIndex: 10 }}>
             <Map latitude={latitude} longitude={longitude} />
           </div>
         </div>
