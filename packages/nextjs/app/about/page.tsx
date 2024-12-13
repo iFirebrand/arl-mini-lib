@@ -9,11 +9,11 @@ function AboutPage() {
       <div className="flex flex-col gap-8">
         <div className="card bg-base-300 rounded-box p-6">
           <p className="text-lg">
-            Mini libraries are more than book collections—they’re neighborhood gems of creativity and connection. ARLib
-            puts these spaces on the map and in your pocket, making it easy to explore, share, and discover books
+            Mini libraries are more than book collections—they&apos;re neighborhood gems of creativity and connection.
+            ARLib puts these spaces on the map and in your pocket, making it easy to explore, share, and discover books
             nearby. Each listed book links to its openlibrary.org page, helping you decide your next great read
-            effortlessly! What can the contents of a mini library tell you? Let's scan the books and let AI develp a
-            narrative.
+            effortlessly! What can the contents of a mini library tell you? Let&apos;s scan the books and let AI develp
+            a narrative.
           </p>
         </div>
 
@@ -22,8 +22,8 @@ function AboutPage() {
             <span className="block text-2xl font-bold">Go on a discovery quest!</span>
           </h3>
           <p className="text-lg mb-4">
-            Let's put all mini libraries on the <a href="/browse">map</a>! With ARLib, it&apos;s simple and fun. Use
-            your phone to:
+            Let&apos;s put all mini libraries on the <a href="/browse">map</a>! With ARLib, it&apos;s simple and fun.
+            Use your phone to:
           </p>
           <ol className="list-decimal pl-8 space-y-2 text-lg">
             <li>
