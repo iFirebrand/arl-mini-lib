@@ -27,8 +27,9 @@ async function uploadToSupabase(file: File): Promise<string> {
     throw new Error("File type not supported. Allowed types: JPEG, PNG, GIF");
   }
 
-  // Create unique filename
-  const uniqueFileName = `${uuidv4()}-${file.name}`;
+  // Create unique filename with sanitized original filename
+  const sanitizedFileName = file.name.replace(/\s+/g, "_");
+  const uniqueFileName = `${uuidv4()}-${sanitizedFileName}`;
 
   // Upload file
   const { data, error } = await supabase.storage.from("library-images").upload(`uploads/${uniqueFileName}`, file, {
@@ -43,7 +44,8 @@ async function uploadToSupabase(file: File): Promise<string> {
     throw new Error("Upload failed: No path returned");
   }
 
-  return data.path;
+  // Get and return the public URL instead of just the path
+  return getPublicUrl(data.path);
 }
 
 /**

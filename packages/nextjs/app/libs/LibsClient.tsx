@@ -6,7 +6,6 @@ import dynamic from "next/dynamic";
 import { checkLibraryExists, createLibrary } from "../../actions/actions";
 import { AddLibraryForm } from "../../components/forms/AddLibraryForm";
 import { handleGeoLocation } from "../../components/maps/handleGeoLocation";
-import AddLibraryImage from "~~/components/forms/AddLibraryImage";
 import { ShowLibraryCard } from "~~/components/minilibs/ShowLibraryCard";
 
 type ExistingLibrary = {
@@ -137,14 +136,6 @@ export default function LibsClient() {
             onSubmit={handleSubmit}
           />
         )}
-        <AddLibraryForm
-          isGeolocationAvailable={isGeolocationAvailable}
-          latitude={latitude}
-          longitude={longitude}
-          libraryExists={libraryExists}
-          onSubmit={handleSubmit}
-        />
-        <AddLibraryImage />
       </main>
     </>
   );

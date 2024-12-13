@@ -13,7 +13,7 @@ export async function createLibrary(formData: FormData) {
         locationName: formData.get("locationName") as string,
         longitude: parseFloat(formData.get("longitude") as string),
         latitude: parseFloat(formData.get("latitude") as string),
-        // imageUrl: formData.get("imageUrl") as string,
+        imageUrl: formData.get("imageUrl") as string,
       },
     });
     revalidatePath("/libs");

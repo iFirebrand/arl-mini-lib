@@ -8,7 +8,8 @@ export const handleImageUpload = async (file: File) => {
   };
   try {
     const compressedFile = await imageCompression(file, options);
-    uploadToSupabase(compressedFile);
+    const url = await uploadToSupabase(compressedFile);
+    return url;
   } catch (error) {
     console.error("Error compressing image:", error);
   }
