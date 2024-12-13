@@ -13,6 +13,8 @@ type ExistingLibrary = {
   id: string;
   imageUrl: string | null;
   active: boolean;
+  latitude: number;
+  longitude: number;
 };
 
 export default function LibsClient() {
@@ -93,7 +95,7 @@ export default function LibsClient() {
       {isGeolocationAvailable ? (
         <div className="container mx-auto">
           <div id="map" style={{ height: "33vh", width: "100%", position: "relative", zIndex: 10 }}>
-            <Map latitude={latitude} longitude={longitude} />
+            <Map latitude={existingLibrary?.latitude} longitude={existingLibrary?.longitude} />
           </div>
         </div>
       ) : (
@@ -125,16 +127,23 @@ export default function LibsClient() {
         </div>
       )}
       <main className="flex flex-col items-center gap-y-5 pt-24 text-center">
-        {/* <h1 className="text-3xl font-semibold">Temp Discovered Mini Libraries ({librariesCount})</h1> */}
-
         {!libraryExists && isGeolocationAvailable && (
-          <AddLibraryForm
-            isGeolocationAvailable={isGeolocationAvailable}
-            latitude={latitude}
-            longitude={longitude}
-            libraryExists={libraryExists}
-            onSubmit={handleSubmit}
-          />
+          <>
+            <div className="container mx-auto">
+              <ul className="steps">
+                <li className="step step-primary">Name & photo</li>
+                <li className="step">Scan books</li>
+                {/* <li className="step">Claim points</li> */}
+              </ul>
+            </div>
+            <AddLibraryForm
+              isGeolocationAvailable={isGeolocationAvailable}
+              latitude={latitude}
+              longitude={longitude}
+              libraryExists={libraryExists}
+              onSubmit={handleSubmit}
+            />
+          </>
         )}
       </main>
     </>

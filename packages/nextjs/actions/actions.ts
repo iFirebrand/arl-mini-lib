@@ -52,6 +52,8 @@ export async function checkLibraryExists(latitude: string, longitude: string) {
         locationName: true,
         imageUrl: true,
         active: true,
+        latitude: true,
+        longitude: true,
       },
     });
 
@@ -61,6 +63,8 @@ export async function checkLibraryExists(latitude: string, longitude: string) {
           id: library.id,
           imageUrl: library.imageUrl,
           active: library.active,
+          latitude: library.latitude,
+          longitude: library.longitude,
         }
       : "not found";
   } catch (error) {
