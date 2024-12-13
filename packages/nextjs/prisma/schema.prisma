@@ -63,5 +63,13 @@ model Item {
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
   library Library? @relation("LibraryItems", fields: [libraryId], references: [id])
-  
+}
+
+model ArlibSettings {
+  id String @unique
+  booksNeededToNameLibrary Int
+  seasonEndsAt DateTime
+  totalItems Int
+  totalLibraries Int
+  updatedAt DateTime @updatedAt
 }

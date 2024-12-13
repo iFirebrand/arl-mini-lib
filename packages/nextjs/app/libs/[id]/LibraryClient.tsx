@@ -48,13 +48,13 @@ export default function LibraryClient({ library }: LibraryClientProps) {
   if (!library) return <div>Library not found</div>;
 
   return (
-    <div className="flex flex-col items-center gap-y-5 pt-24 text-center">
+    <div className="flex flex-col items-center gap-y-5 pt-24 text-center px-[5%]">
       <h1 className="text-2xl font-semibold">Add to catalog at {library.locationName} library</h1>
       {isAtLibrary ? (
         <Scan libraryId={library.id} />
       ) : (
-        <div className="flex justify-center">
-          <div className="card bg-base-100 w-96 shadow-xl">
+        <div className="flex justify-center w-full">
+          <div className="card bg-base-100 max-w-96 shadow-xl">
             <div className="card-body">
               <h2 className="card-title">You must be at the library to scan</h2>
               <p>The scanning feature is activated when you are about 30 feet from the library.</p>
