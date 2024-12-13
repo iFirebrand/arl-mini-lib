@@ -4,6 +4,8 @@ import BrowseClient from "./BrowseClient";
 
 // Import the client component
 
+export const dynamic = "force-dynamic";
+
 async function fetchLibraries() {
   const libraries = await prisma.library.findMany({
     where: {
