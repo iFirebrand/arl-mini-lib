@@ -18,7 +18,7 @@ export const AddLibraryForm = ({
       <input
         type="text"
         name="locationName"
-        placeholder="Discover a new library to name it!"
+        placeholder="Choose a nice name. It will be reviewed."
         className="px-2 py-1 rounded-sm"
       />
       <input type="hidden" id="latitude" name="latitude" value={isGeolocationAvailable ? (latitude ?? "") : ""} />

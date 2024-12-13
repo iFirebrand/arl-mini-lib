@@ -21,14 +21,14 @@ function AboutPage() {
             <span className="block text-2xl font-bold">Go on a discovery quest!</span>
           </h3>
           <p className="text-lg mb-4">
-            Do you know of a local mini library not on the <a href="/browse">map?</a> Bring it online! With ARLib, it's
-            simple and fun. Use your phone to:
+            Do you know of a local mini library not on the <a href="/browse">map?</a> Bring it online! With ARLib,
+            it&apos;s simple and fun. Use your phone to:
           </p>
           <ol className="list-decimal pl-8 space-y-2 text-lg">
             <li>
-              <strong>Add a Library:</strong> If the library isn't listed you can add it. You must be at the library to
-              snap a pic, geotag it, and catalog a few books (or all of them) to bring it online. You also get to name
-              it!{" "}
+              <strong>Add a Library:</strong> If the library isn&apos;t listed you can add it. You must be at the
+              library to snap a pic, geotag it, and catalog a few books (or all of them) to bring it online. You also
+              get to name it!{" "}
             </li>
             <li>
               <strong>Catalog Books:</strong> Rescan the barcode on all the books with your phone to refesh the catalog
@@ -37,8 +37,8 @@ function AboutPage() {
             </li>
           </ol>
           <p className="text-lg mt-4">
-            Every library and book you add becomes part of a growing, mapped network that anyone can explore. It's a
-            community-driven way to make books more accessible while celebrating the stories in our neighborhoods.
+            Every library and book you add becomes part of a growing, mapped network that anyone can explore. It&apos;s
+            a community-driven way to make books more accessible while celebrating the stories in our neighborhoods.
           </p>
         </div>
 
@@ -48,9 +48,10 @@ function AboutPage() {
           </h3>
 
           <p className="text-lg mt-4">
-            Looking for a good book but don’t feel like trekking to a mini library? Need something for your book club or
-            just curious about what others nearby are reading? Find a library on the map and browse its collection—quick
-            and simple. Spotted a book but not sure if it’s worth your time? Look it up later and decide.
+            Looking for a good book but don&apos;t feel like trekking to a mini library? Need something for your book
+            club or just curious about what others nearby are reading? Find a library on the map and browse its
+            collection—quick and simple. Spotted a book but not sure if it&apos;s worth your time? Look it up later and
+            decide.
           </p>
         </div>
 
@@ -60,14 +61,14 @@ function AboutPage() {
           </h3>
 
           <p className="text-lg mt-4">
-            Season "Alpha" needs to solve the cold start problem and get as many mini-libraries as possible by the end
-            of January. Enter quests. People hunt to discover new libraries and catalog its contents to complete for
-            points. Quests are more fun with real rewards! Sure, bragging rights are cool, but how about points that can
-            turn into something tangible, like money or gift cards to local businesses? Imagine earning $1 to $10 for
-            putting a library online—or $2-5 for refreshing its catalog. The prize-to-points ratio? That’s the exciting
-            part—it depends on how many sponsors and funds join the quest! Gamification ideas are flowing, and we’re
-            just getting started. Got thoughts or want to chip in ideas or funds? Let’s team up and make it happen—reach
-            out and help shape something awesome! This is a fun community project. Don't be shy.
+            Season &quot;Alpha&quot; needs to solve the cold start problem and get as many mini-libraries as possible by
+            the end of January. Enter quests. People hunt to discover new libraries and catalog its contents to complete
+            for points. Quests are more fun with real rewards! Sure, bragging rights are cool, but how about points that
+            can turn into something tangible, like money or gift cards to local businesses? Imagine earning $1 to $10
+            for putting a library online—or $2-5 for refreshing its catalog. The prize-to-points ratio? That&apos;s the
+            exciting part—it depends on how many sponsors and funds join the quest! Gamification ideas are flowing, and
+            we&apos;re just getting started. Got thoughts or want to chip in ideas or funds? Let&apos;s team up and make
+            it happen—reach out and help shape something awesome! This is a fun community project. Don&apos;t be shy.
           </p>
         </div>
 
@@ -77,8 +78,8 @@ function AboutPage() {
           </h3>
 
           <p className="text-lg mt-4">
-            Every library and book you add becomes part of a growing, mapped network that anyone can explore. It's a
-            community-driven way to make books more accessible while celebrating the stories in our neighborhoods.
+            Every library and book you add becomes part of a growing, mapped network that anyone can explore. It&apos;s
+            a community-driven way to make books more accessible while celebrating the stories in our neighborhoods.
           </p>
         </div>
       </div>
