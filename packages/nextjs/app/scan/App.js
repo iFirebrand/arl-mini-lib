@@ -154,7 +154,7 @@ const App = ({ libraryId }) => {
         </button>
         {scanning && (
           <button className="btn btn-accent mt-4" onClick={onTorchClick}>
-            {torchOn ? "Turn Flashlight On" : "Flashlight Off"}
+            {torchOn ? "Turn Flashlight Off" : "Flashlight On"}
           </button>
         )}
         {/* <p>
