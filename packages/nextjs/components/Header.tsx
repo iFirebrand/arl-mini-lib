@@ -4,7 +4,7 @@ import React, { useCallback, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaucetButton } from "./scaffold-eth";
+// import { FaucetButton } from "./scaffold-eth";
 import { RainbowKitCustomConnectButton } from "./scaffold-eth";
 import { Bars3Icon, InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
 import { SwitchTheme } from "~~/components/SwitchTheme";
