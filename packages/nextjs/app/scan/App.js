@@ -4,6 +4,8 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import BookList from "./BookList";
 import Scanner from "./Scanner";
 import Quagga from "@ericblade/quagga2";
+import { debounce } from "lodash";
+import PropTypes from "prop-types";
 
 const App = ({ libraryId }) => {
   const [scanning, setScanning] = useState(false); // toggleable state for "should render scanner"
@@ -99,26 +101,39 @@ const App = ({ libraryId }) => {
     [saveBookToDatabase, libraryId, setResults],
   );
 
-  const handleDetected = useCallback(
-    async result => {
-      if (isScanning) {
+  const debouncedHandleDetected = useCallback(
+    result => {
+      if (isScanning || !result?.code) {
+        console.log("not scanning or no code");
+        return;
+      }
+      setIsScanning(true);
+
+      const isDuplicate = results.some(r => r.codeResult.code === result.code);
+      if (isDuplicate) {
+        console.log("duplicate code");
+        setIsScanning(false);
         return;
       }
 
-      setIsScanning(true);
-
       try {
-        await fetchBookData(result.code);
+        console.log("fetching book data");
+        fetchBookData(result.code);
+        console.log("book data fetched with code", result.code);
       } catch (error) {
-        // Error handling remains silent
+        console.error("Error fetching book data:", error);
       } finally {
+        console.log("setting isScanning to false after 3 seconds");
         setTimeout(() => {
           setIsScanning(false);
-        }, 2000);
+        }, 3000);
       }
     },
-    [fetchBookData, isScanning],
+    [fetchBookData, isScanning, results, setIsScanning],
   );
+
+  // Wrap the callback with debounce
+  const debouncedHandler = debounce(debouncedHandleDetected, 1000);
 
   const getSmiley = count => {
     if (count === 0) return "😐"; // Neutral face for 0
@@ -142,6 +157,106 @@ const App = ({ libraryId }) => {
     if (count === 18) return "😲"; // Astonished face
     if (count === 19) return "😳"; // Flushed face
     return "🎉"; // Party popper for 20 or more
+  };
+
+  const handleProcessed = result => {
+    const drawingCtx = Quagga.canvas.ctx.overlay;
+    const drawingCanvas = Quagga.canvas.dom.overlay;
+
+    // Ensure canvas is properly positioned
+    if (drawingCanvas.style.position !== "absolute") {
+      drawingCanvas.style.position = "absolute";
+      drawingCanvas.style.top = "0";
+      drawingCanvas.style.left = "0";
+      drawingCanvas.style.zIndex = "2";
+    }
+
+    const width = parseInt(drawingCanvas.getAttribute("width"));
+    const height = parseInt(drawingCanvas.getAttribute("height"));
+
+    // Clear previous drawings
+    drawingCtx.clearRect(0, 0, width, height);
+
+    // Draw scanning guide rectangle
+    const scanZoneSize = {
+      width: Math.min(width * 0.8, 280), // 80% of width or max 280px
+      height: Math.min(height * 0.3, 100), // 30% of height or max 100px
+    };
+
+    const scanZone = {
+      x: (width - scanZoneSize.width) / 2,
+      y: (height - scanZoneSize.height) / 2,
+      width: scanZoneSize.width,
+      height: scanZoneSize.height,
+    };
+
+    // Draw scanning guide
+    drawingCtx.strokeStyle = "rgba(0, 255, 0, 0.8)";
+    drawingCtx.lineWidth = 2;
+    drawingCtx.beginPath();
+    drawingCtx.rect(scanZone.x, scanZone.y, scanZone.width, scanZone.height);
+    drawingCtx.stroke();
+
+    // Add corner markers
+    const cornerLength = 20;
+    drawingCtx.beginPath();
+    // Top-left
+    drawingCtx.moveTo(scanZone.x, scanZone.y + cornerLength);
+    drawingCtx.lineTo(scanZone.x, scanZone.y);
+    drawingCtx.lineTo(scanZone.x + cornerLength, scanZone.y);
+    // Top-right
+    drawingCtx.moveTo(scanZone.x + scanZone.width - cornerLength, scanZone.y);
+    drawingCtx.lineTo(scanZone.x + scanZone.width, scanZone.y);
+    drawingCtx.lineTo(scanZone.x + scanZone.width, scanZone.y + cornerLength);
+    // Bottom-right
+    drawingCtx.moveTo(scanZone.x + scanZone.width, scanZone.y + scanZone.height - cornerLength);
+    drawingCtx.lineTo(scanZone.x + scanZone.width, scanZone.y + scanZone.height);
+    drawingCtx.lineTo(scanZone.x + scanZone.width - cornerLength, scanZone.y + scanZone.height);
+    // Bottom-left
+    drawingCtx.moveTo(scanZone.x + cornerLength, scanZone.y + scanZone.height);
+    drawingCtx.lineTo(scanZone.x, scanZone.y + scanZone.height);
+    drawingCtx.lineTo(scanZone.x, scanZone.y + scanZone.height - cornerLength);
+    drawingCtx.stroke();
+
+    if (result) {
+      // Only draw detected boxes if they intersect with the scan zone
+      if (result.boxes) {
+        result.boxes
+          .filter(box => box !== result.box)
+          .forEach(box => {
+            Quagga.ImageDebug.drawPath(box, { x: 0, y: 1 }, drawingCtx, { color: "purple", lineWidth: 2 });
+          });
+      }
+
+      if (result.box) {
+        Quagga.ImageDebug.drawPath(result.box, { x: 0, y: 1 }, drawingCtx, { color: "blue", lineWidth: 2 });
+      }
+
+      if (result.codeResult && result.codeResult.code) {
+        // Draw the barcode line in green
+        Quagga.ImageDebug.drawPath(result.line, { x: "x", y: "y" }, drawingCtx, { color: "green", lineWidth: 2 });
+      }
+    }
+  };
+
+  const defaultLocatorSettings = {
+    patchSize: "medium",
+    halfSample: true,
+    willReadFrequently: true,
+    debug: {
+      showCanvas: true,
+      showPatches: false, // Set to false to reduce visual noise
+      showFoundPatches: false,
+      showSkeleton: false,
+      showLabels: false,
+      showPatchLabels: false,
+      showRemainingPatchLabels: false,
+      boxFromPatches: {
+        showTransformed: true,
+        showTransformedBox: true,
+        showBB: true,
+      },
+    },
   };
 
   return (
@@ -173,22 +288,42 @@ const App = ({ libraryId }) => {
         </p>
 
         {scanning && (
-          <div ref={scannerRef} style={{ position: "relative", border: "0px solid red", height: "25vh" }}>
-            <canvas
-              className="drawingBuffer"
+          <>
+            <div
+              ref={scannerRef}
               style={{
-                position: "absolute",
-                top: "0px",
-                width: "100%",
-                height: "100%",
-                zIndex: -1,
+                position: "relative",
+                width: "320px",
+                height: "240px",
+                margin: "0 auto",
+                border: "2px solid #ccc",
+                borderRadius: "8px",
+                overflow: "hidden",
               }}
-              width="320"
-              height="240"
+            >
+              {/* Video feed will be inserted here by Quagga */}
+              <canvas
+                className="drawingBuffer"
+                style={{
+                  position: "absolute",
+                  top: "0",
+                  left: "0",
+                  width: "100%",
+                  height: "100%",
+                  zIndex: 1,
+                }}
+                width="320"
+                height="240"
+              />
+            </div>
+            <Scanner
+              scannerRef={scannerRef}
+              cameraId={cameraId}
+              onDetected={debouncedHandler}
+              onProcessed={handleProcessed}
+              locatorSettings={defaultLocatorSettings}
             />
-
-            <Scanner scannerRef={scannerRef} cameraId={cameraId} onDetected={handleDetected} />
-          </div>
+          </>
         )}
       </div>
       <div className="flex items-center flex-col flex-grow pt-10">
@@ -213,6 +348,10 @@ const App = ({ libraryId }) => {
       </div>
     </>
   );
+};
+
+App.propTypes = {
+  libraryId: PropTypes.string.isRequired,
 };
 
 export default App;
