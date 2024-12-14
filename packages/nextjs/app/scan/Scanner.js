@@ -29,9 +29,28 @@ const defaultLocatorSettings = {
   patchSize: "medium",
   halfSample: true,
   willReadFrequently: true,
+  debug: {
+    showCanvas: true,
+    showPatches: true,
+    showFoundPatches: true,
+    showSkeleton: true,
+    showLabels: true,
+    showPatchLabels: true,
+    showRemainingPatchLabels: true,
+    boxFromPatches: {
+      showTransformed: true,
+      showTransformedBox: true,
+      showBB: true,
+    },
+  },
 };
 
-const defaultDecoders = ["ean_reader"];
+const defaultDecoders = [
+  "ean_reader", // For ISBN-13 (EAN-13)
+  "ean_8_reader", // For shorter EAN codes
+  "upc_reader", // For older ISBN-10 (UPC-A)
+  "upc_e_reader", // For shorter UPC codes
+];
 
 const Scanner = ({
   onDetected,
@@ -46,13 +65,42 @@ const Scanner = ({
 }) => {
   const errorCheck = useCallback(
     result => {
+      console.log("🎯 Scan attempt detected");
+
       if (!onDetected) {
+        console.log("❌ No onDetected handler found");
         return;
       }
+
       const err = getMedianOfCodeErrors(result.codeResult.decodedCodes);
-      // Make it more strict: only accept if Quagga is 90% certain (error < 0.10)
-      if (err < 0.1) {
+      console.log("📊 Error rate:", err);
+
+      // Add frequency filtering
+      if (!window.barcodeHistory) {
+        console.log("📝 Initializing barcode history");
+        window.barcodeHistory = [];
+      }
+
+      window.barcodeHistory.push({
+        code: result.codeResult.code,
+        timestamp: Date.now(),
+      });
+      console.log("📚 Current code:", result.codeResult.code);
+      console.log("🗄️ History length:", window.barcodeHistory.length);
+
+      // Keep only last 3 seconds of history
+      window.barcodeHistory = window.barcodeHistory.filter(item => Date.now() - item.timestamp < 3000);
+      console.log("🧹 Cleaned history length:", window.barcodeHistory.length);
+
+      // Count occurrences of this code in recent history
+      const frequency = window.barcodeHistory.filter(item => item.code === result.codeResult.code).length;
+      console.log("🔄 Frequency of this code:", frequency);
+
+      if (err < 0.25 && frequency >= 1) {
+        console.log("✅ VALID SCAN! Code:", result.codeResult.code);
         onDetected({ code: result.codeResult.code });
+      } else {
+        console.log("❌ Scan rejected. Error rate or frequency too high");
       }
     },
     [onDetected],
@@ -61,38 +109,43 @@ const Scanner = ({
   const handleProcessed = result => {
     const drawingCtx = Quagga.canvas.ctx.overlay;
     const drawingCanvas = Quagga.canvas.dom.overlay;
-    drawingCtx.font = "24px Arial";
-    drawingCtx.fillStyle = "green";
+
+    // Ensure canvas is properly positioned
+    if (drawingCanvas.style.position !== "absolute") {
+      drawingCanvas.style.position = "absolute";
+      drawingCanvas.style.top = "0";
+      drawingCanvas.style.left = "0";
+      drawingCanvas.style.zIndex = "2"; // Ensure overlay is above video
+    }
+
+    // Clear the entire canvas before drawing new content
+    const width = parseInt(drawingCanvas.getAttribute("width"));
+    const height = parseInt(drawingCanvas.getAttribute("height"));
+    drawingCtx.clearRect(0, 0, width, height);
 
     if (result) {
-      // console.warn('* quagga onProcessed', result);
+      // Draw searching boxes (purple)
       if (result.boxes) {
-        drawingCtx.clearRect(
-          0,
-          0,
-          parseInt(drawingCanvas.getAttribute("width")),
-          parseInt(drawingCanvas.getAttribute("height")),
-        );
         result.boxes
           .filter(box => box !== result.box)
           .forEach(box => {
-            Quagga.ImageDebug.drawPath(box, { x: 0, y: 1 }, drawingCtx, { color: "purple", lineWidth: 2 });
+            Quagga.ImageDebug.drawPath(box, { x: 0, y: 1 }, drawingCtx, { color: "purple", lineWidth: 4 });
           });
       }
+
+      // Draw matching box (blue)
       if (result.box) {
-        Quagga.ImageDebug.drawPath(result.box, { x: 0, y: 1 }, drawingCtx, { color: "blue", lineWidth: 2 });
+        Quagga.ImageDebug.drawPath(result.box, { x: 0, y: 1 }, drawingCtx, { color: "blue", lineWidth: 4 });
       }
+
+      // Draw scanning line and code (if there's a result)
       if (result.codeResult && result.codeResult.code) {
-        // const validated = barcodeValidator(result.codeResult.code);
-        // const validated = validateBarcode(result.codeResult.code);
-        // Quagga.ImageDebug.drawPath(result.line, { x: 'x', y: 'y' }, drawingCtx, { color: validated ? 'green' : 'red', lineWidth: 3 });
-        drawingCtx.font = "36px Arial";
-        // drawingCtx.fillStyle = validated ? "green" : "red";
-        // drawingCtx.fillText(`${result.codeResult.code} valid: ${validated}`, 10, 50);
-        drawingCtx.fillText("✅ Scanned 💪 " + result.codeResult.code, 10, 20);
-        // if (validated) {
-        //     onDetected(result);
-        // }
+        Quagga.ImageDebug.drawPath(result.line, { x: "x", y: "y" }, drawingCtx, { color: "green", lineWidth: 4 });
+
+        // Draw the code text
+        drawingCtx.font = "24px Arial";
+        drawingCtx.fillStyle = "green";
+        drawingCtx.fillText(result.codeResult.code, 10, 20);
       }
     }
   };
@@ -147,7 +200,9 @@ const Scanner = ({
     // cleanup by turning off the camera and any listeners
     return () => {
       ignoreStart = true;
-      Quagga.stop();
+      if (document.hidden) {
+        Quagga.stop();
+      }
       Quagga.offDetected(errorCheck);
       Quagga.offProcessed(handleProcessed);
     };
