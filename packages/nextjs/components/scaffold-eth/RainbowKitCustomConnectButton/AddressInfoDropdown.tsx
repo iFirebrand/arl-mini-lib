@@ -5,13 +5,11 @@ import { getAddress } from "viem";
 import { Address } from "viem";
 import { useDisconnect } from "wagmi";
 import {
-  ArrowLeftOnRectangleIcon,
-  ArrowTopRightOnSquareIcon,
+  ArrowLeftOnRectangleIcon, // ArrowTopRightOnSquareIcon,
   ArrowsRightLeftIcon,
   CheckCircleIcon,
   ChevronDownIcon,
-  DocumentDuplicateIcon,
-  QrCodeIcon,
+  DocumentDuplicateIcon, // QrCodeIcon,
 } from "@heroicons/react/24/outline";
 import { BlockieAvatar, isENS } from "~~/components/scaffold-eth";
 import { useOutsideClick } from "~~/hooks/scaffold-eth";
@@ -30,7 +28,7 @@ export const AddressInfoDropdown = ({
   address,
   ensAvatar,
   displayName,
-  blockExplorerAddressLink,
+  // blockExplorerAddressLink,
 }: AddressInfoDropdownProps) => {
   const { disconnect } = useDisconnect();
   const checkSumAddress = getAddress(address);
@@ -89,13 +87,13 @@ export const AddressInfoDropdown = ({
               </CopyToClipboard>
             )}
           </li>
-          <li className={selectingNetwork ? "hidden" : ""}>
+          {/* <li className={selectingNetwork ? "hidden" : ""}>
             <label htmlFor="qrcode-modal" className="btn-sm !rounded-xl flex gap-3 py-3">
               <QrCodeIcon className="h-6 w-4 ml-2 sm:ml-0" />
               <span className="whitespace-nowrap">View QR Code</span>
             </label>
-          </li>
-          <li className={selectingNetwork ? "hidden" : ""}>
+          </li> */}
+          {/* <li className={selectingNetwork ? "hidden" : ""}>
             <button className="menu-item btn-sm !rounded-xl flex gap-3 py-3" type="button">
               <ArrowTopRightOnSquareIcon className="h-6 w-4 ml-2 sm:ml-0" />
               <a
@@ -107,7 +105,7 @@ export const AddressInfoDropdown = ({
                 View on Block Explorer
               </a>
             </button>
-          </li>
+          </li> */}
           {allowedNetworks.length > 1 ? (
             <li className={selectingNetwork ? "hidden" : ""}>
               <button

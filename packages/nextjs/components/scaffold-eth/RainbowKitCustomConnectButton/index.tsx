@@ -32,23 +32,29 @@ export const RainbowKitCustomConnectButton = () => {
               if (!connected) {
                 return (
                   <button className="btn btn-primary btn-sm" onClick={openConnectModal} type="button">
-                    Connect Wallet
+                    Login
                   </button>
                 );
               }
 
               if (chain.unsupported || chain.id !== targetNetwork.id) {
+                console.log("Network Check:", {
+                  chainUnsupported: chain.unsupported,
+                  chainId: chain.id,
+                  targetNetworkId: targetNetwork.id,
+                  condition: chain.unsupported || chain.id !== targetNetwork.id,
+                });
                 return <WrongNetworkDropdown />;
               }
 
               return (
                 <>
-                  <div className="flex flex-col items-center mr-1">
+                  {/* <div className="flex flex-col items-center mr-1">
                     <Balance address={account.address as Address} className="min-h-0 h-auto" />
                     <span className="text-xs" style={{ color: networkColor }}>
                       {chain.name}
                     </span>
-                  </div>
+                  </div> */}
                   <AddressInfoDropdown
                     address={account.address as Address}
                     displayName={account.displayName}
