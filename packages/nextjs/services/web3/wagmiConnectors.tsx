@@ -10,7 +10,6 @@ import * as chains from "viem/chains";
 import scaffoldConfig from "~~/scaffold.config";
 
 const { onlyLocalBurnerWallet, targetNetworks } = scaffoldConfig;
-coinbaseWallet.preference = "smartWalletOnly";
 
 const wallets = [
   metaMaskWallet,
@@ -27,38 +26,40 @@ const wallets = [
 /**
  * wagmi connectors for the wagmi context
  */
-export const wagmiConnectors = connectorsForWallets(
-  [
-    {
-      groupName: "Supported Wallets",
-      wallets,
-    },
-  ],
-  {
-    appName: "ARLib.me",
-    projectId: scaffoldConfig.walletConnectProjectId,
-  },
-);
 
+type CoinbaseWalletOptions = Parameters<typeof coinbaseWallet>[0];
+const coinbaseSmartWalletOnly = (params: CoinbaseWalletOptions) => coinbaseWallet(params);
+coinbaseSmartWalletOnly.preference = "smartWalletOnly";
+
+const supportedWalletGroup = { groupName: "Supported Wallets", wallets };
+// Show the Smart Wallets group only if Base Sepolia || Base is present in the targetNetworks
+const rainbowGroups = (targetNetworks as unknown as chains.Chain[]).some(
+  network => network.id === chains.baseSepolia.id || network.id === chains.base.id,
+)
+  ? [
+      { groupName: "Smart Wallets", wallets: [coinbaseSmartWalletOnly] },
+      { groupName: "others", wallets },
+    ]
+  : [supportedWalletGroup];
+
+/**
+ * wagmi connectors for the wagmi context
+ */
+export const wagmiConnectors = connectorsForWallets(rainbowGroups, {
+  appName: "ARLib.me",
+  projectId: scaffoldConfig.walletConnectProjectId,
+});
+
+// BACUP
 // export const wagmiConnectors = connectorsForWallets(
 //   [
 //     {
-//       groupName: 'Supported Wallets',
-//       wallets: [
-//         {
-//           connector: new CoinbaseWalletConnector({
-//             chains: [base], // Specify Base as the supported chain
-//             options: {
-//               appName: 'ARLib.me',
-//             },
-//           }),
-//         },
-//         // Add other wallets here if needed
-//       ],
+//       groupName: "Supported Wallets",
+//       wallets,
 //     },
 //   ],
 //   {
-//     appName: 'ARLib.me',
-//     projectId: scaffoldConfig.walletConnectProjectId, // Ensure this is properly set up
-//   }
+//     appName: "ARLib.me",
+//     projectId: scaffoldConfig.walletConnectProjectId,
+//   },
 // );
