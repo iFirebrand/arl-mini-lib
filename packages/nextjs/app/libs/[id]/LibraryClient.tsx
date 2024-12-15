@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { checkIfLocationMatches } from "../../../components/maps/checkIfLocationMatches";
 import Scan from "./App";
+import { EarnPoints } from "./EarnPoints";
 import { fetchBookData } from "./fetchBookData";
 import { saveBookToDatabase } from "./saveBookToDatabase";
 import { toast } from "react-hot-toast";
@@ -91,7 +92,6 @@ export default function LibraryClient({ library }: LibraryClientProps) {
       {isAtLibrary ? (
         <div>
           <Scan onScan={handleScan} />
-          {/* <BookList results={scannedBooks} /> */}
           <div className="flex flex-col items-center gap-y-5 pt-24 text-center px-[5%]">
             <h1 className="text-2xl font-semibold">Scanned Books: {scannedBooks.length} </h1>
             {scannedBooks.map((book, index) => (
@@ -99,6 +99,7 @@ export default function LibraryClient({ library }: LibraryClientProps) {
                 <h2>{book.title}</h2>
               </div>
             ))}
+            {scannedBooks.length === 0 && <EarnPoints />}
           </div>
         </div>
       ) : (

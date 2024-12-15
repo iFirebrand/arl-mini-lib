@@ -107,29 +107,29 @@ const Scanner: React.FC<ScannerProps> = ({ onScan }) => {
   }, []);
 
   return (
-    <main className="wrapper" style={{ paddingTop: "2em" }}>
-      <section className="container">
-        <h1 className="title">Scan the book barcode</h1>
+    <main className="w-full flex flex-col items-center p-8">
+      <div className="w-full max-w-2xl flex flex-col items-center gap-4">
+        <h1 className="text-2xl font-bold">Scan the book barcode</h1>
 
-        <div>
-          <button className="button" onClick={startScanning}>
+        <div className="flex gap-2">
+          <button className="btn btn-primary" onClick={startScanning}>
             Start
           </button>
-          <button className="button" onClick={resetScanning}>
-            Reset
+          <button className="btn btn-secondary" onClick={resetScanning}>
+            Stop
           </button>
         </div>
 
         <div>
-          <video ref={videoRef} width={300} height={200} style={{ border: "1px solid gray" }} />
+          <video ref={videoRef} width={300} height={200} className="border border-gray-300 rounded" />
         </div>
 
         {videoDevices.length > 1 && (
-          <div>
+          <div className="flex flex-col gap-2">
             <label htmlFor="sourceSelect">Change video source:</label>
             <select
               id="sourceSelect"
-              style={{ maxWidth: "400px" }}
+              className="select select-bordered w-full max-w-xs"
               value={selectedDeviceId}
               onChange={e => setSelectedDeviceId(e.target.value)}
             >
@@ -141,7 +141,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan }) => {
             </select>
           </div>
         )}
-      </section>
+      </div>
     </main>
   );
 };
