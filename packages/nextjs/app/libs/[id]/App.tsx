@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { BrowserMultiFormatReader, Exception, NotFoundException, Result } from "@zxing/library";
-import PropTypes from "prop-types";
 
 interface VideoDevice {
   deviceId: string;
@@ -10,7 +9,7 @@ interface VideoDevice {
 }
 
 interface ScannerProps {
-  onScan: (isbn: string) => void;
+  onScan: (isbn: string) => Promise<void>;
 }
 
 const Scanner: React.FC<ScannerProps> = ({ onScan }) => {
@@ -43,9 +42,11 @@ const Scanner: React.FC<ScannerProps> = ({ onScan }) => {
   );
 
   useEffect(() => {
+    const reader = codeReader.current;
+
     const initializeDevices = async () => {
       try {
-        const devices = await codeReader.current.listVideoInputDevices();
+        const devices = await reader.listVideoInputDevices();
         setVideoDevices(devices);
         if (devices.length > 0) {
           setSelectedDeviceId(devices[0].deviceId);
@@ -57,9 +58,8 @@ const Scanner: React.FC<ScannerProps> = ({ onScan }) => {
 
     initializeDevices();
 
-    // Cleanup on component unmount
     return () => {
-      codeReader.current.reset();
+      reader.reset();
     };
   }, []);
 
@@ -91,7 +91,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan }) => {
   return (
     <main className="wrapper" style={{ paddingTop: "2em" }}>
       <section className="container">
-        <h1 className="title">Scan 1D/2D Code from Video Camera</h1>
+        <h1 className="title">Scan the book barcode</h1>
 
         <div>
           <button className="button" onClick={startScanning}>

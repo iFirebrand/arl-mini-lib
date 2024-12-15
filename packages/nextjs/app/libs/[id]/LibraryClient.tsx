@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { checkIfLocationMatches } from "../../../components/maps/checkIfLocationMatches";
 import Scan from "./App";
-import BookList from "./BookList";
 import { fetchBookData } from "./fetchBookData";
 import { saveBookToDatabase } from "./saveBookToDatabase";
 import { toast } from "react-hot-toast";
@@ -16,6 +15,16 @@ interface LibraryClientProps {
     latitude: number;
     longitude: number;
   } | null;
+}
+
+interface BookInfo {
+  title: string;
+  authors: string;
+  thumbnail: string;
+  description: string;
+  isbn13: string;
+  itemInfo: string;
+  libraryId: string;
 }
 
 export default function LibraryClient({ library }: LibraryClientProps) {
@@ -57,22 +66,17 @@ export default function LibraryClient({ library }: LibraryClientProps) {
     setIsProcessing(true);
     try {
       if (!library) return;
-      console.log("Scanning ISBN:", isbn);
-      const bookData = await fetchBookData(isbn, library.id);
-      console.log("Fetched book data:", bookData);
+      const bookData: BookInfo | null = await fetchBookData(isbn, library.id);
 
       if (!bookData) {
         toast.error("Book not found");
         return;
       }
 
-      const savedResult = await saveBookToDatabase(bookData);
-      console.log("Database save result:", savedResult);
-
+      await saveBookToDatabase(bookData);
       setScannedBooks(prev => [...prev, bookData]);
       toast.success("Book added successfully!");
     } catch (error) {
-      console.error("Error in handleScan:", error);
       toast.error("Error processing book");
     } finally {
       setIsProcessing(false);
@@ -87,7 +91,15 @@ export default function LibraryClient({ library }: LibraryClientProps) {
       {isAtLibrary ? (
         <div>
           <Scan onScan={handleScan} />
-          <BookList results={scannedBooks} />
+          {/* <BookList results={scannedBooks} /> */}
+          <div className="flex flex-col items-center gap-y-5 pt-24 text-center px-[5%]">
+            <h1 className="text-2xl font-semibold">Scanned Books: {scannedBooks.length} </h1>
+            {scannedBooks.map((book, index) => (
+              <div key={index}>
+                <h2>{book.title}</h2>
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
         <div className="flex justify-center w-full">
