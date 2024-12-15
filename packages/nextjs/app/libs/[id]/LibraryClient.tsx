@@ -2,8 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Scan from "../../../app/scan/App";
 import { checkIfLocationMatches } from "../../../components/maps/checkIfLocationMatches";
+import Scan from "./App";
+import BookList from "./BookList";
+import { fetchBookData } from "./fetchBookData";
+import { saveBookToDatabase } from "./saveBookToDatabase";
+import { toast } from "react-hot-toast";
 
 interface LibraryClientProps {
   library: {
@@ -16,6 +20,8 @@ interface LibraryClientProps {
 
 export default function LibraryClient({ library }: LibraryClientProps) {
   const [isAtLibrary, setIsAtLibrary] = useState(false);
+  const [scannedBooks, setScannedBooks] = useState<BookInfo[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const getPosition = (): Promise<GeolocationPosition> => {
@@ -45,13 +51,44 @@ export default function LibraryClient({ library }: LibraryClientProps) {
     checkLocation();
   }, [library]);
 
+  const handleScan = async (isbn: string) => {
+    if (isProcessing) return;
+
+    setIsProcessing(true);
+    try {
+      if (!library) return;
+      console.log("Scanning ISBN:", isbn);
+      const bookData = await fetchBookData(isbn, library.id);
+      console.log("Fetched book data:", bookData);
+
+      if (!bookData) {
+        toast.error("Book not found");
+        return;
+      }
+
+      const savedResult = await saveBookToDatabase(bookData);
+      console.log("Database save result:", savedResult);
+
+      setScannedBooks(prev => [...prev, bookData]);
+      toast.success("Book added successfully!");
+    } catch (error) {
+      console.error("Error in handleScan:", error);
+      toast.error("Error processing book");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   if (!library) return <div>Library not found</div>;
 
   return (
     <div className="flex flex-col items-center gap-y-5 pt-24 text-center px-[5%]">
       <h1 className="text-2xl font-semibold">Add to catalog at {library.locationName} library</h1>
       {isAtLibrary ? (
-        <Scan libraryId={library.id} />
+        <div>
+          <Scan onScan={handleScan} />
+          <BookList results={scannedBooks} />
+        </div>
       ) : (
         <div className="flex justify-center w-full">
           <div className="card bg-base-100 max-w-96 shadow-xl">
