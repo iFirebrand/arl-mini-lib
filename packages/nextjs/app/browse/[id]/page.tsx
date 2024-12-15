@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { bookCount } from "../../../actions/actions";
 import prisma from "../../../lib/db";
 import ViewItems from "./ViewItems";
@@ -10,9 +11,9 @@ export default async function LibraryBooks({ params }: { params: { id: string } 
 
   return (
     <main className="flex flex-col items-center gap-y-5 pt-24, text-center">
-      <h1 className="text-2xl font-semibold">
+      <Link href={`/profile?libraryId=${library?.id}`} className="text-2xl font-semibold hover:underline">
         {count} 📚 at {library?.locationName}
-      </h1>
+      </Link>
       {library?.id && <ViewItems libraryId={library.id} />}
     </main>
   );

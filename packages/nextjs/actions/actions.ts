@@ -73,6 +73,39 @@ export async function checkLibraryExists(latitude: string, longitude: string) {
   }
 }
 
+// Function to get library data.
+export async function getLibraryData(libraryId: string) {
+  try {
+    const library = await prisma.library.findFirst({
+      where: {
+        id: libraryId,
+      },
+      select: {
+        id: true,
+        locationName: true,
+        imageUrl: true,
+        active: true,
+        latitude: true,
+        longitude: true,
+      },
+    });
+
+    return library
+      ? {
+          locationName: library.locationName,
+          id: library.id,
+          imageUrl: library.imageUrl,
+          active: library.active,
+          latitude: library.latitude,
+          longitude: library.longitude,
+        }
+      : "not found";
+  } catch (error) {
+    console.error("Error getting library information:", error);
+    throw new Error("Error getting library information");
+  }
+}
+
 // Function to get items (books) by library ID with pagination
 export async function getItemsByLibraryId(
   libraryId: string,

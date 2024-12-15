@@ -1,12 +1,15 @@
 import Image from "next/image";
 
-export const ShowLibraryCard = ({ existingLibrary }: { existingLibrary: any }) => {
-  console.log(`existing image url: ${existingLibrary.imageUrl}`);
+export const ShowLibraryCard = ({ existingLibrary }: { existingLibrary: ExistingLibrary | null }) => {
+  if (!existingLibrary) return <div></div>;
   return (
     <div className="hero bg-base-200 min-h-screen">
       <div className="hero-content flex-col lg:flex-row">
         <Image
-          src={existingLibrary.imageUrl || "https://img.daisyui.com/images/stock/photo-1635805737707-575885ab0820.webp"}
+          src={
+            existingLibrary.imageUrl ||
+            "https://dtmqxpohipopgolmirik.supabase.co/storage/v1/object/public/library-images/site-images/placeholder-library.jpeg?t=2024-12-15T15%3A45%3A04.162Z"
+          }
           alt={`${existingLibrary.locationName} library image`}
           width={384}
           height={384}
