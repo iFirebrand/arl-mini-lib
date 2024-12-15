@@ -54,6 +54,7 @@ export async function checkLibraryExists(latitude: string, longitude: string) {
         active: true,
         latitude: true,
         longitude: true,
+        description: true,
       },
     });
 
@@ -65,6 +66,7 @@ export async function checkLibraryExists(latitude: string, longitude: string) {
           active: library.active,
           latitude: library.latitude,
           longitude: library.longitude,
+          description: library.description,
         }
       : "not found";
   } catch (error) {
@@ -87,6 +89,7 @@ export async function getLibraryData(libraryId: string) {
         active: true,
         latitude: true,
         longitude: true,
+        description: true,
       },
     });
 
@@ -98,6 +101,7 @@ export async function getLibraryData(libraryId: string) {
           active: library.active,
           latitude: library.latitude,
           longitude: library.longitude,
+          description: library.description,
         }
       : "not found";
   } catch (error) {

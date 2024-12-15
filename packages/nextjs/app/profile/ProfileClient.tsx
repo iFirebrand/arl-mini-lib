@@ -12,6 +12,7 @@ type ExistingLibrary = {
   active: boolean;
   latitude: number;
   longitude: number;
+  description: string | null;
 };
 
 export default function ProfileClient() {
