@@ -8,7 +8,6 @@ export async function GET(request: Request) {
     }
 
     const url = `http://openlibrary.org/api/volumes/brief/isbn/${isbn}.json`;
-
     const response = await fetch(url);
 
     if (!response.ok) {
@@ -16,7 +15,6 @@ export async function GET(request: Request) {
     }
 
     const data = await response.json();
-
     return Response.json(data);
   } catch (error: unknown) {
     if (error instanceof Error) {

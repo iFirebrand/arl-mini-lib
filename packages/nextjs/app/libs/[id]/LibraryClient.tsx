@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Scan from "../../../app/scan/App";
 import { checkIfLocationMatches } from "../../../components/maps/checkIfLocationMatches";
+import Scan from "./App";
+import { fetchBookData } from "./fetchBookData";
+import { saveBookToDatabase } from "./saveBookToDatabase";
+import { toast } from "react-hot-toast";
 
 interface LibraryClientProps {
   library: {
@@ -14,8 +17,20 @@ interface LibraryClientProps {
   } | null;
 }
 
+interface BookInfo {
+  title: string;
+  authors: string;
+  thumbnail: string;
+  description: string;
+  isbn13: string;
+  itemInfo: string;
+  libraryId: string;
+}
+
 export default function LibraryClient({ library }: LibraryClientProps) {
   const [isAtLibrary, setIsAtLibrary] = useState(false);
+  const [scannedBooks, setScannedBooks] = useState<BookInfo[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const getPosition = (): Promise<GeolocationPosition> => {
@@ -45,13 +60,47 @@ export default function LibraryClient({ library }: LibraryClientProps) {
     checkLocation();
   }, [library]);
 
+  const handleScan = async (isbn: string) => {
+    if (isProcessing) return;
+
+    setIsProcessing(true);
+    try {
+      if (!library) return;
+      const bookData: BookInfo | null = await fetchBookData(isbn, library.id);
+
+      if (!bookData) {
+        toast.error("Book not found");
+        return;
+      }
+
+      await saveBookToDatabase(bookData);
+      setScannedBooks(prev => [...prev, bookData]);
+      toast.success("Book added successfully!");
+    } catch (error) {
+      toast.error("Error processing book");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   if (!library) return <div>Library not found</div>;
 
   return (
     <div className="flex flex-col items-center gap-y-5 pt-24 text-center px-[5%]">
       <h1 className="text-2xl font-semibold">Add to catalog at {library.locationName} library</h1>
       {isAtLibrary ? (
-        <Scan libraryId={library.id} />
+        <div>
+          <Scan onScan={handleScan} />
+          {/* <BookList results={scannedBooks} /> */}
+          <div className="flex flex-col items-center gap-y-5 pt-24 text-center px-[5%]">
+            <h1 className="text-2xl font-semibold">Scanned Books: {scannedBooks.length} </h1>
+            {scannedBooks.map((book, index) => (
+              <div key={index}>
+                <h2>{book.title}</h2>
+              </div>
+            ))}
+          </div>
+        </div>
       ) : (
         <div className="flex justify-center w-full">
           <div className="card bg-base-100 max-w-96 shadow-xl">
