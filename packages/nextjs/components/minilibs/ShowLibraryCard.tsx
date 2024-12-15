@@ -1,6 +1,13 @@
 import Image from "next/image";
 
-export const ShowLibraryCard = ({ existingLibrary }: { existingLibrary: ExistingLibrary | null }) => {
+interface LibraryCard {
+  id: string;
+  locationName: string;
+  description: string | null;
+  imageUrl: string | null;
+}
+
+export const ShowLibraryCard = ({ existingLibrary }: { existingLibrary: LibraryCard | null }) => {
   if (!existingLibrary) return <div></div>;
   return (
     <div className="hero bg-base-200 min-h-screen">

@@ -60,14 +60,14 @@ export default function ViewItems({ libraryId }: { libraryId: string }) {
           ))}
         </tbody>
       </table>
-      {/* <div className="flex justify-center items-center gap-4 mt-4">
+      <div className="flex justify-center items-center gap-4 mt-4">
         <button className="btn" onClick={() => setPage(p => p - 1)} disabled={page === 1}>
           Previous
         </button>
         <button className="btn" onClick={() => setPage(p => p + 1)}>
           Next
         </button>
-      </div> */}
+      </div>
       <div className="flex justify-center">
         <div className="card bg-base-100 w-96 shadow-xl">
           <div className="card-body">

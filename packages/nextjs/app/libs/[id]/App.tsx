@@ -15,55 +15,15 @@ interface ScannerProps {
 const Scanner: React.FC<ScannerProps> = ({ onScan }) => {
   const [videoDevices, setVideoDevices] = useState<VideoDevice[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
-  const [result, setResult] = useState<string>("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [lastScanTime, setLastScanTime] = useState<number>(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const codeReader = useRef<BrowserMultiFormatReader>(new BrowserMultiFormatReader());
-  const [lastScanTime, setLastScanTime] = useState<number>(0);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const startScanningRef = useRef<() => void>();
+  const handleResultRef = useRef<typeof handleResult>();
   const SCAN_DELAY = 2000; // 2 seconds
 
-  const handleResult = useCallback(
-    (result: Result | null) => {
-      if (!result || isProcessing) return;
-
-      const now = Date.now();
-      if (now - lastScanTime > SCAN_DELAY) {
-        const text = result.getText();
-        console.log("Scan detected:", text);
-        setResult(text);
-        setIsProcessing(true);
-        onScan(text).finally(() => {
-          setIsProcessing(false);
-          setLastScanTime(now);
-        });
-      }
-    },
-    [onScan, lastScanTime, isProcessing],
-  );
-
-  useEffect(() => {
-    const reader = codeReader.current;
-
-    const initializeDevices = async () => {
-      try {
-        const devices = await reader.listVideoInputDevices();
-        setVideoDevices(devices);
-        if (devices.length > 0) {
-          setSelectedDeviceId(devices[0].deviceId);
-        }
-      } catch (err) {
-        console.error("Error listing video devices:", err);
-      }
-    };
-
-    initializeDevices();
-
-    return () => {
-      reader.reset();
-    };
-  }, []);
-
-  const startScanning = useCallback(() => {
+  const startScanning = useCallback((): void => {
     if (!videoRef.current) return;
 
     codeReader.current.decodeFromVideoDevice(
@@ -71,47 +31,105 @@ const Scanner: React.FC<ScannerProps> = ({ onScan }) => {
       videoRef.current,
       (result: Result | null, error?: Exception) => {
         if (result) {
-          handleResult(result);
+          handleResultRef.current?.(result);
         }
         if (error && !(error instanceof NotFoundException)) {
           console.error(error);
-          setResult(error.message);
         }
       },
     );
     console.log(`Started continuous decode from camera with id ${selectedDeviceId}`);
-  }, [selectedDeviceId, handleResult]);
+  }, [selectedDeviceId]);
+
+  const handleResult = useCallback(
+    (result: Result | null): void => {
+      if (!result || isProcessing) return;
+
+      const now = Date.now();
+      if (now - lastScanTime > SCAN_DELAY) {
+        const text = result.getText();
+        console.log("Scan detected:", text);
+
+        // Stop scanning
+        codeReader.current.reset();
+
+        onScan(text).finally(() => {
+          setIsProcessing(false);
+          setLastScanTime(now);
+
+          // Wait for delay then restart scanning
+          setTimeout(() => {
+            startScanningRef.current?.();
+          }, SCAN_DELAY);
+        });
+      }
+    },
+    [onScan, lastScanTime, isProcessing],
+  );
+
+  useEffect(() => {
+    startScanningRef.current = startScanning;
+    handleResultRef.current = handleResult;
+  }, [startScanning, handleResult]);
+
+  useEffect(() => {
+    const reader = codeReader.current;
+    const currentVideoRef = videoRef.current;
+
+    const initializeDevices = async () => {
+      try {
+        const devices = await reader.listVideoInputDevices();
+        if (devices.length === 0) {
+          throw new Error("No video devices found");
+        }
+        setVideoDevices(devices);
+        setSelectedDeviceId(devices[0].deviceId);
+      } catch (err) {
+        console.error("Error listing video devices:", err);
+        // Add user feedback here
+      }
+    };
+
+    initializeDevices();
+
+    return () => {
+      reader.reset();
+      if (currentVideoRef && currentVideoRef.srcObject) {
+        const tracks = (currentVideoRef.srcObject as MediaStream).getTracks();
+        tracks.forEach(track => track.stop());
+      }
+    };
+  }, []);
 
   const resetScanning = useCallback(() => {
     codeReader.current.reset();
-    setResult("");
     console.log("Reset.");
   }, []);
 
   return (
-    <main className="wrapper" style={{ paddingTop: "2em" }}>
-      <section className="container">
-        <h1 className="title">Scan the book barcode</h1>
+    <main className="w-full flex flex-col items-center p-8">
+      <div className="w-full max-w-2xl flex flex-col items-center gap-4">
+        <h1 className="text-2xl font-bold">Scan the book barcode</h1>
 
-        <div>
-          <button className="button" onClick={startScanning}>
+        <div className="flex gap-2">
+          <button className="btn btn-primary" onClick={startScanning}>
             Start
           </button>
-          <button className="button" onClick={resetScanning}>
-            Reset
+          <button className="btn btn-secondary" onClick={resetScanning}>
+            Stop
           </button>
         </div>
 
         <div>
-          <video ref={videoRef} width={300} height={200} style={{ border: "1px solid gray" }} />
+          <video ref={videoRef} width={300} height={200} className="border border-gray-300 rounded" />
         </div>
 
         {videoDevices.length > 1 && (
-          <div>
+          <div className="flex flex-col gap-2">
             <label htmlFor="sourceSelect">Change video source:</label>
             <select
               id="sourceSelect"
-              style={{ maxWidth: "400px" }}
+              className="select select-bordered w-full max-w-xs"
               value={selectedDeviceId}
               onChange={e => setSelectedDeviceId(e.target.value)}
             >
@@ -123,14 +141,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan }) => {
             </select>
           </div>
         )}
-
-        <div>
-          <label>Result:</label>
-          <pre>
-            <code>{result}</code>
-          </pre>
-        </div>
-      </section>
+      </div>
     </main>
   );
 };
