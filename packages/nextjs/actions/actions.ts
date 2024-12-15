@@ -137,3 +137,10 @@ export async function getArlibSettings() {
     throw new Error("Error getting ArlibSettings");
   }
 }
+
+export async function bookCount(libraryId: string) {
+  const numberOfBooks = await prisma.item.count({
+    where: { libraryId: libraryId },
+  });
+  return numberOfBooks;
+}
