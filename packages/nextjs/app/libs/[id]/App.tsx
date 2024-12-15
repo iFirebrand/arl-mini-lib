@@ -116,7 +116,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan }) => {
             Start
           </button>
           <button className="btn btn-secondary" onClick={resetScanning}>
-            Reset
+            Stop
           </button>
         </div>
 
