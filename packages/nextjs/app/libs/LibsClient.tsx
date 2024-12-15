@@ -15,6 +15,9 @@ type ExistingLibrary = {
   active: boolean;
   latitude: number;
   longitude: number;
+  description: string | null;
+  updatedAt: Date;
+  createdAt: Date;
 };
 
 export default function LibsClient() {
