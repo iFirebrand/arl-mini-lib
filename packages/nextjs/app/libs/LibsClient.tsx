@@ -6,7 +6,10 @@ import dynamic from "next/dynamic";
 import { checkLibraryExists, createLibrary } from "../../actions/actions";
 import { AddLibraryForm } from "../../components/forms/AddLibraryForm";
 import { handleGeoLocation } from "../../components/maps/handleGeoLocation";
+import { useBankedPoints } from "../contexts/BankedPointsContext";
 import { usePoints } from "../contexts/PointsContext";
+import { handlePoints } from "../utils/points/handlePoints";
+import { useAccount } from "wagmi";
 import { ShowLibraryCard } from "~~/components/minilibs/ShowLibraryCard";
 
 type ExistingLibrary = {
@@ -22,7 +25,9 @@ type ExistingLibrary = {
 };
 
 export default function LibsClient() {
+  const { address } = useAccount();
   const { addPoints } = usePoints();
+  const { setBankedPointsTotal } = useBankedPoints();
   const [isGeolocationAvailable, setIsGeolocationAvailable] = useState(false);
   const [latitude, setLatitude] = useState<string | null>(null);
   const [longitude, setLongitude] = useState<string | null>(null);
@@ -72,16 +77,9 @@ export default function LibsClient() {
     }
 
     try {
-      console.log("Attempting to create library...");
       await createLibrary(formData);
-
-      console.log("Library created successfully");
-      console.log("Attempting to add points...");
-
       // Only add to temporary points system
       addPoints(10, "CREATE_LIBRARY");
-      console.log("Points supposedly added: 10");
-
       // former reload
       window.location.reload();
     } catch (error) {
@@ -93,6 +91,10 @@ export default function LibsClient() {
   const handleGeoLocationClick = () => {
     setIsGeolocationRequested(true);
     handleGeoLocation("/libs");
+  };
+
+  const handleAddPoints = () => {
+    handlePoints(address, 10, "CREATE_LIBRARY", addPoints, setBankedPointsTotal);
   };
 
   return (

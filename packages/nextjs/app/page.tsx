@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useBankedPoints } from "../app/contexts/BankedPointsContext";
 import { usePoints } from "../app/contexts/PointsContext";
+import { handlePoints } from "../app/utils/points/handlePoints";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
 import { InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
@@ -19,42 +20,8 @@ const Home: NextPage = () => {
     handleGeoLocation("/libs");
   };
 
-  const handleAddPoints = async () => {
-    try {
-      if (!address) {
-        addPoints(10, "CREATE_LIBRARY");
-        console.log("Points supposedly added: 10");
-        return;
-      }
-
-      const pointAction = {
-        points: 10,
-        type: "CREATE_LIBRARY",
-        timestamp: new Date().toISOString(),
-      };
-
-      const response = await fetch("/api/points", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          walletAddress: address,
-          pointActions: [pointAction],
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        console.log(`Points added successfully. New total: ${data.currentTotal}`);
-        setBankedPointsTotal(data.currentTotal);
-      } else {
-        console.error("Failed to add points:", data.error);
-      }
-    } catch (error) {
-      console.error("Error adding points:", error);
-    }
+  const handleAddPoints = () => {
+    handlePoints(address, 10, "TEST_POINTS", addPoints, setBankedPointsTotal);
   };
 
   return (

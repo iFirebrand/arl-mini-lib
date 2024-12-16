@@ -6,8 +6,6 @@ interface ModalProps {
 }
 
 export const LoginOrCreateAccountModal = ({ id }: ModalProps) => {
-  console.log("Rendering modal with id:", id); // Debug log
-
   return (
     <dialog id={id} className="modal">
       <div className="modal-box">
