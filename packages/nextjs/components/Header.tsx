@@ -14,6 +14,7 @@ import {
   MapIcon,
   StarIcon,
 } from "@heroicons/react/24/outline";
+import { useBankedPoints } from "~~/app/contexts/BankedPointsContext";
 import { usePoints } from "~~/app/contexts/PointsContext";
 import { SwitchTheme } from "~~/components/SwitchTheme";
 import { useOutsideClick } from "~~/hooks/scaffold-eth";
@@ -82,7 +83,7 @@ export const Header = () => {
   const burgerMenuRef = useRef<HTMLDivElement>(null);
   const { address, isConnected } = useAccount();
   const { points: userPoints, clearTemporaryPoints, getPointActions } = usePoints();
-  const POINTS_STORAGE_KEY = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || "arlib-points";
+  const { bankedPoints } = useBankedPoints();
 
   const openPointsModal = () => {
     const modal = document.getElementById("points-modal") as HTMLDialogElement;
@@ -97,33 +98,34 @@ export const Header = () => {
   );
 
   useEffect(() => {
-    const bankPoints = async () => {
+    const savePoints = async () => {
       if (isConnected && address && userPoints > 0) {
         try {
-          const response = await fetch("/api/bank", {
+          const response = await fetch("/api/points", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              address: address,
+              walletAddress: address,
               pointActions: getPointActions(),
             }),
           });
 
           if (response.ok) {
+            const data = await response.json();
             clearTemporaryPoints();
           } else {
-            console.error("Failed to bank points");
+            console.error("Failed to save points");
           }
         } catch (error) {
-          console.error("Error banking points:", error);
+          console.error("Error saving points:", error);
         }
       }
     };
 
-    bankPoints();
-  }, [isConnected, address]);
+    savePoints();
+  }, [isConnected, address, userPoints, getPointActions, clearTemporaryPoints]);
 
   return (
     <div className="sticky lg:static top-0 navbar bg-base-100 min-h-0 flex-shrink-0 justify-between z-20 shadow-md shadow-secondary px-0 sm:px-2">
@@ -168,7 +170,7 @@ export const Header = () => {
           {isConnected ? (
             <button className="btn btn-primary btn-sm px-4 rounded-full">
               <StarIcon className="h-4 w-4 mr-1" />
-              <span>{userPoints} points</span>
+              <span>{bankedPoints} points</span>
             </button>
           ) : (
             <button className="btn btn-primary btn-sm px-4 rounded-full">

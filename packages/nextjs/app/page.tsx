@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useBankedPoints } from "../app/contexts/BankedPointsContext";
 import { usePoints } from "../app/contexts/PointsContext";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
 import { InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
-
-// import { Address } from "~~/components/scaffold-eth";
+import { handleGeoLocation } from "~~/components/maps/handleGeoLocation";
 
 const Home: NextPage = () => {
   const [isGeolocationRequested, setIsGeolocationRequested] = useState(false);
   const { address } = useAccount();
   const { addPoints } = usePoints();
+  const { setBankedPointsTotal } = useBankedPoints();
 
   const handleGeoLocationClick = () => {
     setIsGeolocationRequested(true);
@@ -47,6 +48,7 @@ const Home: NextPage = () => {
 
       if (data.success) {
         console.log(`Points added successfully. New total: ${data.currentTotal}`);
+        setBankedPointsTotal(data.currentTotal);
       } else {
         console.error("Failed to add points:", data.error);
       }
