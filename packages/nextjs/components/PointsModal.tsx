@@ -11,39 +11,35 @@ export const LoginOrCreateAccountModal = ({ id }: ModalProps) => {
   return (
     <dialog id={id} className="modal">
       <div className="modal-box">
-        <h3 className="font-bold text-lg">🎉 Nicely done! 20 points earned.</h3>
+        <h3 className="font-bold text-lg">⚠️ Your earned points are at risk until saved!</h3>
         <ul className="list-disc pl-6">
           <li className="py-4">
-            <strong>Earn points</strong> pseudonymously for leaderboards and potential future rewards.{" "}
+            Login to <strong>save points</strong> pseudonymously for leaderboards and potential future rewards.{" "}
             <Link href="/about#accounts" target="_blank" rel="noopener noreferrer">
               Learn more
             </Link>
             .
           </li>
           <li className="py-4">
-            Continue without claiming and <strong>forfeit points</strong> to remain anonymous for this contribution.
+            Or continue without account and <strong>forfeit points</strong> to remain anonymous.
           </li>
         </ul>
+        <p>
+          Your points are currently saved temporarily in your browser and aren’t linked to your account yet. If you
+          clear your browser data or switch devices, these points may disappear. To keep them safe and tied to your
+          account, you need to save them.
+        </p>
 
         <div className="modal-action">
           <form method="dialog">
             <button
-              className="btn btn-primary mr-2"
-              onClick={() => {
-                console.log("Create account clicked"); // Debug log
-                // Handle create account logic
-              }}
-            >
-              Create Account & Claim Points
-            </button>
-
-            <button
               className="btn"
+              value="dismiss"
               onClick={() => {
-                console.log("Continue without claiming clicked"); // Debug log
+                console.log("Continue without claiming clicked");
               }}
             >
-              Continue without claiming
+              Got it
             </button>
           </form>
         </div>

@@ -4,9 +4,10 @@ import React, { useCallback, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-// import { FaucetButton } from "./scaffold-eth";
+import { usePoints } from "../app/contexts/PointsContext";
+import { LoginOrCreateAccountModal } from "./PointsModal";
 import { RainbowKitCustomConnectButton } from "./scaffold-eth";
-import { Bars3Icon, InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon, ExclamationTriangleIcon, InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
 import { SwitchTheme } from "~~/components/SwitchTheme";
 import { useOutsideClick } from "~~/hooks/scaffold-eth";
 
@@ -88,6 +89,15 @@ export const HeaderMenuLinks = () => {
 export const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const burgerMenuRef = useRef<HTMLDivElement>(null);
+  const { points } = usePoints();
+
+  const openPointsModal = () => {
+    const modal = document.getElementById("points-modal") as HTMLDialogElement;
+    if (modal) {
+      modal.showModal();
+    }
+  };
+
   useOutsideClick(
     burgerMenuRef,
     useCallback(() => setIsDrawerOpen(false), []),
@@ -132,9 +142,15 @@ export const Header = () => {
         </ul>
       </div>
       <div className="navbar-end flex-grow mr-4">
-        <RainbowKitCustomConnectButton />
-        {/* <FaucetButton /> */}
+        <div className="flex gap-3 items-center">
+          <button className="btn btn-primary btn-sm px-4 rounded-full" onClick={openPointsModal}>
+            <ExclamationTriangleIcon className="h-4 w-4 mr-1" />
+            <span>{points} points</span>
+          </button>
+          <RainbowKitCustomConnectButton />
+        </div>
       </div>
+      <LoginOrCreateAccountModal id="points-modal" />
     </div>
   );
 };

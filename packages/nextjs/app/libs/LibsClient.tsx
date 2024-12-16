@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import { checkLibraryExists, createLibrary } from "../../actions/actions";
 import { AddLibraryForm } from "../../components/forms/AddLibraryForm";
 import { handleGeoLocation } from "../../components/maps/handleGeoLocation";
-import { LoginOrCreateAccountModal } from "./loginOrCreateAccountModal";
+import { usePoints } from "../contexts/PointsContext";
 import { ShowLibraryCard } from "~~/components/minilibs/ShowLibraryCard";
 
 type ExistingLibrary = {
@@ -22,6 +22,7 @@ type ExistingLibrary = {
 };
 
 export default function LibsClient() {
+  const { addPoints } = usePoints();
   const [isGeolocationAvailable, setIsGeolocationAvailable] = useState(false);
   const [latitude, setLatitude] = useState<string | null>(null);
   const [longitude, setLongitude] = useState<string | null>(null);
@@ -71,27 +72,10 @@ export default function LibsClient() {
     }
 
     try {
-      // Create the library first
       await createLibrary(formData);
-
-      // Add console.log to debug
-      console.log("Library created successfully, attempting to show modal");
-
-      const modal = document.getElementById("points_modal");
-      console.log("Modal element:", modal); // Debug log
-
-      if (modal) {
-        modal.showModal();
-        modal.addEventListener(
-          "close",
-          () => {
-            window.location.reload();
-          },
-          { once: true },
-        );
-      } else {
-        console.error("Modal element not found");
-      }
+      // Add points for creating a library
+      addPoints(100); // or whatever point value you want to award
+      window.location.reload();
     } catch (error) {
       console.error("Error creating library:", error);
       alert("Failed to create library. Please try again.");
@@ -167,7 +151,6 @@ export default function LibsClient() {
           </>
         )}
       </main>
-      <LoginOrCreateAccountModal id="points_modal" />
     </>
   );
 }
