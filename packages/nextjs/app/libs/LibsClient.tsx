@@ -7,6 +7,7 @@ import { checkLibraryExists, createLibrary } from "../../actions/actions";
 import { AddLibraryForm } from "../../components/forms/AddLibraryForm";
 import { handleGeoLocation } from "../../components/maps/handleGeoLocation";
 import { usePoints } from "../contexts/PointsContext";
+import { addPoints } from "../contexts/PointsContext";
 import { ShowLibraryCard } from "~~/components/minilibs/ShowLibraryCard";
 
 type ExistingLibrary = {
@@ -74,7 +75,10 @@ export default function LibsClient() {
     try {
       await createLibrary(formData);
       // Add points for creating a library
-      addPoints(100); // or whatever point value you want to award
+      // addPoints(20); // or whatever point value you want to award
+
+      addPoints(10, "CREATE_LIBRARY");
+      console.log("Points added: 10");
       window.location.reload();
     } catch (error) {
       console.error("Error creating library:", error);
@@ -134,13 +138,6 @@ export default function LibsClient() {
       <main className="flex flex-col items-center gap-y-5 pt-24 text-center">
         {!libraryExists && isGeolocationAvailable && (
           <>
-            <div className="container mx-auto">
-              <ul className="steps">
-                <li className="step step-primary">Name & photo</li>
-                <li className="step">Scan books</li>
-                {/* <li className="step">Claim points</li> */}
-              </ul>
-            </div>
             <AddLibraryForm
               isGeolocationAvailable={isGeolocationAvailable}
               latitude={latitude}

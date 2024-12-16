@@ -46,6 +46,7 @@ model Library {
 model User {
   id String @id @default(cuid())
   walletAddress String? @unique
+  points Int @default(0)
   curatorOf Library[] @relation("LibraryCurators")
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())

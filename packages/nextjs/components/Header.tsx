@@ -1,15 +1,23 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { usePoints } from "../app/contexts/PointsContext";
 import { LoginOrCreateAccountModal } from "./PointsModal";
 import { RainbowKitCustomConnectButton } from "./scaffold-eth";
-import { Bars3Icon, ExclamationTriangleIcon, InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
+import { useAccount } from "wagmi";
+import {
+  Bars3Icon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+  MapIcon,
+  StarIcon,
+} from "@heroicons/react/24/outline";
+import { usePoints } from "~~/app/contexts/PointsContext";
 import { SwitchTheme } from "~~/components/SwitchTheme";
 import { useOutsideClick } from "~~/hooks/scaffold-eth";
+import { decrypt, encrypt } from "~~/lib/encryption";
 
 type HeaderMenuLink = {
   label: string;
@@ -22,7 +30,6 @@ export const menuLinks: HeaderMenuLink[] = [
     label: "Home",
     href: "/",
   },
-
   {
     label: "Map",
     href: "/browse",
@@ -62,20 +69,8 @@ export const HeaderMenuLinks = () => {
               } hover:bg-secondary hover:shadow-md focus:!bg-secondary active:!text-neutral py-1.5 px-3 text-sm rounded-full gap-2 grid grid-flow-col`}
             >
               {icon}
-              <span
-                onClick={() => {
-                  /* Trigger the same action as the icon click */
-                }}
-              >
-                {label}
-              </span>
+              <span>{label}</span>
             </Link>
-            <InformationCircleIcon
-              className="h-4 w-4 cursor-pointer"
-              onClick={() => {
-                // Trigger the SwitchTheme action here
-              }}
-            />
           </li>
         );
       })}
@@ -83,13 +78,36 @@ export const HeaderMenuLinks = () => {
   );
 };
 
-/**
- * Site header
- */
+const fetchUserPoints = async (address: string) => {
+  try {
+    const response = await fetch(`/api/points/${address}`);
+    const data = await response.json();
+    return data.points || 0;
+  } catch (error) {
+    console.error("Error fetching points:", error);
+    return 0;
+  }
+};
+
 export const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const burgerMenuRef = useRef<HTMLDivElement>(null);
-  const { points } = usePoints();
+  const { address, isConnected } = useAccount();
+  const [userPoints, setUserPoints] = useState(0);
+
+  // Fetch points when wallet connection changes
+  useEffect(() => {
+    const updatePoints = async () => {
+      if (isConnected && address) {
+        const points = await fetchUserPoints(address);
+        setUserPoints(points);
+      } else {
+        setUserPoints(0);
+      }
+    };
+
+    updatePoints();
+  }, [isConnected, address]);
 
   const openPointsModal = () => {
     const modal = document.getElementById("points-modal") as HTMLDialogElement;
@@ -102,6 +120,24 @@ export const Header = () => {
     burgerMenuRef,
     useCallback(() => setIsDrawerOpen(false), []),
   );
+
+  const bankPoints = async () => {
+    const { points, getPointActions, clearTemporaryPoints } = usePoints();
+
+    if (points > 0) {
+      const response = await fetch("/api/points/bank", {
+        method: "POST",
+        body: JSON.stringify({
+          address: userAddress,
+          pointActions: getPointActions(),
+        }),
+      });
+
+      if (response.ok) {
+        clearTemporaryPoints();
+      }
+    }
+  };
 
   return (
     <div className="sticky lg:static top-0 navbar bg-base-100 min-h-0 flex-shrink-0 justify-between z-20 shadow-md shadow-secondary px-0 sm:px-2">
@@ -143,10 +179,17 @@ export const Header = () => {
       </div>
       <div className="navbar-end flex-grow mr-4">
         <div className="flex gap-3 items-center">
-          <button className="btn btn-primary btn-sm px-4 rounded-full" onClick={openPointsModal}>
-            <ExclamationTriangleIcon className="h-4 w-4 mr-1" />
-            <span>{points} points</span>
-          </button>
+          {isConnected ? (
+            <button className="btn btn-primary btn-sm px-4 rounded-full">
+              <StarIcon className="h-4 w-4 mr-1" />
+              <span>{userPoints} points</span>
+            </button>
+          ) : (
+            <button className="btn btn-primary btn-sm px-4 rounded-full" onClick={openPointsModal}>
+              <ExclamationTriangleIcon className="h-4 w-4 mr-1" />
+              <span>0 points</span>
+            </button>
+          )}
           <RainbowKitCustomConnectButton />
         </div>
       </div>

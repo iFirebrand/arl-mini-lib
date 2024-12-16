@@ -1,30 +1,104 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { decrypt, encrypt } from "~~/lib/encryption";
+
+// We'll create this
+
+interface PointAction {
+  action: string;
+  points: number;
+  timestamp: number;
+}
 
 interface PointsContextType {
   points: number;
-  addPoints: (amount: number) => void;
+  addPoints: (amount: number, actionType: string) => void;
+  clearTemporaryPoints: () => void;
+  getPointActions: () => PointAction[];
 }
 
 const PointsContext = createContext<PointsContextType | undefined>(undefined);
 
+const POINTS_STORAGE_KEY = "arlib_temp_points";
+const MAX_POINTS_PER_ACTION = 100; // Reasonable limit per action
+const MAX_TOTAL_TEMP_POINTS = 1000; // Reasonable total limit
+
 export function PointsProvider({ children }: { children: React.ReactNode }) {
   const [points, setPoints] = useState(0);
+  const [pointActions, setPointActions] = useState<PointAction[]>([]);
 
   useEffect(() => {
-    // Load points from localStorage on mount
-    const savedPoints = localStorage.getItem("userPoints");
-    if (savedPoints) {
-      setPoints(parseInt(savedPoints));
+    // Load encrypted points from localStorage on mount
+    const savedData = localStorage.getItem(POINTS_STORAGE_KEY);
+    if (savedData) {
+      try {
+        const decrypted = decrypt(savedData);
+        const { points: savedPoints, actions } = JSON.parse(decrypted);
+        setPoints(savedPoints);
+        setPointActions(actions);
+      } catch (error) {
+        console.error("Error loading points:", error);
+        // If there's an error, clear corrupted data
+        localStorage.removeItem(POINTS_STORAGE_KEY);
+      }
     }
   }, []);
 
-  const addPoints = (amount: number) => {
-    const newPoints = points + amount;
-    setPoints(newPoints);
-    localStorage.setItem("userPoints", newPoints.toString());
+  const saveToLocalStorage = (newPoints: number, newActions: PointAction[]) => {
+    const data = {
+      points: newPoints,
+      actions: newActions,
+    };
+    const encrypted = encrypt(JSON.stringify(data));
+    localStorage.setItem(POINTS_STORAGE_KEY, encrypted);
   };
 
-  return <PointsContext.Provider value={{ points, addPoints }}>{children}</PointsContext.Provider>;
+  const addPoints = (amount: number, actionType: string) => {
+    // Validate point amount
+    if (amount <= 0 || amount > MAX_POINTS_PER_ACTION) {
+      console.error("Invalid points amount");
+      return;
+    }
+
+    // Check if total would exceed maximum
+    if (points + amount > MAX_TOTAL_TEMP_POINTS) {
+      console.error("Maximum temporary points limit reached");
+      return;
+    }
+
+    const newAction: PointAction = {
+      action: actionType,
+      points: amount,
+      timestamp: Date.now(),
+    };
+
+    const newPoints = points + amount;
+    const newActions = [...pointActions, newAction];
+
+    setPoints(newPoints);
+    setPointActions(newActions);
+    saveToLocalStorage(newPoints, newActions);
+  };
+
+  const clearTemporaryPoints = () => {
+    setPoints(0);
+    setPointActions([]);
+    localStorage.removeItem(POINTS_STORAGE_KEY);
+  };
+
+  const getPointActions = () => pointActions;
+
+  return (
+    <PointsContext.Provider
+      value={{
+        points,
+        addPoints,
+        clearTemporaryPoints,
+        getPointActions,
+      }}
+    >
+      {children}
+    </PointsContext.Provider>
+  );
 }
 
 export const usePoints = () => {
