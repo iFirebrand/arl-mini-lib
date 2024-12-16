@@ -73,12 +73,17 @@ export default function LibsClient() {
     }
 
     try {
+      console.log("Attempting to create library...");
       await createLibrary(formData);
-      // Add points for creating a library
-      // addPoints(20); // or whatever point value you want to award
 
+      console.log("Library created successfully");
+      console.log("Attempting to add points...");
+
+      // Only add to temporary points system
       addPoints(10, "CREATE_LIBRARY");
-      console.log("Points added: 10");
+      console.log("Points supposedly added: 10");
+
+      // former reload
       window.location.reload();
     } catch (error) {
       console.error("Error creating library:", error);

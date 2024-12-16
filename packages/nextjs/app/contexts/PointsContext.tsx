@@ -18,7 +18,7 @@ interface PointsContextType {
 
 const PointsContext = createContext<PointsContextType | undefined>(undefined);
 
-const POINTS_STORAGE_KEY = "arlib_temp_points";
+const POINTS_STORAGE_KEY = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || "arlib_temp_points";
 const MAX_POINTS_PER_ACTION = 100; // Reasonable limit per action
 const MAX_TOTAL_TEMP_POINTS = 1000; // Reasonable total limit
 
@@ -53,6 +53,8 @@ export function PointsProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addPoints = (amount: number, actionType: string) => {
+    console.log("Starting addPoints:", { amount, actionType });
+
     // Validate point amount
     if (amount <= 0 || amount > MAX_POINTS_PER_ACTION) {
       console.error("Invalid points amount");
@@ -74,9 +76,21 @@ export function PointsProvider({ children }: { children: React.ReactNode }) {
     const newPoints = points + amount;
     const newActions = [...pointActions, newAction];
 
+    console.log("About to save:", { newPoints, newActions });
+
     setPoints(newPoints);
     setPointActions(newActions);
-    saveToLocalStorage(newPoints, newActions);
+
+    try {
+      saveToLocalStorage(newPoints, newActions);
+      console.log("Successfully saved to localStorage");
+
+      // Verify the save
+      const saved = localStorage.getItem(POINTS_STORAGE_KEY);
+      console.log("Verification - saved data:", saved);
+    } catch (error) {
+      console.error("Error saving to localStorage:", error);
+    }
   };
 
   const clearTemporaryPoints = () => {

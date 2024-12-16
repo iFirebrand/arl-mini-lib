@@ -3,20 +3,17 @@ const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || "no-fallback-ke
 
 export const encrypt = (text: string): string => {
   try {
-    // More secure implementation using the encryption key
     const timestamp = Date.now();
     const data = `${text}:${timestamp}`;
     // Create a signature using the key
     const signature = btoa(encodeURIComponent(`${data}:${ENCRYPTION_KEY}`));
-    return btoa(
-      encodeURIComponent(
-        JSON.stringify({
-          data,
-          signature,
-          timestamp,
-        }),
-      ),
-    );
+    const payload = {
+      data,
+      signature,
+      timestamp,
+    };
+    console.log("Encrypting payload:", payload);
+    return btoa(encodeURIComponent(JSON.stringify(payload)));
   } catch (error) {
     console.error("Encryption error:", error);
     return "";
@@ -26,6 +23,7 @@ export const encrypt = (text: string): string => {
 export const decrypt = (encrypted: string): string => {
   try {
     const decoded = JSON.parse(decodeURIComponent(atob(encrypted)));
+    console.log("Decoded outer structure:", decoded);
 
     // Verify signature
     const expectedSignature = btoa(encodeURIComponent(`${decoded.data}:${ENCRYPTION_KEY}`));
@@ -41,10 +39,17 @@ export const decrypt = (encrypted: string): string => {
       throw new Error("Data has expired");
     }
 
-    const [data] = decoded.data.split(":");
-    return data;
+    // Extract the JSON part before the timestamp
+    const match = decoded.data.match(/(.*)}]}/);
+    if (match && match[1]) {
+      const fullData = match[1] + "}]}";
+      console.log("Extracted data:", fullData);
+      return fullData;
+    }
+
+    throw new Error("Could not extract valid JSON data");
   } catch (error) {
-    console.error("Decryption error:", error);
+    console.error("Decryption error:", error, "Full stack:", error.stack);
     throw new Error("Invalid data");
   }
 };
