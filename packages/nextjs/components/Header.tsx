@@ -17,7 +17,6 @@ import {
 import { usePoints } from "~~/app/contexts/PointsContext";
 import { SwitchTheme } from "~~/components/SwitchTheme";
 import { useOutsideClick } from "~~/hooks/scaffold-eth";
-import { decrypt, encrypt } from "~~/lib/encryption";
 
 type HeaderMenuLink = {
   label: string;
@@ -82,12 +81,8 @@ export const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const burgerMenuRef = useRef<HTMLDivElement>(null);
   const { address, isConnected } = useAccount();
-  const { points: userPoints, getPoints } = usePoints();
+  const { points: userPoints, clearTemporaryPoints, getPointActions } = usePoints();
   const POINTS_STORAGE_KEY = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || "arlib-points";
-
-  const updateLocalPoints = useCallback(() => {
-    getPoints();
-  }, [getPoints]);
 
   const openPointsModal = () => {
     const modal = document.getElementById("points-modal") as HTMLDialogElement;
@@ -101,23 +96,34 @@ export const Header = () => {
     useCallback(() => setIsDrawerOpen(false), []),
   );
 
-  const bankPoints = async () => {
-    const { points, getPointActions, clearTemporaryPoints } = usePoints();
+  useEffect(() => {
+    const bankPoints = async () => {
+      if (isConnected && address && userPoints > 0) {
+        try {
+          const response = await fetch("/api/bank", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              address: address,
+              pointActions: getPointActions(),
+            }),
+          });
 
-    if (points > 0) {
-      const response = await fetch("/api/points/bank", {
-        method: "POST",
-        body: JSON.stringify({
-          address: userAddress,
-          pointActions: getPointActions(),
-        }),
-      });
-
-      if (response.ok) {
-        clearTemporaryPoints();
+          if (response.ok) {
+            clearTemporaryPoints();
+          } else {
+            console.error("Failed to bank points");
+          }
+        } catch (error) {
+          console.error("Error banking points:", error);
+        }
       }
-    }
-  };
+    };
+
+    bankPoints();
+  }, [isConnected, address]);
 
   return (
     <div className="sticky lg:static top-0 navbar bg-base-100 min-h-0 flex-shrink-0 justify-between z-20 shadow-md shadow-secondary px-0 sm:px-2">
@@ -165,7 +171,7 @@ export const Header = () => {
               <span>{userPoints} points</span>
             </button>
           ) : (
-            <button className="btn btn-primary btn-sm px-4 rounded-full" onClick={updateLocalPoints}>
+            <button className="btn btn-primary btn-sm px-4 rounded-full">
               <ExclamationTriangleIcon className="h-4 w-4 mr-1" />
               <span>{userPoints} points</span>
             </button>

@@ -18,12 +18,11 @@ const Home: NextPage = () => {
     handleGeoLocation("/libs");
   };
 
-  const { addPoints, getPoints } = usePoints();
+  const { addPoints } = usePoints();
 
   const handleAddPoints = () => {
     try {
       addPoints(10, "CREATE_LIBRARY");
-      getPoints();
       console.log("Points supposedly added: 10");
     } catch (error) {
       console.error("Error giving points:", error);

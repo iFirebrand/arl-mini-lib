@@ -1,5 +1,5 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { decrypt, encrypt } from "~~/lib/encryption";
+import { NextResponse } from "next/server";
+import prisma from "../../../lib/db";
 
 const validatePointActions = (actions: any[]) => {
   // Implement validation logic here:
@@ -10,35 +10,45 @@ const validatePointActions = (actions: any[]) => {
   return true; // Return false if validation fails
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Method not allowed" });
-  }
-
+export async function POST(request: Request) {
   try {
-    const { address, pointActions } = req.body;
+    const { address, pointActions } = await request.json();
 
     if (!address || !pointActions) {
-      return res.status(400).json({ message: "Missing required fields" });
+      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
 
     // Validate the point actions
     if (!validatePointActions(pointActions)) {
-      return res.status(400).json({ message: "Invalid point actions" });
+      return NextResponse.json({ message: "Invalid point actions" }, { status: 400 });
     }
 
     // Calculate total valid points
     const totalPoints = pointActions.reduce((sum: number, action: any) => sum + action.points, 0);
 
     // Update the database with the new points
-    // await db.points.update({ ... }); // Implement your database update logic
+    const updatedUser = await prisma.user.upsert({
+      where: {
+        walletAddress: address,
+      },
+      create: {
+        walletAddress: address,
+        points: totalPoints,
+      },
+      update: {
+        points: {
+          increment: totalPoints,
+        },
+      },
+    });
 
-    res.status(200).json({
+    return NextResponse.json({
       success: true,
       pointsBanked: totalPoints,
+      currentTotal: updatedUser.points,
     });
   } catch (error) {
     console.error("Error banking points:", error);
-    res.status(500).json({ message: "Error banking points" });
+    return NextResponse.json({ message: "Error banking points" }, { status: 500 });
   }
 }
