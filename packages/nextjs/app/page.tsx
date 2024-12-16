@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { usePoints } from "../app/contexts/PointsContext";
-import { handleGeoLocation } from "../components/maps/handleGeoLocation";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
 import { InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
@@ -11,21 +9,46 @@ import { InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
 
 const Home: NextPage = () => {
   const [isGeolocationRequested, setIsGeolocationRequested] = useState(false);
-  useAccount();
+  const { address } = useAccount();
 
   const handleGeoLocationClick = () => {
     setIsGeolocationRequested(true);
     handleGeoLocation("/libs");
   };
 
-  const { addPoints } = usePoints();
-
-  const handleAddPoints = () => {
+  const handleAddPoints = async () => {
     try {
-      addPoints(10, "CREATE_LIBRARY");
-      console.log("Points supposedly added: 10");
+      if (!address) {
+        console.error("Wallet not connected");
+        return;
+      }
+
+      const pointAction = {
+        points: 10,
+        type: "CREATE_LIBRARY",
+        timestamp: new Date().toISOString(),
+      };
+
+      const response = await fetch("/api/bank", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          address: address,
+          pointActions: [pointAction],
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log(`Points added successfully. New total: ${data.currentTotal}`);
+      } else {
+        console.error("Failed to add points:", data.message);
+      }
     } catch (error) {
-      console.error("Error giving points:", error);
+      console.error("Error adding points:", error);
     }
   };
 
