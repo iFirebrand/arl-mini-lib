@@ -7,7 +7,6 @@ import { checkLibraryExists, createLibrary } from "../../actions/actions";
 import { AddLibraryForm } from "../../components/forms/AddLibraryForm";
 import { handleGeoLocation } from "../../components/maps/handleGeoLocation";
 import { usePoints } from "../contexts/PointsContext";
-import { addPoints } from "../contexts/PointsContext";
 import { ShowLibraryCard } from "~~/components/minilibs/ShowLibraryCard";
 
 type ExistingLibrary = {

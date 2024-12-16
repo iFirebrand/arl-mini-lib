@@ -11,7 +11,7 @@ export const LoginOrCreateAccountModal = ({ id }: ModalProps) => {
   return (
     <dialog id={id} className="modal">
       <div className="modal-box">
-        <h3 className="font-bold text-lg">⚠️ Your earned points are at risk until saved!</h3>
+        <h3 className="font-bold text-lg">⚠️ Your earned points are at risk until logged in!</h3>
         <ul className="list-disc pl-6">
           <li className="py-4">
             Login to <strong>save points</strong> pseudonymously for leaderboards and potential future rewards.{" "}
@@ -25,9 +25,9 @@ export const LoginOrCreateAccountModal = ({ id }: ModalProps) => {
           </li>
         </ul>
         <p>
-          Your points are currently saved temporarily in your browser and aren’t linked to your account yet. If you
-          clear your browser data or switch devices, these points may disappear. To keep them safe and tied to your
-          account, you need to save them.
+          Your points are currently saved temporarily in your browser and are not linked to your account yet. If you
+          clear your browser data or switch devices, these points will disappear. To keep them safe and tied to your
+          account, you need to login to save them.
         </p>
 
         <div className="modal-action">

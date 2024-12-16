@@ -3,34 +3,23 @@ import { NextResponse } from "next/server";
 import prisma from "../../../lib/db";
 import { rateLimit } from "../../../lib/rate-limit";
 
-interface PointAction {
-  points: number;
-  type: string;
-  timestamp: string;
-}
-
 const limiter = rateLimit({
-  interval: 60 * 1000, // 60 seconds
-  uniqueTokenPerInterval: 500, // Max 500 users per second
+  interval: 60 * 1000,
+  uniqueTokenPerInterval: 500,
 });
 
 export async function POST(request: Request) {
   try {
-    // Get IP for rate limiting
+    // Rate limiting
     const ip = request.headers.get("x-forwarded-for") || "anonymous";
     const { success } = await limiter.check(ip);
     if (!success) {
       return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
     }
 
-    // Get the request headers
-    const headersList = headers();
-    const referer = headersList.get("referer");
-    const origin = headersList.get("origin");
-
-    // Check if the request is coming from our own domain
-    const allowedOrigins = [process.env.NEXT_PUBLIC_APP_URL, "http://localhost:3000", "https://arlib.me"];
-
+    // Origin check
+    const referer = headers().get("referer");
+    const allowedOrigins = [process.env.NEXT_PUBLIC_APP_URL || "", "http://localhost:3000"];
     if (!referer || !allowedOrigins.some(origin => referer.startsWith(origin))) {
       return NextResponse.json({ error: "Unauthorized request origin" }, { status: 403 });
     }
@@ -45,28 +34,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Point actions are required" }, { status: 400 });
     }
 
-    // Calculate total points from point actions
     const totalPoints = pointActions.reduce((sum, action) => sum + action.points, 0);
-
-    // Validate points is a reasonable number
     if (totalPoints < 0 || totalPoints > 1000000) {
       return NextResponse.json({ error: "Invalid points value" }, { status: 400 });
     }
 
-    // Update or create user with points
     const user = await prisma.user.upsert({
-      where: {
-        walletAddress: walletAddress,
-      },
-      update: {
-        points: {
-          increment: totalPoints, // Increment existing points instead of replacing
-        },
-      },
-      create: {
-        walletAddress: walletAddress,
-        points: totalPoints,
-      },
+      where: { walletAddress },
+      update: { points: { increment: totalPoints } },
+      create: { walletAddress, points: totalPoints },
     });
 
     return NextResponse.json({
@@ -90,9 +66,7 @@ export async function GET(request: Request) {
     }
 
     const user = await prisma.user.findUnique({
-      where: {
-        walletAddress: walletAddress,
-      },
+      where: { walletAddress },
     });
 
     return NextResponse.json({

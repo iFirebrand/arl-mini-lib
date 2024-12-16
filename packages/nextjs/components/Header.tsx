@@ -83,7 +83,7 @@ export const Header = () => {
   const burgerMenuRef = useRef<HTMLDivElement>(null);
   const { address, isConnected } = useAccount();
   const { points: userPoints, clearTemporaryPoints, getPointActions } = usePoints();
-  const { bankedPoints } = useBankedPoints();
+  const { bankedPoints, setBankedPointsTotal } = useBankedPoints();
 
   const openPointsModal = () => {
     const modal = document.getElementById("points-modal") as HTMLDialogElement;
@@ -114,6 +114,7 @@ export const Header = () => {
 
           if (response.ok) {
             const data = await response.json();
+            setBankedPointsTotal(data.currentTotal);
             clearTemporaryPoints();
           } else {
             console.error("Failed to save points");
@@ -125,7 +126,7 @@ export const Header = () => {
     };
 
     savePoints();
-  }, [isConnected, address, userPoints, getPointActions, clearTemporaryPoints]);
+  }, [isConnected, address, userPoints, getPointActions, clearTemporaryPoints, setBankedPointsTotal]);
 
   return (
     <div className="sticky lg:static top-0 navbar bg-base-100 min-h-0 flex-shrink-0 justify-between z-20 shadow-md shadow-secondary px-0 sm:px-2">
@@ -173,7 +174,7 @@ export const Header = () => {
               <span>{bankedPoints} points</span>
             </button>
           ) : (
-            <button className="btn btn-primary btn-sm px-4 rounded-full">
+            <button className="btn btn-primary btn-sm px-4 rounded-full" onClick={openPointsModal}>
               <ExclamationTriangleIcon className="h-4 w-4 mr-1" />
               <span>{userPoints} points</span>
             </button>

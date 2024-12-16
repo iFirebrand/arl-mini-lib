@@ -49,7 +49,12 @@ export const decrypt = (encrypted: string): string => {
 
     throw new Error("Could not extract valid JSON data");
   } catch (error) {
-    console.error("Decryption error:", error, "Full stack:", error.stack);
+    console.error(
+      "Decryption error:",
+      error instanceof Error ? error : "Unknown error",
+      "Full stack:",
+      error instanceof Error ? error.stack : "No stack",
+    );
     throw new Error("Invalid data");
   }
 };
