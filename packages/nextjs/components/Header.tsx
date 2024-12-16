@@ -101,6 +101,9 @@ export const Header = () => {
     const savePoints = async () => {
       if (isConnected && address && userPoints > 0) {
         try {
+          const pointActions = getPointActions();
+          clearTemporaryPoints();
+
           const response = await fetch("/api/points", {
             method: "POST",
             headers: {
@@ -108,14 +111,13 @@ export const Header = () => {
             },
             body: JSON.stringify({
               walletAddress: address,
-              pointActions: getPointActions(),
+              pointActions: pointActions,
             }),
           });
 
           if (response.ok) {
             const data = await response.json();
             setBankedPointsTotal(data.currentTotal);
-            clearTemporaryPoints();
           } else {
             console.error("Failed to save points");
           }

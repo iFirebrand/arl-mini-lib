@@ -78,8 +78,7 @@ export default function LibsClient() {
 
     try {
       await createLibrary(formData);
-      // Only add to temporary points system
-      addPoints(10, "CREATE_LIBRARY");
+      handlePoints(address, 50, "CREATE_LIBRARY", addPoints, setBankedPointsTotal);
       // former reload
       window.location.reload();
     } catch (error) {
@@ -91,10 +90,6 @@ export default function LibsClient() {
   const handleGeoLocationClick = () => {
     setIsGeolocationRequested(true);
     handleGeoLocation("/libs");
-  };
-
-  const handleAddPoints = () => {
-    handlePoints(address, 10, "CREATE_LIBRARY", addPoints, setBankedPointsTotal);
   };
 
   return (
