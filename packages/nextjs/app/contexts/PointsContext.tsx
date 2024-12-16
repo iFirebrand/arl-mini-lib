@@ -16,7 +16,7 @@ interface PointsContextType {
   getPointActions: () => PointAction[];
 }
 
-const PointsContext = createContext<PointsContextType | undefined>(undefined);
+export const PointsContext = createContext<PointsContextType | undefined>(undefined);
 
 const POINTS_STORAGE_KEY = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || "arlib_temp_points";
 const MAX_POINTS_PER_ACTION = 100; // Reasonable limit per action

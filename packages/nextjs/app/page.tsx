@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePoints } from "../app/contexts/PointsContext";
 import { handleGeoLocation } from "../components/maps/handleGeoLocation";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
@@ -15,6 +16,18 @@ const Home: NextPage = () => {
   const handleGeoLocationClick = () => {
     setIsGeolocationRequested(true);
     handleGeoLocation("/libs");
+  };
+
+  const { addPoints, getPoints } = usePoints();
+
+  const handleAddPoints = () => {
+    try {
+      addPoints(10, "CREATE_LIBRARY");
+      getPoints();
+      console.log("Points supposedly added: 10");
+    } catch (error) {
+      console.error("Error giving points:", error);
+    }
   };
 
   return (
@@ -71,6 +84,10 @@ const Home: NextPage = () => {
           </div>
         </div>
       </div>
+
+      <button className="btn btn-accent" onClick={handleAddPoints}>
+        Add Points
+      </button>
     </>
   );
 };

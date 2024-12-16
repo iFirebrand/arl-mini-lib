@@ -78,50 +78,16 @@ export const HeaderMenuLinks = () => {
   );
 };
 
-const fetchUserPoints = async (address: string) => {
-  try {
-    const response = await fetch(`/api/points/${address}`);
-    const data = await response.json();
-    return data.points || 0;
-  } catch (error) {
-    console.error("Error fetching points:", error);
-    return 0;
-  }
-};
-
 export const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const burgerMenuRef = useRef<HTMLDivElement>(null);
   const { address, isConnected } = useAccount();
-  const [userPoints, setUserPoints] = useState(0);
+  const { points: userPoints, getPoints } = usePoints();
   const POINTS_STORAGE_KEY = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || "arlib-points";
 
-  const updateLocalPoints = useCallback(async () => {
-    console.log("updateLocalPoints called");
-    const savedData = localStorage.getItem(POINTS_STORAGE_KEY);
-    console.log("Raw data from localStorage:", savedData);
-    if (savedData) {
-      try {
-        const decrypted = decrypt(savedData);
-        console.log("Full decrypted data:", decrypted, "Length:", decrypted.length);
-        try {
-          const decodedData = decodeURIComponent(decrypted);
-          console.log("Decoded URI data:", decodedData);
-          const pointsData = JSON.parse(decodedData);
-          console.log("Parsed points data:", pointsData);
-          setUserPoints(pointsData.points || 0);
-        } catch (parseError) {
-          console.error("JSON parse error:", parseError);
-          console.log("Failed to parse:", decrypted);
-        }
-      } catch (error) {
-        console.error("Decryption error:", error);
-        setUserPoints(0);
-      }
-    } else {
-      console.log("No data found in localStorage");
-    }
-  }, []);
+  const updateLocalPoints = useCallback(() => {
+    getPoints();
+  }, [getPoints]);
 
   const openPointsModal = () => {
     const modal = document.getElementById("points-modal") as HTMLDialogElement;
@@ -199,13 +165,7 @@ export const Header = () => {
               <span>{userPoints} points</span>
             </button>
           ) : (
-            <button
-              className="btn btn-primary btn-sm px-4 rounded-full"
-              onClick={() => {
-                updateLocalPoints();
-                openPointsModal();
-              }}
-            >
+            <button className="btn btn-primary btn-sm px-4 rounded-full" onClick={updateLocalPoints}>
               <ExclamationTriangleIcon className="h-4 w-4 mr-1" />
               <span>{userPoints} points</span>
             </button>
