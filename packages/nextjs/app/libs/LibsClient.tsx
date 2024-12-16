@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { checkLibraryExists, createLibrary } from "../../actions/actions";
 import { AddLibraryForm } from "../../components/forms/AddLibraryForm";
 import { handleGeoLocation } from "../../components/maps/handleGeoLocation";
+import { LoginOrCreateAccountModal } from "./loginOrCreateAccountModal";
 import { ShowLibraryCard } from "~~/components/minilibs/ShowLibraryCard";
 
 type ExistingLibrary = {
@@ -61,22 +62,39 @@ export default function LibsClient() {
   }, [latitude, longitude]); // Add latitude and longitude as dependencies
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // Prevent default form submission
-    const formData = new FormData(event.currentTarget); // Use event.currentTarget instead of event.target
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
 
-    // Basic validation
     if (!formData.get("locationName")) {
-      alert("Location Name is required."); // Simple alert for validation
+      alert("Location Name is required.");
       return;
     }
 
     try {
-      // Call createLibrary with form data
+      // Create the library first
       await createLibrary(formData);
-      window.location.reload(); // Reload the page after successful submission
+
+      // Add console.log to debug
+      console.log("Library created successfully, attempting to show modal");
+
+      const modal = document.getElementById("points_modal");
+      console.log("Modal element:", modal); // Debug log
+
+      if (modal) {
+        modal.showModal();
+        modal.addEventListener(
+          "close",
+          () => {
+            window.location.reload();
+          },
+          { once: true },
+        );
+      } else {
+        console.error("Modal element not found");
+      }
     } catch (error) {
-      console.error("Error creating library:", error); // Log error for debugging
-      alert("Failed to create library. Please try again."); // Notify user of failure
+      console.error("Error creating library:", error);
+      alert("Failed to create library. Please try again.");
     }
   };
 
@@ -149,6 +167,7 @@ export default function LibsClient() {
           </>
         )}
       </main>
+      <LoginOrCreateAccountModal id="points_modal" />
     </>
   );
 }
