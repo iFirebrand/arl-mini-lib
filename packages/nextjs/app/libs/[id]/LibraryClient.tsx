@@ -20,6 +20,7 @@ interface LibraryClientProps {
     latitude: number;
     longitude: number;
   } | null;
+  isbn13s: { updatedAt: Date; isbn13: string }[];
 }
 
 interface BookInfo {
@@ -32,7 +33,7 @@ interface BookInfo {
   libraryId: string;
 }
 
-export default function LibraryClient({ library }: LibraryClientProps) {
+export default function LibraryClient({ library, isbn13s }: LibraryClientProps) {
   const [isAtLibrary, setIsAtLibrary] = useState(false);
   const [scannedBooks, setScannedBooks] = useState<BookInfo[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -85,7 +86,8 @@ export default function LibraryClient({ library }: LibraryClientProps) {
     };
 
     checkLocation();
-  }, [library]);
+    console.log(isbn13s);
+  }, [library, isbn13s]);
 
   const handleScan = async (isbn: string) => {
     if (isProcessing) return;

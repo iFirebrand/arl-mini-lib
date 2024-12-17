@@ -144,6 +144,27 @@ export async function getItemsByLibraryId(
   }
 }
 
+// Function to get ISBN only by library ID
+export async function getISBN13ByLibraryId(libraryId: string): Promise<{ updatedAt: Date; isbn13: string }[]> {
+  try {
+    const items = await prisma.item.findMany({
+      where: { libraryId },
+      select: {
+        isbn13: true,
+        updatedAt: true,
+      },
+    });
+
+    return items.map(item => ({
+      isbn13: item.isbn13,
+      updatedAt: item.updatedAt,
+    }));
+  } catch (error) {
+    console.error("Error details:", error); // Log the actual error
+    return []; // Return empty array instead of throwing
+  }
+}
+
 // Function to get ArlibSettings
 export async function getArlibSettings() {
   try {
