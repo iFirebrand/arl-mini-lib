@@ -4,16 +4,22 @@ export function EarnPoints({
   bookRecencyBonus,
   newBookPoints,
   booksScanned,
+  level1MultiplierCount,
+  level1MultiplierThreshold,
 }: {
   failedAttempts: number;
   failedAttemptsBonusThreshold: number;
   bookRecencyBonus: number;
   newBookPoints: number;
   booksScanned: number;
+  level1MultiplierCount: number;
+  level1MultiplierThreshold: number;
 }) {
   console.log({ failedAttempts, failedAttemptsBonusThreshold, bookRecencyBonus, newBookPoints, booksScanned });
 
-  const bonusPercentage = (failedAttempts / failedAttemptsBonusThreshold) * 100;
+  const bonusPercentage = Math.floor((failedAttempts / failedAttemptsBonusThreshold) * 100);
+
+  const level1MultiplierPercentage = Math.floor((level1MultiplierCount / level1MultiplierThreshold) * 100);
 
   return (
     <div>
@@ -51,7 +57,7 @@ export function EarnPoints({
           </div>
         )}
       </div>
-      <div className="font-bold" key={1}>
+      <div className="font-bold">
         <div>Persistence bonus progress</div>
         <div
           className="radial-progress"
@@ -60,6 +66,21 @@ export function EarnPoints({
         >
           <span className="font-bold">{bonusPercentage}%</span>
         </div>
+      </div>
+      <div className="font-bold">
+        {level1MultiplierCount <= level1MultiplierThreshold && (
+          <>
+            {" "}
+            <div>Level 1 Multiplier</div>
+            <div
+              className="radial-progress"
+              style={{ "--value": level1MultiplierPercentage } as React.CSSProperties}
+              role="progressbar"
+            >
+              <span className="font-bold">{level1MultiplierPercentage}%</span>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

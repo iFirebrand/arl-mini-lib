@@ -40,7 +40,9 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [bookRecencyBonus, setBookRecencyBonus] = useState(0);
   const [newBookPoints, setNewBookPoints] = useState(0);
-
+  const [currentBookTitle, setCurrentBookTitle] = useState("");
+  const [level1MultiplierCount, setLevel1MultiplierCount] = useState(0);
+  const [shouldAddPoints, setShouldAddPoints] = useState(false);
   const { address } = useAccount();
   const { addPoints } = usePoints();
   const { setBankedPointsTotal } = useBankedPoints();
@@ -49,18 +51,43 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
     handlePoints(address, amount, "ADD_BOOK", addPoints, setBankedPointsTotal);
   };
 
+  const level1MultiplierThreshold = 3;
+
   const failedAttemptsBonusThreshold = 10;
-  const handleAddPointsForBook = () => {
-    let totalPoints = 0;
-    if (failedAttempts === failedAttemptsBonusThreshold) {
-      totalPoints = totalPoints + 5;
-    } else if (scannedBooks.length === 2) {
-      totalPoints = 20;
-    } else if (scannedBooks.length === 3) {
-      totalPoints = 30;
+
+  useEffect(() => {
+    if (shouldAddPoints) {
+      handleAddPointsForBook();
+      setShouldAddPoints(false);
     }
-    totalPoints = totalPoints + bookRecencyBonus;
-    addPointsForBook(totalPoints);
+  }, [shouldAddPoints, failedAttempts, level1MultiplierCount, newBookPoints, bookRecencyBonus]);
+
+  const handleAddPointsForBook = () => {
+    console.log("Current state variables:");
+    console.log("Failed Attempts:", failedAttempts);
+    console.log("Level 1 Multiplier Count:", level1MultiplierCount);
+    console.log("New Book Points:", newBookPoints);
+    console.log("Book Recency Bonus:", bookRecencyBonus);
+    let totalPoints = 0;
+
+    if (failedAttempts === failedAttemptsBonusThreshold) {
+      totalPoints += 5;
+      console.log("Bonus points added for failed attempts:", totalPoints);
+    }
+
+    if (level1MultiplierCount <= level1MultiplierThreshold) {
+      totalPoints += newBookPoints;
+      console.log("New book points added (level 1 multiplier):", totalPoints);
+    } else {
+      totalPoints += newBookPoints * 2;
+      console.log("New book points added (level 2 multiplier):", totalPoints);
+    }
+
+    totalPoints += bookRecencyBonus;
+    console.log("Total points after adding book recency bonus:", totalPoints);
+
+    addPointsForBook(Math.floor(Number(totalPoints)));
+    setNewBookPoints(0);
   };
 
   useEffect(() => {
@@ -106,10 +133,7 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
         return;
       }
 
-      if (scannedBooks.some(book => book.isbn13 === bookData.isbn13)) {
-        toast.error("Book already scanned. Try another.");
-        return;
-      }
+      setCurrentBookTitle(bookData.title);
 
       let bookRecencyStatus = 0;
       const scannedBook = isbn13s.find(book => book.isbn13 === bookData.isbn13);
@@ -127,15 +151,30 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
         } else if (daysDifference > 29) {
           bookRecencyStatus = 5;
         }
-      } else {
-        setNewBookPoints(5);
       }
       setBookRecencyBonus(bookRecencyStatus);
 
+      if (
+        !isbn13s.some(book => book.isbn13 === bookData.isbn13) &&
+        !scannedBooks.some(book => book.isbn13 === bookData.isbn13)
+      ) {
+        setLevel1MultiplierCount(prev => prev + 1);
+        setNewBookPoints(5);
+        setShouldAddPoints(true);
+      }
+
+      if (
+        scannedBooks.some(book => book.isbn13 === bookData.isbn13) ||
+        isbn13s.some(book => book.isbn13 === bookData.isbn13)
+      ) {
+        toast("No more updates needed for this book.", {
+          icon: "ℹ️",
+        });
+        return;
+      }
+
       await saveBookToDatabase(bookData);
       setScannedBooks(prev => [...prev, bookData]);
-
-      handleAddPointsForBook();
 
       toast.success("Book added successfully!");
     } catch (error) {
@@ -155,11 +194,10 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
           <Scan onScan={handleScan} />
           <div className="flex flex-col items-center gap-y-5 pt-24 text-center px-[5%]">
             <h1 className="text-2xl font-semibold">Scanned Books: {scannedBooks.length} </h1>
-            {scannedBooks.map((book, index) => (
-              <div key={index}>
-                <h2>{book.title}</h2>
-              </div>
-            ))}
+            <div>
+              <h2>{currentBookTitle}</h2>
+            </div>
+
             {
               <EarnPoints
                 failedAttempts={failedAttempts}
@@ -167,6 +205,8 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
                 bookRecencyBonus={bookRecencyBonus}
                 newBookPoints={newBookPoints}
                 booksScanned={scannedBooks.length}
+                level1MultiplierCount={level1MultiplierCount}
+                level1MultiplierThreshold={level1MultiplierThreshold}
               />
             }
           </div>
