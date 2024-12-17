@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { checkIfLocationMatches } from "../../../components/maps/checkIfLocationMatches";
 import Scan from "./App";
@@ -47,38 +47,18 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
   const { addPoints } = usePoints();
   const { setBankedPointsTotal } = useBankedPoints();
 
-  const addPointsForBook = (amount: number) => {
-    handlePoints(address, amount, "ADD_BOOK", addPoints, setBankedPointsTotal);
-  };
+  const addPointsForBook = useCallback(
+    (amount: number) => {
+      handlePoints(address, amount, "ADD_BOOK", addPoints, setBankedPointsTotal);
+    },
+    [address, addPoints, setBankedPointsTotal],
+  );
 
   const level1MultiplierThreshold = 3;
 
   const failedAttemptsBonusThreshold = 10;
 
-  useEffect(() => {
-    if (shouldAddPoints) {
-      handleAddPointsForBook();
-      setShouldAddPoints(false);
-    }
-  }, [shouldAddPoints]);
-
-  useEffect(() => {
-    console.log("State variables:", {
-      failedAttempts,
-      bookRecencyBonus,
-      newBookPoints,
-      level1MultiplierCount,
-    });
-  }, [failedAttempts, bookRecencyBonus, newBookPoints, level1MultiplierCount]);
-
-  const handleAddPointsForBook = () => {
-    console.log("Adding points with current state:", {
-      failedAttempts,
-      level1MultiplierCount,
-      newBookPoints,
-      bookRecencyBonus,
-    });
-
+  const handleAddPointsForBook = useCallback(() => {
     let totalPoints = 0;
 
     if (failedAttempts === failedAttemptsBonusThreshold) {
@@ -94,7 +74,23 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
     totalPoints += bookRecencyBonus;
 
     addPointsForBook(Math.floor(Number(totalPoints)));
-  };
+  }, [failedAttempts, level1MultiplierCount, newBookPoints, bookRecencyBonus, addPointsForBook]);
+
+  useEffect(() => {
+    if (shouldAddPoints) {
+      handleAddPointsForBook();
+      setShouldAddPoints(false);
+    }
+  }, [shouldAddPoints, handleAddPointsForBook]);
+
+  useEffect(() => {
+    console.log("State variables:", {
+      failedAttempts,
+      bookRecencyBonus,
+      newBookPoints,
+      level1MultiplierCount,
+    });
+  }, [failedAttempts, bookRecencyBonus, newBookPoints, level1MultiplierCount]);
 
   useEffect(() => {
     const getPosition = (): Promise<GeolocationPosition> => {
@@ -122,7 +118,6 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
     };
 
     checkLocation();
-    console.log(isbn13s);
   }, [library, isbn13s]);
 
   const handleScan = async (isbn: string) => {
@@ -174,12 +169,6 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
         setShouldAddPoints(true);
       }
 
-      console.log("State after scan:", {
-        level1MultiplierCount,
-        newBookPoints,
-        shouldAddPoints,
-      });
-
       if (
         scannedBooks.some(book => book.isbn13 === bookData.isbn13) ||
         isbn13s.some(book => book.isbn13 === bookData.isbn13)
@@ -202,16 +191,6 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
   };
 
   if (!library) return <div>Library not found</div>;
-
-  console.log("Points being passed to EarnPoints:", {
-    failedAttempts,
-    failedAttemptsBonusThreshold,
-    bookRecencyBonus,
-    newBookPoints,
-    booksScanned: scannedBooks.length,
-    level1MultiplierCount,
-    level1MultiplierThreshold,
-  });
 
   return (
     <div className="flex flex-col items-center gap-y-5 pt-24 text-center px-[5%]">

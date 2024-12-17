@@ -155,10 +155,12 @@ export async function getISBN13ByLibraryId(libraryId: string): Promise<{ updated
       },
     });
 
-    return items.map(item => ({
-      isbn13: item.isbn13,
-      updatedAt: item.updatedAt,
-    }));
+    return items
+      .filter(item => item.isbn13 !== null)
+      .map(item => ({
+        isbn13: item.isbn13 as string,
+        updatedAt: item.updatedAt,
+      }));
   } catch (error) {
     console.error("Error details:", error); // Log the actual error
     return []; // Return empty array instead of throwing
