@@ -79,9 +79,9 @@ const Home: NextPage = () => {
         </div>
       </div>
 
-      <button className="btn btn-accent" onClick={handleAddPoints}>
+      {/* <button className="btn btn-accent" onClick={handleAddPoints}>
         Add Points
-      </button>
+      </button> */}
     </>
   );
 };
