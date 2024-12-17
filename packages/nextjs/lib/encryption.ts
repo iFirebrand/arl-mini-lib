@@ -12,7 +12,7 @@ export const encrypt = (text: string): string => {
       signature,
       timestamp,
     };
-    console.log("Encrypting payload:", payload);
+    // console.log("Encrypting payload:", payload);
     return btoa(encodeURIComponent(JSON.stringify(payload)));
   } catch (error) {
     console.error("Encryption error:", error);
@@ -23,7 +23,6 @@ export const encrypt = (text: string): string => {
 export const decrypt = (encrypted: string): string => {
   try {
     const decoded = JSON.parse(decodeURIComponent(atob(encrypted)));
-    console.log("Decoded outer structure:", decoded);
 
     // Verify signature
     const expectedSignature = btoa(encodeURIComponent(`${decoded.data}:${ENCRYPTION_KEY}`));
@@ -43,7 +42,7 @@ export const decrypt = (encrypted: string): string => {
     const match = decoded.data.match(/(.*)}]}/);
     if (match && match[1]) {
       const fullData = match[1] + "}]}";
-      console.log("Extracted data:", fullData);
+      // console.log("Extracted data:", fullData);
       return fullData;
     }
 

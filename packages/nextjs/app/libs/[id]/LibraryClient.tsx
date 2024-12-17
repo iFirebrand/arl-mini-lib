@@ -8,6 +8,10 @@ import { EarnPoints } from "./EarnPoints";
 import { fetchBookData } from "./fetchBookData";
 import { saveBookToDatabase } from "./saveBookToDatabase";
 import { toast } from "react-hot-toast";
+import { useAccount } from "wagmi";
+import { useBankedPoints } from "~~/app/contexts/BankedPointsContext";
+import { usePoints } from "~~/app/contexts/PointsContext";
+import { handlePoints } from "~~/app/utils/points/handlePoints";
 
 interface LibraryClientProps {
   library: {
@@ -32,6 +36,28 @@ export default function LibraryClient({ library }: LibraryClientProps) {
   const [isAtLibrary, setIsAtLibrary] = useState(false);
   const [scannedBooks, setScannedBooks] = useState<BookInfo[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+
+  const { address } = useAccount();
+  const { addPoints } = usePoints();
+  const { setBankedPointsTotal } = useBankedPoints();
+
+  const addPointsForBook = (amount: number) => {
+    handlePoints(address, amount, "ADD_BOOK", addPoints, setBankedPointsTotal);
+  };
+
+  const failedAttemptsBonusThreshold = 10;
+  const handleAddPointsForBook = () => {
+    let totalPoints = 0;
+    if (failedAttempts === failedAttemptsBonusThreshold) {
+      totalPoints = totalPoints + 5;
+    } else if (scannedBooks.length === 2) {
+      totalPoints = 20;
+    } else if (scannedBooks.length === 3) {
+      totalPoints = 30;
+    }
+    addPointsForBook(totalPoints);
+  };
 
   useEffect(() => {
     const getPosition = (): Promise<GeolocationPosition> => {
@@ -70,12 +96,21 @@ export default function LibraryClient({ library }: LibraryClientProps) {
       const bookData: BookInfo | null = await fetchBookData(isbn, library.id);
 
       if (!bookData) {
-        toast.error("Book not found");
+        setFailedAttempts(prev => prev + 1);
+        toast.error("Not found. Try again? Newer books only for now.");
+        return;
+      }
+
+      if (scannedBooks.some(book => book.isbn13 === bookData.isbn13)) {
+        toast.error("Book already scanned. Try another.");
         return;
       }
 
       await saveBookToDatabase(bookData);
       setScannedBooks(prev => [...prev, bookData]);
+
+      handleAddPointsForBook();
+
       toast.success("Book added successfully!");
     } catch (error) {
       toast.error("Error processing book");
@@ -99,7 +134,7 @@ export default function LibraryClient({ library }: LibraryClientProps) {
                 <h2>{book.title}</h2>
               </div>
             ))}
-            {scannedBooks.length === 0 && <EarnPoints />}
+            {<EarnPoints failedAttempts={failedAttempts} failedAttemptsBonusThreshold={failedAttemptsBonusThreshold} />}
           </div>
         </div>
       ) : (

@@ -2292,6 +2292,7 @@ __metadata:
     "@supabase/supabase-js": ^2.47.6
     "@tanstack/react-query": ~5.59.15
     "@trivago/prettier-plugin-sort-imports": ~4.3.0
+    "@types/canvas-confetti": ^1
     "@types/lodash.debounce": ^4.0.9
     "@types/node": ~18.19.50
     "@types/react": ~18.3.5
@@ -2303,6 +2304,7 @@ __metadata:
     blo: ~1.2.0
     browser-image-compression: ^2.0.2
     burner-connector: ~0.0.8
+    canvas-confetti: ^1.9.3
     daisyui: 4.12.10
     eslint: ~8.57.1
     eslint-config-next: ~14.2.15
@@ -2844,6 +2846,13 @@ __metadata:
   dependencies:
     "@types/node": "*"
   checksum: 887411126d40e3d28aef2df8075cda2832db2b0e926bb4046039bbb026f2e3cfbcf1a3ce90bd935be0fcc039f8009e32026dfbb84a11c1f5d051cd7f8194ba23
+  languageName: node
+  linkType: hard
+
+"@types/canvas-confetti@npm:^1":
+  version: 1.6.4
+  resolution: "@types/canvas-confetti@npm:1.6.4"
+  checksum: 0452e1f381e5d59471578be1b83f2908f0906ba0fddfe16f941a07e070f4ad91ceaf1a68bd84d84bb5e81214c95ef00137677d9d61d81119051425ca5ce307ba
   languageName: node
   linkType: hard
 
@@ -5238,6 +5247,13 @@ __metadata:
   version: 1.0.30001689
   resolution: "caniuse-lite@npm:1.0.30001689"
   checksum: 8d4152076517ac1dfd6d6733ecc8055f3cd3a8b679af8f5858e731312f03967f6a2184553636696e44cee39abdd9ccccc914716235791b0c25f68ef8dea4e24a
+  languageName: node
+  linkType: hard
+
+"canvas-confetti@npm:^1.9.3":
+  version: 1.9.3
+  resolution: "canvas-confetti@npm:1.9.3"
+  checksum: db044a9c9ca0e58eafd115f7dfc2f9ecc377be34d8a5dd75901dae0dafd4fb0b75fbbf8edd48bbefad2468653c5838348f0e768b79727a924259a9ada343ea30
   languageName: node
   linkType: hard
 

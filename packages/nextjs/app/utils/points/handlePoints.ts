@@ -12,7 +12,7 @@ export const handlePoints = async (
   try {
     if (!address) {
       addPoints(points, actionType);
-      console.log(`Points temporarily stored: ${points}`);
+
       return;
     }
 
