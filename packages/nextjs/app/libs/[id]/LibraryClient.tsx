@@ -38,6 +38,8 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
   const [scannedBooks, setScannedBooks] = useState<BookInfo[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
+  const [bookRecencyBonus, setBookRecencyBonus] = useState(0);
+  const [newBookPoints, setNewBookPoints] = useState(0);
 
   const { address } = useAccount();
   const { addPoints } = usePoints();
@@ -57,6 +59,7 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
     } else if (scannedBooks.length === 3) {
       totalPoints = 30;
     }
+    totalPoints = totalPoints + bookRecencyBonus;
     addPointsForBook(totalPoints);
   };
 
@@ -108,6 +111,27 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
         return;
       }
 
+      let bookRecencyStatus = 0;
+      const scannedBook = isbn13s.find(book => book.isbn13 === bookData.isbn13);
+      if (scannedBook) {
+        const timeDifference = new Date().getTime() - new Date(scannedBook.updatedAt).getTime();
+        const daysDifference = timeDifference / (1000 * 3600 * 24);
+        if (daysDifference >= 1 && daysDifference <= 7) {
+          bookRecencyStatus = 1;
+        } else if (daysDifference >= 8 && daysDifference <= 14) {
+          bookRecencyStatus = 2;
+        } else if (daysDifference >= 15 && daysDifference <= 21) {
+          bookRecencyStatus = 3;
+        } else if (daysDifference >= 22 && daysDifference <= 28) {
+          bookRecencyStatus = 4;
+        } else if (daysDifference > 29) {
+          bookRecencyStatus = 5;
+        }
+      } else {
+        setNewBookPoints(5);
+      }
+      setBookRecencyBonus(bookRecencyStatus);
+
       await saveBookToDatabase(bookData);
       setScannedBooks(prev => [...prev, bookData]);
 
@@ -136,7 +160,15 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
                 <h2>{book.title}</h2>
               </div>
             ))}
-            {<EarnPoints failedAttempts={failedAttempts} failedAttemptsBonusThreshold={failedAttemptsBonusThreshold} />}
+            {
+              <EarnPoints
+                failedAttempts={failedAttempts}
+                failedAttemptsBonusThreshold={failedAttemptsBonusThreshold}
+                bookRecencyBonus={bookRecencyBonus}
+                newBookPoints={newBookPoints}
+                booksScanned={scannedBooks.length}
+              />
+            }
           </div>
         </div>
       ) : (
