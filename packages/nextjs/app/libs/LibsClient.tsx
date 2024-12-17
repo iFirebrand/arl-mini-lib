@@ -9,7 +9,7 @@ import { handleGeoLocation } from "../../components/maps/handleGeoLocation";
 import { useBankedPoints } from "../contexts/BankedPointsContext";
 import { usePoints } from "../contexts/PointsContext";
 import { handlePoints } from "../utils/points/handlePoints";
-// import confetti from "canvas-confetti";
+import confetti from "canvas-confetti";
 import { useAccount } from "wagmi";
 import { ShowLibraryCard } from "~~/components/minilibs/ShowLibraryCard";
 
@@ -39,17 +39,17 @@ export default function LibsClient() {
   // Dynamically import the Map component to avoid SSR issues
   const Map = dynamic(() => import("../../components/maps/Map"), { ssr: false });
 
-  // const handleConfettiAction = () => {
-  //   // Fire the confetti with options
-  //   confetti({
-  //     particleCount: 500,
-  //     spread: 1000,
-  //     startVelocity: 100,
-  //     decay: 0.8,
-  //     scalar: 1.3,
-  //     origin: { y: 0.3, x: 0.5 }, // Position the confetti to start lower on the screen
-  //   });
-  // };
+  const handleConfettiAction = () => {
+    // Fire the confetti with options
+    confetti({
+      particleCount: 600,
+      spread: 180,
+      startVelocity: 400,
+      decay: 0.5,
+      scalar: 1.2,
+      origin: { y: 0.5, x: 0.5 }, // Position the confetti to start lower on the screen
+    });
+  };
 
   useEffect(() => {
     // Get URL parameters on the client side
@@ -114,7 +114,10 @@ export default function LibsClient() {
         </div>
       )}
       {!libraryExists && isGeolocationAvailable && (
-        <h1 className="text-xl font-semibold text-center">New library discovered. Add it!</h1>
+        <>
+          {handleConfettiAction()}
+          <h1 className="text-xl font-semibold text-center">New library discovered. Add it!</h1>
+        </>
       )}
       {isGeolocationAvailable ? (
         <div className="container mx-auto">

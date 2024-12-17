@@ -60,44 +60,58 @@ export const AddLibraryForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-y-2 w-[300px]">
-      <input
-        type="text"
-        name="locationName"
-        placeholder="Choose a lib name. Be nice."
-        className="px-2 py-1 rounded-sm"
-      />
+    <div className="flex flex-col gap-y-2 w-[300px]">
+      <ul className="steps steps-vertical">
+        <li className="step step-primary">Pick a name</li>
+        <li className="step step-primary">Snap a photo of the library</li>
+        <li className="step">Add the library & earn points</li>
+      </ul>
+      <div className="flex flex-col gap-y-2 w-[300px]">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-y-2 w-[300px]">
+          <input
+            type="text"
+            name="locationName"
+            placeholder="Choose a lib name. Be nice."
+            className="px-2 py-1 rounded-sm"
+          />
 
-      <div className="flex flex-col gap-y-1">
-        <input
-          type="file"
-          onChange={handleFileSelect}
-          accept="image/*"
-          className="file-input file-input-bordered w-full"
-        />
-        {isUploading && (
-          <div className="flex items-center gap-2">
-            <span className="loading loading-spinner loading-sm"></span>
-            <span className="text-sm">Uploading...</span>
+          <div className="flex flex-col gap-y-1">
+            <input
+              type="file"
+              onChange={handleFileSelect}
+              accept="image/*"
+              className="file-input file-input-bordered w-full"
+            />
+            {isUploading && (
+              <div className="flex items-center gap-2">
+                <span className="loading loading-spinner loading-sm"></span>
+                <span className="text-sm">Uploading...</span>
+              </div>
+            )}
+            {!isUploading && fileName && <span className="text-sm text-green-600">✓ {fileName}</span>}
           </div>
-        )}
-        {!isUploading && fileName && <span className="text-sm text-green-600">✓ {fileName}</span>}
+
+          <input type="hidden" id="latitude" name="latitude" value={isGeolocationAvailable ? (latitude ?? "") : ""} />
+          <input
+            type="hidden"
+            id="longitude"
+            name="longitude"
+            value={isGeolocationAvailable ? (longitude ?? "") : ""}
+          />
+          <input type="hidden" name="imageUrl" value={imageUrl} />
+
+          <button
+            type="submit"
+            className={`bg-blue-500 py-2 text-white rounded-sm ${
+              libraryExists || !isGeolocationAvailable || isUploading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            disabled={libraryExists || !isGeolocationAvailable || isUploading}
+          >
+            Add Library
+          </button>
+          {!isGeolocationAvailable && <p className="text-red-500">Enable geolocation please.</p>}
+        </form>
       </div>
-
-      <input type="hidden" id="latitude" name="latitude" value={isGeolocationAvailable ? (latitude ?? "") : ""} />
-      <input type="hidden" id="longitude" name="longitude" value={isGeolocationAvailable ? (longitude ?? "") : ""} />
-      <input type="hidden" name="imageUrl" value={imageUrl} />
-
-      <button
-        type="submit"
-        className={`bg-blue-500 py-2 text-white rounded-sm ${
-          libraryExists || !isGeolocationAvailable || isUploading ? "opacity-50 cursor-not-allowed" : ""
-        }`}
-        disabled={libraryExists || !isGeolocationAvailable || isUploading}
-      >
-        Add Library
-      </button>
-      {!isGeolocationAvailable && <p className="text-red-500">Enable geolocation please.</p>}
-    </form>
+    </div>
   );
 };
