@@ -60,34 +60,40 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
       handleAddPointsForBook();
       setShouldAddPoints(false);
     }
-  }, [shouldAddPoints, failedAttempts, level1MultiplierCount, newBookPoints, bookRecencyBonus]);
+  }, [shouldAddPoints]);
+
+  useEffect(() => {
+    console.log("State variables:", {
+      failedAttempts,
+      bookRecencyBonus,
+      newBookPoints,
+      level1MultiplierCount,
+    });
+  }, [failedAttempts, bookRecencyBonus, newBookPoints, level1MultiplierCount]);
 
   const handleAddPointsForBook = () => {
-    console.log("Current state variables:");
-    console.log("Failed Attempts:", failedAttempts);
-    console.log("Level 1 Multiplier Count:", level1MultiplierCount);
-    console.log("New Book Points:", newBookPoints);
-    console.log("Book Recency Bonus:", bookRecencyBonus);
+    console.log("Adding points with current state:", {
+      failedAttempts,
+      level1MultiplierCount,
+      newBookPoints,
+      bookRecencyBonus,
+    });
+
     let totalPoints = 0;
 
     if (failedAttempts === failedAttemptsBonusThreshold) {
       totalPoints += 5;
-      console.log("Bonus points added for failed attempts:", totalPoints);
     }
 
     if (level1MultiplierCount <= level1MultiplierThreshold) {
       totalPoints += newBookPoints;
-      console.log("New book points added (level 1 multiplier):", totalPoints);
     } else {
       totalPoints += newBookPoints * 2;
-      console.log("New book points added (level 2 multiplier):", totalPoints);
     }
 
     totalPoints += bookRecencyBonus;
-    console.log("Total points after adding book recency bonus:", totalPoints);
 
     addPointsForBook(Math.floor(Number(totalPoints)));
-    setNewBookPoints(0);
   };
 
   useEffect(() => {
@@ -123,6 +129,11 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
     if (isProcessing) return;
 
     setIsProcessing(true);
+
+    // Reset state variables
+    setNewBookPoints(0);
+    setBookRecencyBonus(0);
+
     try {
       if (!library) return;
       const bookData: BookInfo | null = await fetchBookData(isbn, library.id);
@@ -163,6 +174,12 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
         setShouldAddPoints(true);
       }
 
+      console.log("State after scan:", {
+        level1MultiplierCount,
+        newBookPoints,
+        shouldAddPoints,
+      });
+
       if (
         scannedBooks.some(book => book.isbn13 === bookData.isbn13) ||
         isbn13s.some(book => book.isbn13 === bookData.isbn13)
@@ -185,6 +202,16 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
   };
 
   if (!library) return <div>Library not found</div>;
+
+  console.log("Points being passed to EarnPoints:", {
+    failedAttempts,
+    failedAttemptsBonusThreshold,
+    bookRecencyBonus,
+    newBookPoints,
+    booksScanned: scannedBooks.length,
+    level1MultiplierCount,
+    level1MultiplierThreshold,
+  });
 
   return (
     <div className="flex flex-col items-center gap-y-5 pt-24 text-center px-[5%]">

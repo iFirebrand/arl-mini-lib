@@ -21,6 +21,8 @@ export function EarnPoints({
 
   const level1MultiplierPercentage = Math.floor((level1MultiplierCount / level1MultiplierThreshold) * 100);
 
+  console.log({ bonusPercentage, level1MultiplierPercentage });
+
   return (
     <div>
       <div className="stats stats-vertical shadow">
@@ -52,7 +54,7 @@ export function EarnPoints({
         {newBookPoints > 0 && (
           <div className="stat">
             <div className="stat-title">New Book Points</div>
-            <div className="stat-value">{newBookPoints}</div>
+            <div className="stat-value">{level1MultiplierPercentage >= 100 ? newBookPoints * 2 : newBookPoints}</div>
             <div className="stat-desc">First scan at library pays big</div>
           </div>
         )}
