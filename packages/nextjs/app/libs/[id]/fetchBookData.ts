@@ -24,6 +24,7 @@ interface BookInfo {
   description: string;
   isbn13: string;
   itemInfo: string;
+  updatedAt: string;
   libraryId: string;
 }
 
@@ -44,6 +45,7 @@ export async function fetchBookData(isbn: string, libraryId: string): Promise<Bo
         isbn13: record.data.identifiers.isbn_13[0],
         itemInfo: record.recordURL || "",
         libraryId: libraryId,
+        updatedAt: new Date().toISOString(),
       };
 
       return bookInfo;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { checkIfLocationMatches } from "../../../components/maps/checkIfLocationMatches";
 import Scan from "./App";
@@ -8,6 +8,10 @@ import { EarnPoints } from "./EarnPoints";
 import { fetchBookData } from "./fetchBookData";
 import { saveBookToDatabase } from "./saveBookToDatabase";
 import { toast } from "react-hot-toast";
+import { useAccount } from "wagmi";
+import { useBankedPoints } from "~~/app/contexts/BankedPointsContext";
+import { usePoints } from "~~/app/contexts/PointsContext";
+import { handlePoints } from "~~/app/utils/points/handlePoints";
 
 interface LibraryClientProps {
   library: {
@@ -16,6 +20,7 @@ interface LibraryClientProps {
     latitude: number;
     longitude: number;
   } | null;
+  isbn13s: { updatedAt: Date; isbn13: string }[];
 }
 
 interface BookInfo {
@@ -28,10 +33,64 @@ interface BookInfo {
   libraryId: string;
 }
 
-export default function LibraryClient({ library }: LibraryClientProps) {
+export default function LibraryClient({ library, isbn13s }: LibraryClientProps) {
   const [isAtLibrary, setIsAtLibrary] = useState(false);
   const [scannedBooks, setScannedBooks] = useState<BookInfo[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [bookRecencyBonus, setBookRecencyBonus] = useState(0);
+  const [newBookPoints, setNewBookPoints] = useState(0);
+  const [currentBookTitle, setCurrentBookTitle] = useState("");
+  const [level1MultiplierCount, setLevel1MultiplierCount] = useState(0);
+  const [shouldAddPoints, setShouldAddPoints] = useState(false);
+  const { address } = useAccount();
+  const { addPoints } = usePoints();
+  const { setBankedPointsTotal } = useBankedPoints();
+
+  const addPointsForBook = useCallback(
+    (amount: number) => {
+      handlePoints(address, amount, "ADD_BOOK", addPoints, setBankedPointsTotal);
+    },
+    [address, addPoints, setBankedPointsTotal],
+  );
+
+  const level1MultiplierThreshold = 3;
+
+  const failedAttemptsBonusThreshold = 10;
+
+  const handleAddPointsForBook = useCallback(() => {
+    let totalPoints = 0;
+
+    if (failedAttempts === failedAttemptsBonusThreshold) {
+      totalPoints += 5;
+    }
+
+    if (level1MultiplierCount <= level1MultiplierThreshold) {
+      totalPoints += newBookPoints;
+    } else {
+      totalPoints += newBookPoints * 2;
+    }
+
+    totalPoints += bookRecencyBonus;
+
+    addPointsForBook(Math.floor(Number(totalPoints)));
+  }, [failedAttempts, level1MultiplierCount, newBookPoints, bookRecencyBonus, addPointsForBook]);
+
+  useEffect(() => {
+    if (shouldAddPoints) {
+      handleAddPointsForBook();
+      setShouldAddPoints(false);
+    }
+  }, [shouldAddPoints, handleAddPointsForBook]);
+
+  useEffect(() => {
+    console.log("State variables:", {
+      failedAttempts,
+      bookRecencyBonus,
+      newBookPoints,
+      level1MultiplierCount,
+    });
+  }, [failedAttempts, bookRecencyBonus, newBookPoints, level1MultiplierCount]);
 
   useEffect(() => {
     const getPosition = (): Promise<GeolocationPosition> => {
@@ -59,23 +118,70 @@ export default function LibraryClient({ library }: LibraryClientProps) {
     };
 
     checkLocation();
-  }, [library]);
+  }, [library, isbn13s]);
 
   const handleScan = async (isbn: string) => {
     if (isProcessing) return;
 
     setIsProcessing(true);
+
+    // Reset state variables
+    setNewBookPoints(0);
+    setBookRecencyBonus(0);
+
     try {
       if (!library) return;
       const bookData: BookInfo | null = await fetchBookData(isbn, library.id);
 
       if (!bookData) {
-        toast.error("Book not found");
+        setFailedAttempts(prev => prev + 1);
+        toast.error("Not found. Try again? Newer books only for now.");
+        return;
+      }
+
+      setCurrentBookTitle(bookData.title);
+
+      let bookRecencyStatus = 0;
+      const scannedBook = isbn13s.find(book => book.isbn13 === bookData.isbn13);
+      if (scannedBook) {
+        const timeDifference = new Date().getTime() - new Date(scannedBook.updatedAt).getTime();
+        const daysDifference = timeDifference / (1000 * 3600 * 24);
+        if (daysDifference >= 1 && daysDifference <= 7) {
+          bookRecencyStatus = 1;
+        } else if (daysDifference >= 8 && daysDifference <= 14) {
+          bookRecencyStatus = 2;
+        } else if (daysDifference >= 15 && daysDifference <= 21) {
+          bookRecencyStatus = 3;
+        } else if (daysDifference >= 22 && daysDifference <= 28) {
+          bookRecencyStatus = 4;
+        } else if (daysDifference > 29) {
+          bookRecencyStatus = 5;
+        }
+      }
+      setBookRecencyBonus(bookRecencyStatus);
+
+      if (
+        !isbn13s.some(book => book.isbn13 === bookData.isbn13) &&
+        !scannedBooks.some(book => book.isbn13 === bookData.isbn13)
+      ) {
+        setLevel1MultiplierCount(prev => prev + 1);
+        setNewBookPoints(5);
+        setShouldAddPoints(true);
+      }
+
+      if (
+        scannedBooks.some(book => book.isbn13 === bookData.isbn13) ||
+        isbn13s.some(book => book.isbn13 === bookData.isbn13)
+      ) {
+        toast("No more updates needed for this book.", {
+          icon: "ℹ️",
+        });
         return;
       }
 
       await saveBookToDatabase(bookData);
       setScannedBooks(prev => [...prev, bookData]);
+
       toast.success("Book added successfully!");
     } catch (error) {
       toast.error("Error processing book");
@@ -94,12 +200,21 @@ export default function LibraryClient({ library }: LibraryClientProps) {
           <Scan onScan={handleScan} />
           <div className="flex flex-col items-center gap-y-5 pt-24 text-center px-[5%]">
             <h1 className="text-2xl font-semibold">Scanned Books: {scannedBooks.length} </h1>
-            {scannedBooks.map((book, index) => (
-              <div key={index}>
-                <h2>{book.title}</h2>
-              </div>
-            ))}
-            {scannedBooks.length === 0 && <EarnPoints />}
+            <div>
+              <h2>{currentBookTitle}</h2>
+            </div>
+
+            {
+              <EarnPoints
+                failedAttempts={failedAttempts}
+                failedAttemptsBonusThreshold={failedAttemptsBonusThreshold}
+                bookRecencyBonus={bookRecencyBonus}
+                newBookPoints={newBookPoints}
+                booksScanned={scannedBooks.length}
+                level1MultiplierCount={level1MultiplierCount}
+                level1MultiplierThreshold={level1MultiplierThreshold}
+              />
+            }
           </div>
         </div>
       ) : (

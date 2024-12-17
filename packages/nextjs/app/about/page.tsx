@@ -7,7 +7,7 @@ function AboutPage() {
         <span className="block text-4xl font-bold">About ARLib.me</span>
       </h1>
       <div className="flex flex-col gap-8">
-        <div className="card bg-base-300 rounded-box p-6">
+        <div id="intro" className="card bg-base-300 rounded-box p-6">
           <p className="text-lg">
             Mini libraries are more than book collections—they&apos;re neighborhood gems of creativity and connection.
             ARLib puts these spaces on the map and in your pocket, making it easy to explore, share, and discover books
@@ -16,7 +16,7 @@ function AboutPage() {
           </p>
         </div>
 
-        <div className="card bg-base-300 rounded-box p-6">
+        <div id="map-and-catalog" className="card bg-base-300 rounded-box p-6">
           <h3 className="text-center mb-8">
             <span className="block text-2xl font-bold">Map and Catalog Them!</span>
           </h3>
@@ -38,7 +38,7 @@ function AboutPage() {
           </ol>
         </div>
 
-        <div className="card bg-base-300 rounded-box p-6">
+        <div id="browse-books" className="card bg-base-300 rounded-box p-6">
           <h3 className="text-center mb-8">
             <span className="block text-2xl font-bold">Browse Books Remotely</span>
           </h3>
@@ -51,7 +51,7 @@ function AboutPage() {
           </p>
         </div>
 
-        <div className="card bg-base-300 rounded-box p-6">
+        <div id="sponsor-quest" className="card bg-base-300 rounded-box p-6">
           <h3 className="text-center mb-8">
             <span className="block text-2xl font-bold">Sponsor Mappig Quest</span>
           </h3>
@@ -73,7 +73,21 @@ function AboutPage() {
           </p>
         </div>
 
-        <div className="card bg-base-300 rounded-box p-6">
+        <div id="accounts" className="card bg-base-300 rounded-box p-6">
+          <h3 className="text-center mb-8">
+            <span className="block text-2xl font-bold">Accounts & Points</span>
+          </h3>
+
+          <p className="text-lg mt-4">
+            Claiming points requires setting up a passcode-protected account. For simplicity, we use a Coinbase smart
+            wallet. No personal data is collected or stored by the site. Your passcode is stored only on your device and
+            secured by Face ID, Touch ID, or your password manager. The site only stores the public wallet address
+            associated with your account—no email, name, or other PII is required. This ensures your account remains
+            pseudonymous. Leaderboards are pseudonymous and designed for fun. Your public account address and points are
+            visible to everyone. If rewards are introduced in the future, points will determine eligibility.
+          </p>
+        </div>
+        <div id="epilogue" className="card bg-base-300 rounded-box p-6">
           <h3 className="text-center mb-8">
             <span className="block text-2xl font-bold">Epilogue</span>
           </h3>

@@ -6,6 +6,11 @@ import dynamic from "next/dynamic";
 import { checkLibraryExists, createLibrary } from "../../actions/actions";
 import { AddLibraryForm } from "../../components/forms/AddLibraryForm";
 import { handleGeoLocation } from "../../components/maps/handleGeoLocation";
+import { useBankedPoints } from "../contexts/BankedPointsContext";
+import { usePoints } from "../contexts/PointsContext";
+import { handlePoints } from "../utils/points/handlePoints";
+import confetti from "canvas-confetti";
+import { useAccount } from "wagmi";
 import { ShowLibraryCard } from "~~/components/minilibs/ShowLibraryCard";
 
 type ExistingLibrary = {
@@ -21,6 +26,9 @@ type ExistingLibrary = {
 };
 
 export default function LibsClient() {
+  const { address } = useAccount();
+  const { addPoints } = usePoints();
+  const { setBankedPointsTotal } = useBankedPoints();
   const [isGeolocationAvailable, setIsGeolocationAvailable] = useState(false);
   const [latitude, setLatitude] = useState<string | null>(null);
   const [longitude, setLongitude] = useState<string | null>(null);
@@ -30,6 +38,18 @@ export default function LibsClient() {
 
   // Dynamically import the Map component to avoid SSR issues
   const Map = dynamic(() => import("../../components/maps/Map"), { ssr: false });
+
+  const handleConfettiAction = () => {
+    // Fire the confetti with options
+    confetti({
+      particleCount: 600,
+      spread: 180,
+      startVelocity: 400,
+      decay: 0.5,
+      scalar: 1.2,
+      origin: { y: 0.5, x: 0.5 }, // Position the confetti to start lower on the screen
+    });
+  };
 
   useEffect(() => {
     // Get URL parameters on the client side
@@ -61,22 +81,23 @@ export default function LibsClient() {
   }, [latitude, longitude]); // Add latitude and longitude as dependencies
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // Prevent default form submission
-    const formData = new FormData(event.currentTarget); // Use event.currentTarget instead of event.target
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
 
-    // Basic validation
     if (!formData.get("locationName")) {
-      alert("Location Name is required."); // Simple alert for validation
+      alert("Location Name is required.");
       return;
     }
 
     try {
-      // Call createLibrary with form data
       await createLibrary(formData);
-      window.location.reload(); // Reload the page after successful submission
+      handlePoints(address, 50, "CREATE_LIBRARY", addPoints, setBankedPointsTotal);
+
+      window.location.reload();
+      // handleConfettiAction();
     } catch (error) {
-      console.error("Error creating library:", error); // Log error for debugging
-      alert("Failed to create library. Please try again."); // Notify user of failure
+      console.error("Error creating library:", error);
+      alert("Failed to create library. Please try again.");
     }
   };
 
@@ -93,7 +114,10 @@ export default function LibsClient() {
         </div>
       )}
       {!libraryExists && isGeolocationAvailable && (
-        <h1 className="text-xl font-semibold text-center">New library discovered. Add it!</h1>
+        <>
+          {handleConfettiAction()}
+          <h1 className="text-xl font-semibold text-center">New library discovered. Add it!</h1>
+        </>
       )}
       {isGeolocationAvailable ? (
         <div className="container mx-auto">
@@ -132,13 +156,6 @@ export default function LibsClient() {
       <main className="flex flex-col items-center gap-y-5 pt-24 text-center">
         {!libraryExists && isGeolocationAvailable && (
           <>
-            <div className="container mx-auto">
-              <ul className="steps">
-                <li className="step step-primary">Name & photo</li>
-                <li className="step">Scan books</li>
-                {/* <li className="step">Claim points</li> */}
-              </ul>
-            </div>
             <AddLibraryForm
               isGeolocationAvailable={isGeolocationAvailable}
               latitude={latitude}

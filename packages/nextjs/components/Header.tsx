@@ -1,12 +1,21 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-// import { FaucetButton } from "./scaffold-eth";
+import { LoginOrCreateAccountModal } from "./PointsModal";
 import { RainbowKitCustomConnectButton } from "./scaffold-eth";
-import { Bars3Icon, InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
+import { useAccount } from "wagmi";
+import {
+  Bars3Icon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+  MapIcon,
+  StarIcon,
+} from "@heroicons/react/24/outline";
+import { useBankedPoints } from "~~/app/contexts/BankedPointsContext";
+import { usePoints } from "~~/app/contexts/PointsContext";
 import { SwitchTheme } from "~~/components/SwitchTheme";
 import { useOutsideClick } from "~~/hooks/scaffold-eth";
 
@@ -21,7 +30,6 @@ export const menuLinks: HeaderMenuLink[] = [
     label: "Home",
     href: "/",
   },
-
   {
     label: "Map",
     href: "/browse",
@@ -61,20 +69,8 @@ export const HeaderMenuLinks = () => {
               } hover:bg-secondary hover:shadow-md focus:!bg-secondary active:!text-neutral py-1.5 px-3 text-sm rounded-full gap-2 grid grid-flow-col`}
             >
               {icon}
-              <span
-                onClick={() => {
-                  /* Trigger the same action as the icon click */
-                }}
-              >
-                {label}
-              </span>
+              <span>{label}</span>
             </Link>
-            <InformationCircleIcon
-              className="h-4 w-4 cursor-pointer"
-              onClick={() => {
-                // Trigger the SwitchTheme action here
-              }}
-            />
           </li>
         );
       })}
@@ -82,16 +78,57 @@ export const HeaderMenuLinks = () => {
   );
 };
 
-/**
- * Site header
- */
 export const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const burgerMenuRef = useRef<HTMLDivElement>(null);
+  const { address, isConnected } = useAccount();
+  const { points: userPoints, clearTemporaryPoints, getPointActions } = usePoints();
+  const { bankedPoints, setBankedPointsTotal } = useBankedPoints();
+
+  const openPointsModal = () => {
+    const modal = document.getElementById("points-modal") as HTMLDialogElement;
+    if (modal) {
+      modal.showModal();
+    }
+  };
+
   useOutsideClick(
     burgerMenuRef,
     useCallback(() => setIsDrawerOpen(false), []),
   );
+
+  useEffect(() => {
+    const savePoints = async () => {
+      if (isConnected && address && userPoints > 0) {
+        try {
+          const pointActions = getPointActions();
+          clearTemporaryPoints();
+
+          const response = await fetch("/api/points", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              walletAddress: address,
+              pointActions: pointActions,
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            setBankedPointsTotal(data.currentTotal);
+          } else {
+            console.error("Failed to save points");
+          }
+        } catch (error) {
+          console.error("Error saving points:", error);
+        }
+      }
+    };
+
+    savePoints();
+  }, [isConnected, address, userPoints, getPointActions, clearTemporaryPoints, setBankedPointsTotal]);
 
   return (
     <div className="sticky lg:static top-0 navbar bg-base-100 min-h-0 flex-shrink-0 justify-between z-20 shadow-md shadow-secondary px-0 sm:px-2">
@@ -132,9 +169,22 @@ export const Header = () => {
         </ul>
       </div>
       <div className="navbar-end flex-grow mr-4">
-        <RainbowKitCustomConnectButton />
-        {/* <FaucetButton /> */}
+        <div className="flex gap-3 items-center">
+          {isConnected ? (
+            <button className="btn btn-primary btn-sm px-4 rounded-full">
+              <StarIcon className="h-4 w-4 mr-1" />
+              <span>{bankedPoints} points</span>
+            </button>
+          ) : (
+            <button className="btn btn-primary btn-sm px-4 rounded-full" onClick={openPointsModal}>
+              <ExclamationTriangleIcon className="h-4 w-4 mr-1" />
+              <span>{userPoints} points</span>
+            </button>
+          )}
+          <RainbowKitCustomConnectButton />
+        </div>
       </div>
+      <LoginOrCreateAccountModal id="points-modal" />
     </div>
   );
 };
