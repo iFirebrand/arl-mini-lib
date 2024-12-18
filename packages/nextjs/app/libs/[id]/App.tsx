@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { BrowserMultiFormatReader, Exception, NotFoundException, Result } from "@zxing/library";
+import { toast } from "react-hot-toast";
 
 interface VideoDevice {
   deviceId: string;
@@ -38,6 +39,9 @@ const Scanner: React.FC<ScannerProps> = ({ onScan }) => {
         }
       },
     );
+    toast("Every scan earns points. Info below.", {
+      icon: "🤩",
+    });
     console.log(`Started continuous decode from camera with id ${selectedDeviceId}`);
   }, [selectedDeviceId]);
 
@@ -109,7 +113,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan }) => {
   return (
     <main className="w-full flex flex-col items-center p-8">
       <div className="w-full max-w-2xl flex flex-col items-center gap-4">
-        <h1 className="text-2xl font-bold">Scan the book barcode</h1>
+        {/* <h1 className="text-2xl font-bold">Start to scan barcode</h1> */}
 
         <div className="flex gap-2">
           <button className="btn btn-primary" onClick={startScanning}>

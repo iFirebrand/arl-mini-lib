@@ -194,7 +194,7 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
 
   return (
     <div className="flex flex-col items-center gap-y-5 pt-24 text-center px-[5%]">
-      <h1 className="text-2xl font-semibold">Add to catalog at {library.locationName} library</h1>
+      <h1 className="text-2xl font-semibold">Scan to catalog at {library.locationName} library</h1>
       {isAtLibrary ? (
         <div>
           <Scan onScan={handleScan} />
