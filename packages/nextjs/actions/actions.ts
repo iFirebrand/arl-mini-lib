@@ -204,3 +204,51 @@ export async function bookCount(libraryId: string) {
   });
   return numberOfBooks;
 }
+
+export async function totalBookCount() {
+  try {
+    const totalBooks = await prisma.item.count();
+    return totalBooks;
+  } catch (error) {
+    console.error("Error getting total book count:", error);
+    throw new Error("Error getting total book count");
+  }
+}
+
+export async function totalLibraryCount() {
+  try {
+    const totalLibraries = await prisma.library.count();
+    return totalLibraries;
+  } catch (error) {
+    console.error("Error getting total library count:", error);
+    throw new Error("Error getting total library count");
+  }
+}
+
+export async function totalUserCount() {
+  try {
+    const totalUsers = await prisma.user.count();
+    return totalUsers;
+  } catch (error) {
+    console.error("Error getting total user count:", error);
+    throw new Error("Error getting total user count");
+  }
+}
+
+export async function getLast50Books(): Promise<{ title: string; thumbnail: string; sourceURL: string }[]> {
+  try {
+    const last50Books = await prisma.item.findMany({
+      take: 50,
+      orderBy: { createdAt: "desc" },
+      select: {
+        title: true,
+        thumbnail: true,
+        sourceURL: true,
+      },
+    });
+    return last50Books;
+  } catch (error) {
+    console.error("Error getting last 50 books:", error);
+    throw new Error(`Error getting last 50 books: ${error.message}`); // Include original error message
+  }
+}
