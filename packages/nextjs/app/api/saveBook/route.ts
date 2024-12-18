@@ -1,39 +1,12 @@
-import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import prisma from "../../../lib/db";
-import { rateLimit } from "../../../lib/rate-limit";
 
-const limiter = rateLimit({
-  interval: 60 * 1000,
-  uniqueTokenPerInterval: 500,
-});
-
-// Function to check rate limit and origin
-const checkRequestOrigin = async (request: Request) => {
-  const ip = request.headers.get("x-forwarded-for") || "anonymous";
-  const { success } = await limiter.check(ip);
-  if (!success) {
-    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
-  }
-
-  const referer = headers().get("referer");
-  const allowedOrigins = [process.env.NEXT_PUBLIC_APP_URL || "", "http://localhost:3000"];
-  if (!referer || !allowedOrigins.some(origin => referer.startsWith(origin))) {
-    return NextResponse.json({ error: "Unauthorized request origin" }, { status: 403 });
-  }
-};
+// Adjust the import path based on your project structure
 
 export async function POST(req: Request) {
+  const { title, authors, thumbnail, description, isbn13, itemInfo, libraryId } = await req.json();
+
   try {
-    const originCheckResponse = await checkRequestOrigin(req);
-    if (originCheckResponse) return originCheckResponse;
-
-    const { title, authors, thumbnail, description, isbn13, itemInfo, libraryId } = await req.json();
-
-    if (!title || !authors || !libraryId) {
-      return NextResponse.json({ error: "Title, authors, and library ID are required" }, { status: 400 });
-    }
-
     // Save the book data to the database
     const newItem = await prisma.item.create({
       data: {
@@ -43,6 +16,7 @@ export async function POST(req: Request) {
         thumbnail,
         isbn13,
         itemInfo,
+        // Correctly use the library relation
         library: { connect: { id: libraryId } }, // Use connect to link to Library
       },
     });
