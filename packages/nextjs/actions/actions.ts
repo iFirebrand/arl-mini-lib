@@ -235,7 +235,9 @@ export async function totalUserCount() {
   }
 }
 
-export async function getLast50Books(): Promise<{ title: string; thumbnail: string; sourceURL: string }[]> {
+export async function getLast50Books(): Promise<
+  { title: string; thumbnail: string; sourceURL: string; libraryId: string; libraryName: string }[]
+> {
   try {
     const last50Books = await prisma.item.findMany({
       take: 50,
@@ -244,11 +246,23 @@ export async function getLast50Books(): Promise<{ title: string; thumbnail: stri
         title: true,
         thumbnail: true,
         sourceURL: true,
+        library: {
+          select: {
+            id: true,
+            locationName: true,
+          },
+        },
       },
     });
-    return last50Books;
+    return last50Books.map(book => ({
+      title: book.title ?? "",
+      thumbnail: book.thumbnail ?? "",
+      sourceURL: book.sourceURL ?? "",
+      libraryId: book.library?.id ?? "",
+      libraryName: book.library?.locationName ?? "",
+    }));
   } catch (error) {
     console.error("Error getting last 50 books:", error);
-    throw new Error(`Error getting last 50 books: ${error.message}`); // Include original error message
+    throw new Error(`Error getting last 50 books: ${error}`); // Include original error message
   }
 }

@@ -9,6 +9,7 @@ import { RainbowKitCustomConnectButton } from "./scaffold-eth";
 import { useAccount } from "wagmi";
 import {
   Bars3Icon,
+  ChartBarIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
   MapIcon,
@@ -44,6 +45,11 @@ export const menuLinks: HeaderMenuLink[] = [
     label: "About",
     href: "/about",
     icon: <InformationCircleIcon className="h-4 w-4" />,
+  },
+  {
+    label: "Stats",
+    href: "/stats",
+    icon: <ChartBarIcon className="h-4 w-4" />,
   },
   {
     label: "",
