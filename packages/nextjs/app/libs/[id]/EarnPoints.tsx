@@ -15,13 +15,8 @@ export function EarnPoints({
   level1MultiplierCount: number;
   level1MultiplierThreshold: number;
 }) {
-  console.log({ failedAttempts, failedAttemptsBonusThreshold, bookRecencyBonus, newBookPoints, booksScanned });
-
   const bonusPercentage = Math.floor((failedAttempts / failedAttemptsBonusThreshold) * 100);
-
   const level1MultiplierPercentage = Math.floor((level1MultiplierCount / level1MultiplierThreshold) * 100);
-
-  console.log({ bonusPercentage, level1MultiplierPercentage });
 
   return (
     <div>

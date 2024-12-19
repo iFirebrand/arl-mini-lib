@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { checkIfLocationMatches } from "../../../components/maps/checkIfLocationMatches";
 import Scan from "./App";
 import { EarnPoints } from "./EarnPoints";
 import { fetchBookData } from "./fetchBookData";
 import { saveBookToDatabase } from "./saveBookToDatabase";
+import Confetti from "react-dom-confetti";
 import { toast } from "react-hot-toast";
 import { useAccount } from "wagmi";
 import { useBankedPoints } from "~~/app/contexts/BankedPointsContext";
@@ -46,6 +47,35 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
   const { address } = useAccount();
   const { addPoints } = usePoints();
   const { setBankedPointsTotal } = useBankedPoints();
+
+  const [isExploding, setIsExploding] = useState(false);
+  const targetRef = useRef(null);
+
+  const config = {
+    angle: 90, // Explodes straight upwards
+    spread: 120, // Wider spread to resemble blooming petals
+    startVelocity: 60, // Strong upward force
+    elementCount: 150, // More confetti for a fuller effect
+    dragFriction: 0.1, // Slower fall for a floaty effect
+    duration: 4000, // Slightly longer for a dramatic bloom
+    stagger: 0.05, // Faster successive particle release
+    width: "10px", // Slightly smaller confetti for delicacy
+    height: "10px",
+    colors: ["#0057B7", "#FFDD00"],
+  };
+
+  useEffect(() => {
+    if (newBookPoints === 5) {
+      handleConfettiAction();
+    }
+  }, [newBookPoints]);
+
+  const handleConfettiAction = () => {
+    setIsExploding(true);
+    setTimeout(() => {
+      setIsExploding(false);
+    }, 3000);
+  };
 
   const addPointsForBook = useCallback(
     (amount: number) => {
@@ -198,9 +228,10 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
       {isAtLibrary ? (
         <div>
           <Scan onScan={handleScan} />
-          <div className="flex flex-col items-center gap-y-5 pt-24 text-center px-[5%]">
+          <div ref={targetRef} className="flex flex-col items-center gap-y-5 pt-24 text-center px-[5%]">
             <h1 className="text-2xl font-semibold">Scanned Books: {scannedBooks.length} </h1>
             <div>
+              <Confetti active={isExploding} config={config}></Confetti>
               <h2>{currentBookTitle}</h2>
             </div>
 
