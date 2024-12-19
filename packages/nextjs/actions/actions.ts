@@ -266,3 +266,29 @@ export async function getLast50Books(): Promise<
     throw new Error(`Error getting last 50 books: ${error}`); // Include original error message
   }
 }
+
+// Function to get the top 10 users with the most points
+export async function getTopUsers(): Promise<{ id: string; walletAddress: string | null; points: number }[]> {
+  try {
+    const topUsers = await prisma.user.findMany({
+      orderBy: {
+        points: "desc", // Sort by points in descending order
+      },
+      take: 10, // Limit to top 10 users
+      select: {
+        id: true,
+        walletAddress: true,
+        points: true,
+      },
+    });
+
+    return topUsers.map(user => ({
+      id: user.id,
+      walletAddress: user.walletAddress,
+      points: user.points,
+    }));
+  } catch (error) {
+    console.error("Error fetching top users:", error);
+    throw new Error("Failed to fetch top users");
+  }
+}

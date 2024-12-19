@@ -3,6 +3,7 @@
 import React from "react";
 import { useEffect } from "react";
 import Image from "next/image";
+import { BlockieAvatar } from "../../components/scaffold-eth/BlockieAvatar";
 
 // import { getLibraryData } from "../../actions/actions";
 
@@ -17,9 +18,20 @@ interface StatsClientProps {
   totalBooks: number;
   totalLibraries: number;
   totalUsers: number;
+  topUsers: {
+    id: string;
+    walletAddress: string | null;
+    points: number;
+  }[];
 }
 
-export default function StatsClient({ last50Books, totalBooks, totalLibraries, totalUsers }: StatsClientProps) {
+export default function StatsClient({
+  last50Books,
+  totalBooks,
+  totalLibraries,
+  totalUsers,
+  topUsers,
+}: StatsClientProps) {
   useEffect(() => {
     // Get URL parameters on the client side
     const urlParams = new URLSearchParams(window.location.search);
@@ -48,20 +60,57 @@ export default function StatsClient({ last50Books, totalBooks, totalLibraries, t
         <div className="stats stats-vertical lg:stats-horizontal shadow">
           <div className="stat">
             <div className="stat-title">Total Books</div>
-            <div className="stat-value">{totalBooks}</div>
-            <div className="stat-desc">in all libraries</div>
+            <div className="stat-value text-center">{totalBooks}</div>
+            <div className="stat-desc">across all libraries</div>
           </div>
 
           <div className="stat">
             <div className="stat-title">Total Libraries</div>
-            <div className="stat-value">{totalLibraries}</div>
+            <div className="stat-value text-center">{totalLibraries}</div>
             <div className="stat-desc">on ARLib.me</div>
           </div>
 
           <div className="stat">
-            <div className="stat-title">User Accounts</div>
-            <div className="stat-value">{totalUsers}</div>
-            <div className="stat-desc">Required for leaderboards</div>
+            <div className="stat-title">Users With Wallets</div>
+            <div className="stat-value text-center">{totalUsers}</div>
+            <div className="stat-desc">Wallets keep points</div>
+          </div>
+        </div>
+        <div className="flex flex-col items-center">
+          <p></p>
+          <div className="text-center">
+            <div
+              className="tooltip tooltip-top"
+              data-tip="When you login your points are automatically moved into in your wallet."
+            >
+              <h1 className="text-xl font-semibold text-center">Top 10 Users With Points in Their Wallets</h1>
+            </div>
+          </div>
+
+          <div className="flex">
+            <div className="overflow-x-auto">
+              <table className="table">
+                {/* head */}
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>User</th>
+                    <th>Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Dynamically generated rows from topUsers */}
+                  {topUsers.map((user, index) => (
+                    <tr key={user.id}>
+                      <td>{index + 1}</td>
+                      <td>{user.walletAddress && <BlockieAvatar address={user.walletAddress} size={24} />}</td>
+                      <td>{user.points}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {/* Chat bubble container */}
           </div>
         </div>
         <div className="flex flex-col items-center">

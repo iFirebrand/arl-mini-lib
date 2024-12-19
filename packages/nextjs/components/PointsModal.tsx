@@ -9,17 +9,19 @@ export const LoginOrCreateAccountModal = ({ id }: ModalProps) => {
   return (
     <dialog id={id} className="modal">
       <div className="modal-box">
-        <h3 className="font-bold text-lg">⚠️ Your earned points are at risk until logged in!</h3>
+        <h3 className="font-bold text-lg">⚠️ Your points are not in a wallet</h3>
         <ul className="list-disc pl-6">
           <li className="py-4">
-            Login to <strong>save points</strong> pseudonymously for leaderboards and potential future rewards.{" "}
+            Login to <strong>save points</strong> pseudonymously in a wallet for leaderboards and potential future
+            rewards.{" "}
             <Link href="/about#accounts" target="_blank" rel="noopener noreferrer">
               Learn more
             </Link>
             .
           </li>
           <li className="py-4">
-            Or continue without account and <strong>forfeit points</strong> to remain anonymous.
+            Or continue without account and <strong>forfeit points</strong> to remain anonymous. Your earned points are
+            at risk until logged in!
           </li>
         </ul>
         <p>
