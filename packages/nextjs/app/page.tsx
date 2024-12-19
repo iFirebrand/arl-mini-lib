@@ -15,7 +15,7 @@ const Home: NextPage = () => {
 
   return (
     <>
-      <div className="flex items-center flex-col flex-grow pt-10 overflow-hidden">
+      <div className="flex items-center flex-col flex-grow pt-2">
         <div className="px-5">
           <h1 className="text-center">
             <span className="block text-4xl font-bold">Arlington Mini Libraries</span>
@@ -23,9 +23,19 @@ const Home: NextPage = () => {
           <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
             <p className="my-2 font-medium">Discover, view books, curate, get points</p>
           </div>
-        </div>
+          <div className="w-full max-w-3xl mx-auto mt-8 px-4">
+            <div className="aspect-w-9 aspect-h-19">
+              <iframe
+                className="w-full h-full rounded-lg"
+                src="https://www.youtube.com/embed/EH-OhAvPn_g?autoplay=0"
+                title="Arlington Mini Libraries Introduction"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+            <p></p>
+          </div>
 
-        <div className="flex-grow bg-base-300 w-full mt-16 px-8 py-12">
           <div className="flex justify-center items-center gap-12 flex-col sm:flex-row">
             <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
               <span className="loading loading-ring loading-lg"></span>
