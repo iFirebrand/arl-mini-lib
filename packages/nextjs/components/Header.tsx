@@ -108,6 +108,7 @@ export const Header = () => {
       if (isConnected && address && userPoints > 0) {
         try {
           const pointActions = getPointActions();
+          console.log("Point Actions:", pointActions);
           clearTemporaryPoints();
 
           const response = await fetch("/api/points", {
@@ -121,6 +122,7 @@ export const Header = () => {
             }),
           });
 
+          console.log("Response Status:", response.status);
           if (response.ok) {
             const data = await response.json();
             setBankedPointsTotal(data.currentTotal);

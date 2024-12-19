@@ -25,6 +25,8 @@ export async function POST(request: Request) {
     }
 
     const { walletAddress, pointActions } = await request.json();
+    console.log("Received Wallet Address:", walletAddress); // Log wallet address
+    console.log("Received Point Actions:", pointActions); // Log point actions
 
     if (!walletAddress) {
       return NextResponse.json({ error: "Wallet address is required" }, { status: 400 });
@@ -44,6 +46,8 @@ export async function POST(request: Request) {
       update: { points: { increment: totalPoints } },
       create: { walletAddress, points: totalPoints },
     });
+
+    console.log("User after upsert:", user); // Log user data after upsert
 
     return NextResponse.json({
       success: true,
