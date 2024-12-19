@@ -39,10 +39,6 @@ const Scanner: React.FC<ScannerProps> = ({ onScan }) => {
         }
       },
     );
-    toast("Every scan earns points. Info below.", {
-      icon: "🤩",
-    });
-    console.log(`Started continuous decode from camera with id ${selectedDeviceId}`);
   }, [selectedDeviceId]);
 
   const handleResult = useCallback(

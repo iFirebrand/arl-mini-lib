@@ -35,14 +35,14 @@ export async function checkLibraryExists(latitude: string, longitude: string) {
         AND: [
           {
             latitude: {
-              gte: parseFloat(latitude) - 0.000225,
-              lte: parseFloat(latitude) + 0.000225,
+              gte: parseFloat(latitude) - 0.00036,
+              lte: parseFloat(latitude) + 0.00036,
             },
           },
           {
             longitude: {
-              gte: parseFloat(longitude) - 0.000225,
-              lte: parseFloat(longitude) + 0.000225,
+              gte: parseFloat(longitude) - 0.00036,
+              lte: parseFloat(longitude) + 0.00036,
             },
           },
         ],

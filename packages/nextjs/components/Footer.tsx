@@ -15,7 +15,7 @@ export const Footer = () => {
               <p className="m-0 text-center">
                 <HeartIcon className="inline-block h-4 w-4" />
                 {` `}Experimental public goods community project {` `}{" "}
-                <div className="tooltip" data-tip="The fight for Ukraine is a fight for all of us">
+                <div className="tooltip" data-tip="Victory for Ukraine is a victory for all of us">
                   🇺🇦 🇺🇸
                 </div>{" "}
               </p>
