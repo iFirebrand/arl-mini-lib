@@ -21,7 +21,7 @@ const Home: NextPage = () => {
             <span className="block text-4xl font-bold">Arlington Mini Libraries</span>
           </h1>
           <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
-            <p className="my-2 font-medium">Discover libs, their contents, and curate them</p>
+            <p className="my-2 font-medium">Discover, view books online, scan books to earn points</p>
           </div>
         </div>
 

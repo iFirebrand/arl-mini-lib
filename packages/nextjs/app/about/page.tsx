@@ -53,19 +53,19 @@ function AboutPage() {
 
         <div id="sponsor-quest" className="card bg-base-300 rounded-box p-6">
           <h3 className="text-center mb-8">
-            <span className="block text-2xl font-bold">Sponsor Mappig Quest</span>
+            <span className="block text-2xl font-bold">Sponsor Mapping Quest</span>
           </h3>
 
           <p className="text-lg mt-4">
-            Mini libraries are a public goods concept. ARLib needs to solve the cold start problem and get as many
-            mini-libraries as possible by the end of January. Enter quests. People hunt to discover new libraries and
-            catalog its contents to compete for points. Quests are more fun with real rewards! Sure, bragging rights are
-            cool, but how about points that can turn into something tangible, like money or gift cards to local
-            businesses? Imagine earning something of value for putting libraries online—or for refreshing the catalog
-            while on a dog walk. For some it is not about the money. But we know incentives work. The prize-to-points
-            ratio? That&apos;s the exciting part—it depends on how many sponsors and funds join the quest! Gamification
-            ideas are flowing, and we&apos;re just getting started. Will there be a golden ticket? Got thoughts or want
-            to chip in ideas or funds? Let&apos;s team up and make it happen—reach out{" "}
+            Mini libraries are a public goods. We need a burst to get as many mini-libraries online as possible by the
+            end of January. <strong>Enter quests.</strong> People hunt to discover new libraries and catalog its
+            contents to compete for points. Quests are more fun with real rewards! Sure, bragging rights are cool, but
+            how about points that can turn into something tangible, like money or gift cards to local businesses?
+            Imagine earning something of value for putting libraries online—or for refreshing the catalog while on a dog
+            walk. For some it is not about the money. But we know incentives work. The prize-to-points ratio?
+            That&apos;s the exciting part—it depends on how many sponsors and funds join the quest! Gamification ideas
+            are flowing, and we&apos;re just getting started. Will there be a golden ticket? Got thoughts or want to
+            chip in ideas or funds? Let&apos;s team up and make it happen—reach out{" "}
             <div className="tooltip" data-tip="ArlingtonAndUkraine @ gmail.com">
               (by email)
             </div>{" "}
