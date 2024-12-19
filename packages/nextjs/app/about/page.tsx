@@ -22,11 +22,12 @@ function AboutPage() {
             <span className="block text-2xl font-bold">Map The Libraries!</span>
           </h3>
           <p className="text-lg mb-4">
-            It&apos;s simple and fun. Use your phone to <strong>add a library</strong>:{" "}
+            It&apos;s simple and fun. Use your phone to <strong>add a library</strong> and earn <strong>50</strong>{" "}
+            points:{" "}
           </p>
           <ol className="list-decimal pl-8 space-y-2 text-lg">
             <li>You must be at the library. This is an IRL experience. </li>
-            <li>Snap a pic of the library and name it! It will appear on the map. </li>
+            <li>Snap a pic of the library and name it to place it on the map. </li>
           </ol>
         </div>
         <div id="map-and-catalog" className="card bg-base-300 rounded-box p-6">
@@ -35,13 +36,31 @@ function AboutPage() {
           </h3>
           <p className="text-lg mb-4">Scan barcode on books to catalog them.</p>
           <ol className="list-decimal pl-8 space-y-2 text-lg">
-            <li>Scan the barcode on the books with your phone. </li>
-            <li>Each scan earns you points. </li>
-            <li>Newly added books earn most points. Rescans earn ponts based on last scan freshness.</li>
+            <li>Scan the barcode on the back of the book with your phone. </li>
+            <li>Best in daylight. ISBN 13 barcodes to start.</li>
           </ol>
           <p className="text-lg mb-4">
             Over time the catalog can get stale. A 5 minute re-scan of the books will keep it up to date.
           </p>
+        </div>
+        <div id="map-and-catalog" className="card bg-base-300 rounded-box p-6">
+          <h3 className="text-center mb-8">
+            <span className="block text-2xl font-bold">Earn Points!</span>
+          </h3>
+          <p className="text-lg mb-4">
+            Earn points for discovering libraries and scanning books. Get on top of the leaderboards. Rewards in the
+            future?
+          </p>
+          <ol className="list-decimal pl-8 space-y-2 text-lg">
+            <li>
+              Never before scanned books earn <strong>5</strong> points.{" "}
+            </li>
+            <li>Rescans of books in the catalog earn points based on freshness.</li>
+            <li>
+              Point <strong>multipliers</strong> kick in after a <strong>streak</strong> of scans.
+            </li>
+            <li>Accumulated failed scans earn points for persistence.</li>
+          </ol>
         </div>
 
         <div id="browse-books" className="card bg-base-300 rounded-box p-6">
