@@ -19,7 +19,12 @@ export async function POST(request: Request) {
 
     // Origin check
     const referer = headers().get("referer");
-    const allowedOrigins = [process.env.NEXT_PUBLIC_APP_URL || "", "http://localhost:3000"];
+    const allowedOrigins = [
+      process.env.NEXT_PUBLIC_APP_URL || "",
+      "http://localhost:3000",
+      "https://www.arlib.me", // Include www
+      "https://arlib.me", // Include non-www
+    ];
     if (!referer || !allowedOrigins.some(origin => referer.startsWith(origin))) {
       return NextResponse.json({ error: "Unauthorized request origin" }, { status: 403 });
     }
