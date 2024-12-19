@@ -22,6 +22,7 @@ export async function POST(request: Request) {
     const allowedOrigins = [
       process.env.NEXT_PUBLIC_APP_URL || "",
       "http://localhost:3000",
+      "http://192.168.1.232:3000",
       "https://www.arlib.me", // Include www
       "https://arlib.me", // Include non-www
     ];
@@ -30,8 +31,6 @@ export async function POST(request: Request) {
     }
 
     const { walletAddress, pointActions } = await request.json();
-    console.log("Received Wallet Address:", walletAddress); // Log wallet address
-    console.log("Received Point Actions:", pointActions); // Log point actions
 
     if (!walletAddress) {
       return NextResponse.json({ error: "Wallet address is required" }, { status: 400 });
@@ -51,8 +50,6 @@ export async function POST(request: Request) {
       update: { points: { increment: totalPoints } },
       create: { walletAddress, points: totalPoints },
     });
-
-    console.log("User after upsert:", user); // Log user data after upsert
 
     return NextResponse.json({
       success: true,

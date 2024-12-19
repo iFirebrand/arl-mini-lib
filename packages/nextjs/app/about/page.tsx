@@ -9,33 +9,39 @@ function AboutPage() {
       <div className="flex flex-col gap-8">
         <div id="intro" className="card bg-base-300 rounded-box p-6">
           <p className="text-lg">
-            Mini libraries are more than book collections—they&apos;re neighborhood gems of creativity and connection.
-            ARLib puts these spaces on the map and in your pocket, making it easy to explore, share, and discover books
-            nearby. Each listed book links to its openlibrary.org page, helping you decide your next great read
+            ARLib.me is a public goods community project to map and catalog mini libraries by Jan. 31, 2025. Mini
+            libraries are more than book collections—they&apos;re neighborhood gems of creativity and connection. ARLib
+            puts these spaces on the map and in your pocket, making it easy to explore, share, and discover books
+            nearby. Each cataloged book links to its openlibrary.org page, helping you decide your next great read
             effortlessly!
           </p>
         </div>
 
         <div id="map-and-catalog" className="card bg-base-300 rounded-box p-6">
           <h3 className="text-center mb-8">
-            <span className="block text-2xl font-bold">Map and Catalog Them!</span>
+            <span className="block text-2xl font-bold">Map The Libraries!</span>
           </h3>
           <p className="text-lg mb-4">
-            Let&apos;s put all mini libraries on the <a href="/browse">map</a>! With ARLib, it&apos;s simple and fun.
-            Use your phone to:
+            It&apos;s simple and fun. Use your phone to <strong>add a library</strong>:{" "}
           </p>
           <ol className="list-decimal pl-8 space-y-2 text-lg">
-            <li>
-              <strong>Add a Library:</strong> If the library isn&apos;t listed you can add it. You must be at the
-              library to snap a pic, geotag it, and catalog a few books (or all of them) to bring it online. You also
-              get to name it!{" "}
-            </li>
-            <li>
-              <strong>Catalog Books:</strong> For mapped libraries you can rescan the barcode on all the books with your
-              phone to refesh the catalog and earn points. Over time the catalog can get stale. But a 5 minute re-scan
-              of all or some of the books will keep it up to date.
-            </li>
+            <li>You must be at the library. This is an IRL experience. </li>
+            <li>Snap a pic of the library and name it! It will appear on the map. </li>
           </ol>
+        </div>
+        <div id="map-and-catalog" className="card bg-base-300 rounded-box p-6">
+          <h3 className="text-center mb-8">
+            <span className="block text-2xl font-bold">Catalog The Books!</span>
+          </h3>
+          <p className="text-lg mb-4">Scan barcode on books to catalog them.</p>
+          <ol className="list-decimal pl-8 space-y-2 text-lg">
+            <li>Scan the barcode on the books with your phone. </li>
+            <li>Each scan earns you points. </li>
+            <li>Newly added books earn most points. Rescans earn ponts based on last scan freshness.</li>
+          </ol>
+          <p className="text-lg mb-4">
+            Over time the catalog can get stale. A 5 minute re-scan of the books will keep it up to date.
+          </p>
         </div>
 
         <div id="browse-books" className="card bg-base-300 rounded-box p-6">
@@ -53,7 +59,7 @@ function AboutPage() {
 
         <div id="sponsor-quest" className="card bg-base-300 rounded-box p-6">
           <h3 className="text-center mb-8">
-            <span className="block text-2xl font-bold">Sponsor Mapping Quest</span>
+            <span className="block text-2xl font-bold">Make This Happen</span>
           </h3>
 
           <p className="text-lg mt-4">
