@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { BrowserMultiFormatReader, Exception, NotFoundException, Result } from "@zxing/library";
-import { toast } from "react-hot-toast";
 
 interface VideoDevice {
   deviceId: string;
