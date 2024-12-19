@@ -138,7 +138,16 @@ export default function StatsClient({
                         <div className="flex items-center gap-3">
                           <div className="avatar">
                             <div className="mask mask-squircle h-12 w-12">
-                              <Image src={book.thumbnail} alt={`Thumbnail of ${book.title}`} width={48} height={48} />
+                              <Image
+                                src={book.thumbnail}
+                                alt={`Thumbnail of ${book.title}`}
+                                width={48}
+                                height={48}
+                                onError={e => {
+                                  e.currentTarget.src =
+                                    "https://dtmqxpohipopgolmirik.supabase.co/storage/v1/object/public/altbucket/ARLib.png";
+                                }}
+                              />
                             </div>
                           </div>
                           <div>

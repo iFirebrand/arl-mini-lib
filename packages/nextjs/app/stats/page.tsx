@@ -5,6 +5,8 @@ import { totalUserCount } from "../../actions/actions";
 import { getTopUsers } from "../../actions/actions";
 import StatsClient from "./StatsClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function StatsPage() {
   const last50Books = await getLast50Books();
   const totalBooks = await totalBookCount();
