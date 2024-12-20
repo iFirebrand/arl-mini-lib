@@ -7,7 +7,6 @@ import { getItemsByLibraryId } from "../../../actions/actions";
 export default function ViewItems({ libraryId }: { libraryId: string }) {
   const [items, setItems] = useState<Array<{ title: string; coverUrl: string; itemInfo: string; updatedAt: Date }>>([]);
   // const [page, setPage] = useState(1);
-  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const fetchItems = async () => {
