@@ -236,7 +236,7 @@ export async function totalUserCount() {
 }
 
 export async function getLast50Books(): Promise<
-  { title: string; thumbnail: string; sourceURL: string; libraryId: string; libraryName: string }[]
+  { title: string; thumbnail: string; sourceURL: string; libraryId: string; libraryName: string; itemInfo: string }[]
 > {
   try {
     const last50Books = await prisma.item.findMany({
@@ -246,6 +246,7 @@ export async function getLast50Books(): Promise<
         title: true,
         thumbnail: true,
         sourceURL: true,
+        itemInfo: true,
         library: {
           select: {
             id: true,
@@ -258,6 +259,7 @@ export async function getLast50Books(): Promise<
       title: book.title ?? "",
       thumbnail: book.thumbnail ?? "",
       sourceURL: book.sourceURL ?? "",
+      itemInfo: book.itemInfo ?? "",
       libraryId: book.library?.id ?? "",
       libraryName: book.library?.locationName ?? "",
     }));
@@ -290,5 +292,22 @@ export async function getTopUsers(): Promise<{ id: string; walletAddress: string
   } catch (error) {
     console.error("Error fetching top users:", error);
     throw new Error("Failed to fetch top users");
+  }
+}
+
+export async function getNewLibrariesCount(): Promise<number> {
+  try {
+    const newLibrariesCount = await prisma.library.count({
+      where: {
+        createdAt: {
+          gt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        },
+      },
+    });
+
+    return newLibrariesCount || 0;
+  } catch (error) {
+    console.error("Error fetching new libraries count:", error);
+    return 0;
   }
 }

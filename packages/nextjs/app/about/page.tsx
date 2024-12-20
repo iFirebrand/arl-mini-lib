@@ -19,7 +19,7 @@ function AboutPage() {
 
         <div id="map-and-catalog" className="card bg-base-300 rounded-box p-6">
           <h3 className="text-center mb-8">
-            <span className="block text-2xl font-bold">Map The Libraries!</span>
+            <span className="block text-2xl font-bold">🗺️ Map The Libraries!</span>
           </h3>
           <p className="text-lg mb-4">
             It&apos;s simple and fun. Use your phone to <strong>add a library</strong> and earn <strong>50</strong>{" "}
@@ -32,7 +32,7 @@ function AboutPage() {
         </div>
         <div id="map-and-catalog" className="card bg-base-300 rounded-box p-6">
           <h3 className="text-center mb-8">
-            <span className="block text-2xl font-bold">Catalog The Books!</span>
+            <span className="block text-2xl font-bold">📚 Catalog The Books!</span>
           </h3>
           <p className="text-lg mb-4">Scan barcode on books to catalog them.</p>
           <ol className="list-decimal pl-8 space-y-2 text-lg">
@@ -45,7 +45,7 @@ function AboutPage() {
         </div>
         <div id="map-and-catalog" className="card bg-base-300 rounded-box p-6">
           <h3 className="text-center mb-8">
-            <span className="block text-2xl font-bold">Earn Points!</span>
+            <span className="block text-2xl font-bold">⭐️ Earn Points!</span>
           </h3>
           <p className="text-lg mb-4">
             Earn points for discovering libraries and scanning books. Get on top of the leaderboards. Rewards in the
@@ -65,7 +65,7 @@ function AboutPage() {
 
         <div id="browse-books" className="card bg-base-300 rounded-box p-6">
           <h3 className="text-center mb-8">
-            <span className="block text-2xl font-bold">Browse Books Remotely</span>
+            <span className="block text-2xl font-bold">👀 Browse Books Remotely</span>
           </h3>
 
           <p className="text-lg mt-4">
@@ -78,7 +78,7 @@ function AboutPage() {
 
         <div id="sponsor-quest" className="card bg-base-300 rounded-box p-6">
           <h3 className="text-center mb-8">
-            <span className="block text-2xl font-bold">Make This Happen</span>
+            <span className="block text-2xl font-bold">🏆 Make This Happen</span>
           </h3>
 
           <p className="text-lg mt-4">
@@ -100,7 +100,7 @@ function AboutPage() {
 
         <div id="accounts" className="card bg-base-300 rounded-box p-6">
           <h3 className="text-center mb-8">
-            <span className="block text-2xl font-bold">Accounts & Points</span>
+            <span className="block text-2xl font-bold">🌟 Accounts & Points</span>
           </h3>
 
           <p className="text-lg mt-4">
@@ -114,7 +114,7 @@ function AboutPage() {
         </div>
         <div id="epilogue" className="card bg-base-300 rounded-box p-6">
           <h3 className="text-center mb-8">
-            <span className="block text-2xl font-bold">Epilogue</span>
+            <span className="block text-2xl font-bold">💫 Epilogue</span>
           </h3>
 
           <p className="text-lg mt-4">

@@ -14,10 +14,12 @@ interface StatsClientProps {
     sourceURL: string;
     libraryId: string;
     libraryName: string;
+    itemInfo: string;
   }[];
   totalBooks: number;
   totalLibraries: number;
   totalUsers: number;
+  newLibrariesCount: number;
   topUsers: {
     id: string;
     walletAddress: string | null;
@@ -31,6 +33,7 @@ export default function StatsClient({
   totalLibraries,
   totalUsers,
   topUsers,
+  newLibrariesCount,
 }: StatsClientProps) {
   useEffect(() => {
     // Get URL parameters on the client side
@@ -64,6 +67,11 @@ export default function StatsClient({
             <div className="stat-desc">across all libraries</div>
           </div>
 
+          <div className="stat">
+            <div className="stat-title">New Libraries </div>
+            <div className="stat-value text-center">{newLibrariesCount}</div>
+            <div className="stat-desc">in the last 7 days</div>
+          </div>
           <div className="stat">
             <div className="stat-title">Total Libraries</div>
             <div className="stat-value text-center">{totalLibraries}</div>
