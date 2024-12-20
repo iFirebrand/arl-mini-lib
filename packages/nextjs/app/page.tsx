@@ -99,19 +99,10 @@ const Home: NextPage = () => {
                     </span>
                     Days to go
                   </div>
-                  <div className="flex flex-col p-2 bg-neutral rounded-box text-neutral-content">
-                    <span className="font-mono text-5xl">$100</span>
-                    <p className="mt-0">Reward pool</p>
-                  </div>
                 </div>
                 <div className="card-actions">
                   <a href="/about#map-and-catalog" className="btn btn-primary">
                     ⭐️ Earn Points ⭐️
-                  </a>
-                </div>
-                <div className="card-actions">
-                  <a href="/about#sponsor-quest" className="btn btn-primary">
-                    Sponsor Quest
                   </a>
                 </div>
               </div>
