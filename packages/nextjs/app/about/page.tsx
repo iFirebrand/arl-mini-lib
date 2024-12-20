@@ -122,6 +122,13 @@ function AboutPage() {
             a community-driven way to make books more accessible while celebrating the stories in our neighborhoods.
           </p>
         </div>
+        <div id="epilogue" className="card bg-base-300 rounded-box p-6">
+          <h3 className="text-center mb-8">
+            <span className="block text-lg font-bold">🇺🇦 🇺🇸 </span>
+          </h3>
+
+          <p className="text-lg mt-4">Victory for Ukraine is a victory for all of us.</p>
+        </div>
       </div>
     </div>
   );

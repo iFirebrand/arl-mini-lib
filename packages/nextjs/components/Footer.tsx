@@ -14,10 +14,7 @@ export const Footer = () => {
             <div className="flex justify-center items-center gap-2">
               <p className="m-0 text-center">
                 <HeartIcon className="inline-block h-4 w-4" />
-                {` `}Experimental public goods community project {` `}{" "}
-                <div className="tooltip" data-tip="Victory for Ukraine is a victory for all of us">
-                  🇺🇦 🇺🇸
-                </div>{" "}
+                {` `}Experimental public goods community project {` `} 🇺🇦 🇺🇸{" "}
               </p>
             </div>
           </div>
