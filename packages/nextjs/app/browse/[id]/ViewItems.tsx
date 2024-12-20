@@ -1,10 +1,24 @@
 "use client";
 
+import React from "react";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { getItemsByLibraryId } from "../../../actions/actions";
 
-export default function ViewItems({ libraryId }: { libraryId: string }) {
+interface ViewItemsProps {
+  libraryId: string;
+  libraryData: {
+    locationName: string;
+    id: string;
+    imageUrl: string | null;
+    active: boolean;
+    latitude: number;
+    longitude: number;
+    description: string | null;
+  };
+}
+
+export default function ViewItems({ libraryId, libraryData }: ViewItemsProps) {
   const [items, setItems] = useState<Array<{ title: string; coverUrl: string; itemInfo: string; updatedAt: Date }>>([]);
   // const [page, setPage] = useState(1);
 
@@ -88,12 +102,25 @@ export default function ViewItems({ libraryId }: { libraryId: string }) {
               Come to the library to add new or catalog existing books. Simply scan book barcodes with phone camera to
               refresh the catalog and earn points!
             </p>
+
             <div className="card-actions justify-end">
               <a href={`/libs/${libraryId}`} className="btn btn-primary">
                 Add Books
               </a>
             </div>
           </div>
+          <figure>
+            <Image
+              src={
+                libraryData.imageUrl ||
+                "https://dtmqxpohipopgolmirik.supabase.co/storage/v1/object/public/library-images/site-images/placeholder-library.jpeg?t=2024-12-15T15%3A45%3A04.162Z"
+              }
+              alt={`${libraryData.locationName} library image`}
+              width={384}
+              height={384}
+              className="rounded-lg shadow-2xl"
+            />
+          </figure>
         </div>
       </div>
     </div>
