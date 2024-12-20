@@ -134,7 +134,7 @@ export default function StatsClient({
                 {last50Books.map(book => (
                   <tr key={book.title}>
                     <td>
-                      <a href={book.sourceURL} target="_blank" rel="noopener noreferrer">
+                      <a href={book.itemInfo} target="_blank" rel="noopener noreferrer">
                         <div className="flex items-center gap-3">
                           <div className="avatar">
                             <div className="mask mask-squircle h-12 w-12">
@@ -151,7 +151,7 @@ export default function StatsClient({
                             </div>
                           </div>
                           <div>
-                            <a href={book.sourceURL} target="_blank" rel="noopener noreferrer" className="font-bold">
+                            <a href={book.itemInfo} target="_blank" rel="noopener noreferrer" className="font-bold">
                               {book.title}
                             </a>
                           </div>
