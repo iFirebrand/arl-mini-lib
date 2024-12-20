@@ -91,10 +91,8 @@ function AboutPage() {
             That&apos;s the exciting part—it depends on how many sponsors and funds join the quest! Gamification ideas
             are flowing, and we&apos;re just getting started. Will there be a golden ticket? Got thoughts or want to
             chip in ideas or funds? Let&apos;s team up and make it happen—reach out{" "}
-            <div className="tooltip" data-tip="ArlingtonAndUkraine @ gmail.com">
-              (by email)
-            </div>{" "}
-            and help shape something awesome! This is a fun community project. Don&apos;t be shy.
+            <a href="mailto:ArlingtonAndUkraine+arlib@gmail.com">ArlingtonAndUkraine+arlib@gmail.com</a> and help shape
+            something awesome! This is a fun community project. Don&apos;t be shy.
           </p>
         </div>
 

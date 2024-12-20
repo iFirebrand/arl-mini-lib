@@ -1,12 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import type { NextPage } from "next";
 import { InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
 import { handleGeoLocation } from "~~/components/maps/handleGeoLocation";
 
 const Home: NextPage = () => {
   const [isGeolocationRequested, setIsGeolocationRequested] = useState(false);
+
+  // Define the target date and calculate days remaining
+  const targetDate = new Date("2025-01-31");
+  const currentDate = new Date();
+  const timeDifference = targetDate.getTime() - currentDate.getTime();
+  const daysRemaining = Math.ceil(timeDifference / (1000 * 3600 * 24)); // Calculate days remaining
 
   const handleGeoLocationClick = () => {
     setIsGeolocationRequested(true);
@@ -68,6 +75,37 @@ const Home: NextPage = () => {
                 Learn More
               </a>
               <p className="mt-2">Why? Catalog. Map. Sponsor. Quests & points.</p>
+            </div>
+          </div>
+
+          <div className="flex justify-center items-center gap-12 flex-col sm:flex-row mt-12">
+            <div className="card bg-base-100 w-96 shadow-xl">
+              <figure className="px-10 pt-10">
+                <Image
+                  src="https://dtmqxpohipopgolmirik.supabase.co/storage/v1/object/public/altbucket/OG-Season.jpg"
+                  alt="Shoes"
+                  className="rounded-xl"
+                  width={398}
+                  height={398}
+                />
+              </figure>
+              <div className="card-body items-center text-center">
+                <h2 className="card-title">OG Season</h2>
+                <p>The quest to map 50 libraries in on through January!</p>
+                <div className="grid grid-flow-col gap-5 text-center auto-cols-max">
+                  <div className="flex flex-col p-2 bg-neutral rounded-box text-neutral-content">
+                    <span className="countdown font-mono text-5xl">
+                      <span style={{ "--value": daysRemaining } as React.CSSProperties}></span>
+                    </span>
+                    Days to go
+                  </div>
+                </div>
+                <div className="card-actions">
+                  <a href="/about#map-and-catalog" className="btn btn-primary">
+                    ⭐️ Earn Points ⭐️
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
