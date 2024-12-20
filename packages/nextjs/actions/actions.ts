@@ -311,3 +311,14 @@ export async function getNewLibrariesCount(): Promise<number> {
     return 0;
   }
 }
+
+export async function recordVote(questionId: string, rating: number) {
+  try {
+    await prisma.poll.create({
+      data: { questionId, rating },
+    });
+  } catch (error) {
+    console.error("Error recording vote:", error);
+    throw new Error(`Failed to record vote: ${error}`);
+  }
+}
