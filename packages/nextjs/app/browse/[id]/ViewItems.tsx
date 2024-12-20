@@ -39,7 +39,17 @@ export default function ViewItems({ libraryId }: { libraryId: string }) {
                   >
                     <div className="avatar">
                       <div className="h-20 w-16">
-                        <Image src={item.coverUrl} alt={item.title} width={80} height={120} className="object-cover" />
+                        <Image
+                          src={item.coverUrl}
+                          alt={item.title}
+                          width={80}
+                          height={120}
+                          className="object-cover"
+                          onError={e => {
+                            e.currentTarget.src =
+                              "https://dtmqxpohipopgolmirik.supabase.co/storage/v1/object/public/altbucket/ARLib.png";
+                          }}
+                        />
                       </div>
                     </div>
                     <div>
