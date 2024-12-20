@@ -6,23 +6,20 @@ import type { NextPage } from "next";
 import { InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
 import { recordVote } from "~~/actions/actions";
 import { handleGeoLocation } from "~~/components/maps/handleGeoLocation";
+import { useLocalStorage } from "~~/hooks/useLocalStorage";
 
 // Import the recordVote function
 
 const Home: NextPage = () => {
   const [isGeolocationRequested, setIsGeolocationRequested] = useState(false);
-  const [voted, setVoted] = useState<boolean>(() => {
-    // Initialize voted state from local storage
-    return localStorage.getItem("bpyr") === "true";
-  });
+  const [voted, setVoted] = useLocalStorage("bpyr", false);
+  const [selectedRating, setSelectedRating] = useState<number | null>(0);
 
   // Define the target date and calculate days remaining
   const targetDate = new Date("2025-01-31");
   const currentDate = new Date();
   const timeDifference = targetDate.getTime() - currentDate.getTime();
   const daysRemaining = Math.ceil(timeDifference / (1000 * 3600 * 24)); // Calculate days remaining
-
-  const [selectedRating, setSelectedRating] = useState<number | null>(0); // Initialize state
 
   const questionId = "rewards-pool"; // Define your question ID here
 
@@ -31,18 +28,18 @@ const Home: NextPage = () => {
     handleGeoLocation("/libs");
   };
 
-  const handleVoteSubmit = async () => {
+  const handleVoteSubmit = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent the default anchor tag behavior
     if (selectedRating !== null) {
       try {
-        await recordVote(questionId, selectedRating); // Call recordVote with questionId and selectedRating
-        localStorage.setItem("bpyr", "true"); // Set local storage variable to true
-        setVoted(true); // Update voted state
+        await recordVote(questionId, selectedRating);
+        setVoted(true); // This should now work correctly
       } catch (error) {
         console.error("Error recording vote:", error);
-        alert("Failed to record your vote. Please try again."); // Optional: Notify the user
+        alert("Failed to record your vote. Please try again.");
       }
     } else {
-      alert("Please select a rating before submitting."); // Notify if no rating is selected
+      alert("Please select a rating before submitting.");
     }
   };
 
@@ -189,14 +186,13 @@ const Home: NextPage = () => {
                   {selectedRating === 4 && <p>🤩 I may contribute to the pool!</p>}
                   <div className="card-actions">
                     <a
-                      href="/about#sponsor-quest"
                       className="btn btn-primary"
                       onClick={handleVoteSubmit}
                       // Disable the button if selectedRating is 0
                       aria-disabled={selectedRating === 0}
                       style={{ pointerEvents: selectedRating === 0 ? "none" : "auto" }}
                     >
-                      {selectedRating === 0 ? "Pick a ⭐️ to Vote" : "Submit & Learn More"}
+                      {selectedRating === 0 ? "Pick a ⭐️ to Vote" : "Vote"}
                     </a>
                   </div>
                 </div>
@@ -219,6 +215,40 @@ const Home: NextPage = () => {
                 <div className="card-body items-center text-center">
                   <h2 className="card-title">$ Rewards Pool?</h2>
                   <p>Thank you for voting! We are accumulating the votes.</p>
+
+                  {selectedRating === 0 && <p>Pick a star to see rating guidance</p>}
+                  {selectedRating === 1 && (
+                    <p>
+                      You are absolutely right—money should never overshadow the core values of contributing to public
+                      goods. However, small rewards can sometimes act as a catalyst to spark initial participation and
+                      help build momentum. The goal is always to keep the spirit of the project intact. Let us see how
+                      others feel about this approach and ensure we strike the right balance.{" "}
+                    </p>
+                  )}
+                  {selectedRating === 2 && (
+                    <p>
+                      That makes a lot of sense—rewards aren not always the key motivator, especially for those who
+                      genuinely care about the cause. For some, though, small incentives can be a way to encourage
+                      participation and build early momentum. Of course, the spirit of contributing to public goods
+                      remains at the heart of it all. I would love to hear your thoughts on how we might inspire others
+                      who might need a little nudge to get involved!
+                    </p>
+                  )}
+                  {selectedRating === 3 && (
+                    <p>
+                      Great to hear you are excited about the rewards! They can definitely make participation more
+                      engaging while keeping the focus on building something meaningful together. Your enthusiasm is
+                      what can help make this community thrive—thank you!
+                    </p>
+                  )}
+                  {selectedRating === 4 && (
+                    <p>
+                      That is amazing! Your willingness to contribute goes beyond just participating—it helps create a
+                      cycle of giving and sharing that strengthens the entire community.{" "}
+                      <a href="mailto:ArlingtonAndUkraine+arlib@gmail.com">Email me</a> and we can explore how you can
+                      help grow the rewards pool. Together, we can make this initiative even more impactful!
+                    </p>
+                  )}
 
                   <div className="card-actions">
                     <a href="/about#sponsor-quest" className="btn btn-primary">
