@@ -74,3 +74,10 @@ model ArlibSettings {
   totalLibraries Int
   updatedAt DateTime @updatedAt
 }
+
+model Poll {
+  id String @id @default(cuid())
+  questionId String
+  rating Int @default(0)
+  createdAt DateTime @default(now())
+}
