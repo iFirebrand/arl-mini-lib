@@ -110,6 +110,47 @@ export async function getLibraryData(libraryId: string) {
   }
 }
 
+// Function to get library description.
+export async function getLibraryDescription(libraryId: string) {
+  try {
+    const library = await prisma.library.findFirst({
+      where: {
+        id: libraryId,
+      },
+      select: {
+        description: true,
+      },
+    });
+
+    return library
+      ? {
+          description: library.description,
+        }
+      : "not found";
+  } catch (error) {
+    console.error("Error getting library description:", error);
+    throw new Error("Error getting library description");
+  }
+}
+
+// Function to get the number of libraries with a description
+export async function getLibrariesWithDescriptionCount(): Promise<number> {
+  try {
+    const libraries = await prisma.library.findMany({
+      where: {
+        description: {
+          not: null,
+        },
+      },
+    });
+
+    return libraries.length;
+  } catch (error) {
+    console.error("Error getting libraries with description count:", error);
+    throw new Error("Error getting libraries with description count");
+  }
+}
+
 // Function to get items (books) by library ID with pagination
 export async function getItemsByLibraryId(
   libraryId: string,
@@ -320,5 +361,31 @@ export async function recordVote(questionId: string, rating: number) {
   } catch (error) {
     console.error("Error recording vote:", error);
     throw new Error(`Failed to record vote: ${error}`);
+  }
+}
+
+export async function getManyLibraryDescriptions() {
+  try {
+    const libraries = await prisma.library.findMany({
+      where: {
+        description: { not: null }, // Only include libraries with a non-null description
+      },
+      select: {
+        id: true,
+        description: true,
+        locationName: true,
+        imageUrl: true,
+      },
+    });
+
+    return libraries.map(library => ({
+      libraryId: library.id,
+      description: library.description,
+      locationName: library.locationName,
+      imageUrl: library.imageUrl,
+    }));
+  } catch (error) {
+    console.error("Error getting library descriptions:", error);
+    throw new Error("Error getting library descriptions");
   }
 }

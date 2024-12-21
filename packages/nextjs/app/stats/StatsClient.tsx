@@ -3,6 +3,7 @@
 import React from "react";
 import { useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { BlockieAvatar } from "../../components/scaffold-eth/BlockieAvatar";
 
 // import { getLibraryData } from "../../actions/actions";
@@ -25,6 +26,7 @@ interface StatsClientProps {
     walletAddress: string | null;
     points: number;
   }[];
+  librariesWithDescriptionCount: number;
 }
 
 export default function StatsClient({
@@ -34,6 +36,7 @@ export default function StatsClient({
   totalUsers,
   topUsers,
   newLibrariesCount,
+  librariesWithDescriptionCount,
 }: StatsClientProps) {
   useEffect(() => {
     // Get URL parameters on the client side
@@ -77,6 +80,11 @@ export default function StatsClient({
             <div className="stat-value text-center">{totalLibraries}</div>
             <div className="stat-desc">on ARLib.me</div>
           </div>
+          <Link href="/stats/personality" className="stat">
+            <div className="stat-title">Libs with Character</div>
+            <div className="stat-value text-center">{librariesWithDescriptionCount}</div>
+            <div className="stat-desc">Catalog gives personality</div>
+          </Link>
 
           <div className="stat">
             <div className="stat-title">Users With Wallets</div>

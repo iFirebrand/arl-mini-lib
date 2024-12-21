@@ -4,6 +4,7 @@ import { totalLibraryCount } from "../../actions/actions";
 import { totalUserCount } from "../../actions/actions";
 import { getTopUsers } from "../../actions/actions";
 import { getNewLibrariesCount } from "../../actions/actions";
+import { getLibrariesWithDescriptionCount } from "../../actions/actions";
 import StatsClient from "./StatsClient";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +16,7 @@ export default async function StatsPage() {
   const totalUsers = await totalUserCount();
   const topUsers = await getTopUsers();
   const newLibrariesCount = await getNewLibrariesCount();
+  const librariesWithDescriptionCount = await getLibrariesWithDescriptionCount();
   return (
     <div>
       <StatsClient
@@ -24,6 +26,7 @@ export default async function StatsPage() {
         totalUsers={totalUsers}
         topUsers={topUsers}
         newLibrariesCount={newLibrariesCount}
+        librariesWithDescriptionCount={librariesWithDescriptionCount}
       />
     </div>
   );
