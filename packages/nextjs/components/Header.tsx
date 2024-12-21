@@ -11,6 +11,7 @@ import {
   Bars3Icon,
   ChartBarIcon,
   ExclamationTriangleIcon,
+  FireIcon,
   InformationCircleIcon,
   MapIcon,
   StarIcon,
@@ -50,6 +51,11 @@ export const menuLinks: HeaderMenuLink[] = [
     label: "Stats",
     href: "/stats",
     icon: <ChartBarIcon className="h-4 w-4" />,
+  },
+  {
+    label: "Personality",
+    href: "/stats/personality",
+    icon: <FireIcon className="h-4 w-4" />,
   },
   {
     label: "",

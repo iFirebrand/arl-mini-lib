@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import type { NextPage } from "next";
-import { InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
+import { FireIcon, InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
 import { recordVote } from "~~/actions/actions";
 import { handleGeoLocation } from "~~/components/maps/handleGeoLocation";
 import { useLocalStorage } from "~~/hooks/useLocalStorage";
@@ -89,6 +89,14 @@ const Home: NextPage = () => {
                 Browse Libs
               </a>
               <p className="mt-2">This list is updated in real-time as people add libraries</p>
+            </div>
+            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
+              <FireIcon className="h-8 w-8 fill-secondary" />
+              <p className="mb-2">Libraries with character</p>
+              <a href="/stats/personality" className="btn btn-accent mt-4">
+                Browse Libs
+              </a>
+              <p className="mt-2">A couple of books gets you a personality</p>
             </div>
 
             <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
