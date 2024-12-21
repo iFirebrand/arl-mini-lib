@@ -174,7 +174,7 @@ export const Header = () => {
             <Image alt="logo" className="cursor-pointer" fill src="/logo.svg" />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold leading-tight">ARLib.me (alpha)</span>
+            <span className="font-bold leading-tight">ArLib.me (alpha)</span>
             <span className="text-xs">Arlington Mini Libraries</span>
           </div>
         </Link>

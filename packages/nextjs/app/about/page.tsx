@@ -4,13 +4,13 @@ function AboutPage() {
   return (
     <div className="container mx-auto px-4 max-w-4xl py-8">
       <h1 className="text-center mb-8">
-        <span className="block text-4xl font-bold">About ARLib.me</span>
+        <span className="block text-4xl font-bold">About ArLib.me</span>
       </h1>
       <div className="flex flex-col gap-8">
         <div id="intro" className="card bg-base-300 rounded-box p-6">
           <p className="text-lg">
-            ARLib.me is a public goods community project to map and catalog mini libraries by Jan. 31, 2025. Mini
-            libraries are more than book collections—they&apos;re neighborhood gems of creativity and connection. ARLib
+            ArLib.me is a public goods community project to map and catalog mini libraries by Jan. 31, 2025. Mini
+            libraries are more than book collections—they&apos;re neighborhood gems of creativity and connection. ArLib
             puts these spaces on the map and in your pocket, making it easy to explore, share, and discover books
             nearby. Each cataloged book links to its openlibrary.org page, helping you decide your next great read
             effortlessly!

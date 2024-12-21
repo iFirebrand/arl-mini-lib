@@ -78,7 +78,7 @@ export default function StatsClient({
           <div className="stat">
             <div className="stat-title">Total Libraries</div>
             <div className="stat-value text-center">{totalLibraries}</div>
-            <div className="stat-desc">on ARLib.me</div>
+            <div className="stat-desc">on ArLib.me</div>
           </div>
           <Link href="/stats/personality" className="stat">
             <div className="stat-title">Libs with Character</div>

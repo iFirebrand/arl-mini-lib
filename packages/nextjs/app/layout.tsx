@@ -8,7 +8,7 @@ import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = {
   ...getMetadata({
-    title: "ARLib.me",
+    title: "ArLib.me",
     description: "Arlington Mini Library App",
   }),
   icons: {
