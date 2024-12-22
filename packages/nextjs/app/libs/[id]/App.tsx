@@ -9,7 +9,7 @@ interface VideoDevice {
 }
 
 interface ScannerProps {
-  onScan: (isbn: string) => void;
+  onScan: (isbn: string) => Promise<void>;
   isLoading: boolean;
 }
 
