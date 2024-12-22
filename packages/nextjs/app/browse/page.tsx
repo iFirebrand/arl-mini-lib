@@ -15,7 +15,7 @@ async function fetchLibraries() {
         },
       },
     },
-    orderBy: { createdAt: "asc" },
+    orderBy: { createdAt: "desc" },
     select: { id: true, locationName: true, latitude: true, longitude: true },
   });
 
