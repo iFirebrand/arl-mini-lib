@@ -9,10 +9,11 @@ interface VideoDevice {
 }
 
 interface ScannerProps {
-  onScan: (isbn: string) => Promise<void>;
+  onScan: (isbn: string) => void;
+  isLoading: boolean;
 }
 
-const Scanner: React.FC<ScannerProps> = ({ onScan }) => {
+const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading }) => {
   const [videoDevices, setVideoDevices] = useState<VideoDevice[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);

@@ -51,6 +51,8 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
   const [isExploding, setIsExploding] = useState(false);
   const targetRef = useRef(null);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const config = {
     angle: 90, // Explodes straight upwards
     spread: 120, // Wider spread to resemble blooming petals
@@ -151,9 +153,10 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
   }, [library, isbn13s]);
 
   const handleScan = async (isbn: string) => {
-    if (isProcessing) return;
+    if (isProcessing || isLoading) return;
 
     setIsProcessing(true);
+    setIsLoading(true);
 
     // Reset state variables
     setNewBookPoints(0);
@@ -217,6 +220,7 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
       toast.error("Error processing book");
     } finally {
       setIsProcessing(false);
+      setIsLoading(false);
     }
   };
 
@@ -227,7 +231,7 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
       <h1 className="text-2xl font-semibold">Scan to catalog at {library.locationName} library</h1>
       {isAtLibrary ? (
         <div>
-          <Scan onScan={handleScan} />
+          <Scan onScan={handleScan} isLoading={isLoading} />
           <div ref={targetRef} className="flex flex-col items-center gap-y-5 pt-24 text-center px-[5%]">
             <h1 className="text-2xl font-semibold">Scanned Books: {scannedBooks.length} </h1>
             <div>
