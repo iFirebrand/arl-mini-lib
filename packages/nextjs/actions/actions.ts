@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+// import { revalidatePath } from "next/cache";
 import prisma from "../lib/db";
 import { Prisma } from "@prisma/client";
 
@@ -8,15 +8,19 @@ import { Prisma } from "@prisma/client";
 
 export async function createLibrary(formData: FormData) {
   try {
-    await prisma.library.create({
+    const library = await prisma.library.create({
       data: {
         locationName: formData.get("locationName") as string,
         longitude: parseFloat(formData.get("longitude") as string),
         latitude: parseFloat(formData.get("latitude") as string),
         imageUrl: formData.get("imageUrl") as string,
       },
+      select: {
+        id: true,
+      },
     });
-    revalidatePath("/libs");
+    // revalidatePath("/libs");
+    return { id: library.id };
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2002") {
@@ -24,6 +28,7 @@ export async function createLibrary(formData: FormData) {
       }
     }
     console.error(error);
+    return { error: "Failed to create library" };
   }
 }
 

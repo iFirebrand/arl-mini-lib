@@ -43,7 +43,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading }) => {
 
   const handleResult = useCallback(
     (result: Result | null): void => {
-      if (!result || isProcessing) return;
+      if (!result || isProcessing || isLoading) return;
 
       const now = Date.now();
       if (now - lastScanTime > SCAN_DELAY) {
@@ -64,7 +64,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading }) => {
         });
       }
     },
-    [onScan, lastScanTime, isProcessing],
+    [onScan, lastScanTime, isProcessing, isLoading],
   );
 
   useEffect(() => {

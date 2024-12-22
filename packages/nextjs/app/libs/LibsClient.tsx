@@ -90,11 +90,13 @@ export default function LibsClient() {
     }
 
     try {
-      await createLibrary(formData);
+      const newLibrary = await createLibrary(formData);
       handlePoints(address, 50, "CREATE_LIBRARY", addPoints, setBankedPointsTotal);
 
-      window.location.reload();
-      // handleConfettiAction();
+      if (newLibrary.id) {
+        // handleConfettiAction();
+        window.location.href = `/profile?libraryId=${newLibrary.id}`;
+      }
     } catch (error) {
       console.error("Error creating library:", error);
       alert("Failed to create library. Please try again.");
