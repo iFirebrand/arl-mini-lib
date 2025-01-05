@@ -17,7 +17,7 @@ interface Library {
 }
 
 const LibraryItem: React.FC<{ library: Library }> = ({ library }) => (
-  <div key={library.id} className="flex flex-col lg:flex-row items-center">
+  <div key={library.id} className="flex flex-col items-start mb-6">
     <Image
       src={
         library.imageUrl ||
@@ -26,9 +26,9 @@ const LibraryItem: React.FC<{ library: Library }> = ({ library }) => (
       alt={`${library.locationName} library image`}
       width={384}
       height={384}
-      className="max-w-sm rounded-lg shadow-2xl lg:mr-6"
+      className="max-w-sm rounded-lg shadow-2xl mb-4"
     />
-    <div className="text-center lg:text-left">
+    <div className="text-left h-40">
       <h1 className="text-5xl font-bold">{library.locationName}</h1>
       <p className="py-6">
         {library.description ||
