@@ -53,7 +53,7 @@ export default function BrowseClient({ libraries: libraries, librariesCount: lib
                                 : library.locationName}
                             </a>
                           </div>
-                          <div className="text-sm opacity-50">experimental</div>
+                          <div className="text-sm opacity-50"> </div>
                         </div>
                       </div>
                     </td>

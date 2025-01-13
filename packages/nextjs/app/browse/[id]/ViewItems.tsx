@@ -56,15 +56,15 @@ export default function ViewItems({ libraryId, libraryData }: ViewItemsProps) {
                     <div className="avatar">
                       <div className="h-20 w-16">
                         <Image
-                          src={item.coverUrl}
+                          src={
+                            item.coverUrl && item.coverUrl !== "https://covers.openlibrary.org/b/id/-1-M.jpg"
+                              ? item.coverUrl
+                              : "https://dtmqxpohipopgolmirik.supabase.co/storage/v1/object/public/altbucket/ARLib.png"
+                          }
                           alt={item.title}
                           width={80}
                           height={120}
                           className="object-cover"
-                          onError={e => {
-                            e.currentTarget.src =
-                              "https://dtmqxpohipopgolmirik.supabase.co/storage/v1/object/public/altbucket/ARLib.png";
-                          }}
                         />
                       </div>
                     </div>
