@@ -13,7 +13,14 @@ function AboutPage() {
             libraries are more than book collections—they&apos;re neighborhood gems of creativity and connection. ArLib
             puts these spaces on the map and in your pocket, making it easy to explore, share, and discover books
             nearby. Each cataloged book links to its openlibrary.org page, helping you decide your next great read
-            effortlessly!
+            effortlessly!{" "}
+            <a
+              href="https://www.arlnow.com/2025/01/08/new-arlington-mini-libraries-map-uses-community-help-to-locate-free-books/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Click here to read the article about the project on Arlington Now.
+            </a>
           </p>
         </div>
 
