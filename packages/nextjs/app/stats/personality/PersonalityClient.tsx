@@ -17,18 +17,18 @@ interface Library {
 }
 
 const LibraryItem: React.FC<{ library: Library }> = ({ library }) => (
-  <div key={library.id} className="flex flex-col items-start mb-6">
+  <div className="flex flex-col items-center p-4 w-full">
     <Image
       src={
         library.imageUrl ||
         "https://dtmqxpohipopgolmirik.supabase.co/storage/v1/object/public/library-images/site-images/placeholder-library.jpeg?t=2024-12-15T15%3A45%3A04.162Z"
       }
       alt={`${library.locationName} library image`}
-      width={384}
-      height={384}
-      className="max-w-sm rounded-lg shadow-2xl mb-4"
+      width={288}
+      height={288}
+      className="max-w-[288px] rounded-lg shadow-2xl mb-4"
     />
-    <div className="text-left h-40">
+    <div className="text-left mb-8 w-full">
       <h1 className="text-5xl font-bold">{library.locationName}</h1>
       <p className="py-6">
         {library.description ||
@@ -49,18 +49,19 @@ export default function PersonalityClient({
   return (
     <main>
       <div className="flex items-center flex-col flex-grow pt-10">
-        <div className="text-center">
+        <div className="text-center mb-8">
           <h1 className="text-xl font-semibold text-center">
             Out of {totalLibraries} Libraries {librariesWithDescriptionCount} have a Character 😅
           </h1>
         </div>
 
-        <div className="hero bg-base-200 min-h-screen">
-          <div className="hero-content flex-col lg:flex-row">
-            {libraryDescriptions.map(library => {
-              console.log(library.id);
-              return <LibraryItem key={library.id} library={library} />;
-            })}
+        <div className="w-full bg-base-200 min-h-screen p-4">
+          <div className="container mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {libraryDescriptions.map(library => (
+                <LibraryItem key={library.id} library={library} />
+              ))}
+            </div>
           </div>
         </div>
       </div>
