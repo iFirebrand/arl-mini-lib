@@ -8,6 +8,9 @@ vi.mock("~~/lib/db", async () => ({ default: (await import("../../mocks/prisma")
 const requestHeaders = vi.hoisted(() => ({ current: new Headers({ referer: "https://arlib.me/libs/lib_1" }) }));
 vi.mock("next/headers", () => ({ headers: () => requestHeaders.current }));
 
+const accounts = vi.hoisted(() => ({ getOrCreateAccount: vi.fn(), newBookPoints: vi.fn(), awardPoints: vi.fn() }));
+vi.mock("~~/lib/accounts", () => accounts);
+
 const { POST: saveBook } = await import("~~/app/api/saveBook/route");
 const { GET: openLibrary } = await import("~~/app/api/openlibrary/route");
 
@@ -21,6 +24,9 @@ describe("POST /api/saveBook", () => {
     prismaMock.item.findFirst.mockReset().mockResolvedValue(null);
     prismaMock.item.create.mockReset().mockImplementation(async ({ data }) => ({ id: "item_1", ...data }));
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(openLibraryResponse)));
+    accounts.getOrCreateAccount.mockReset().mockResolvedValue({ id: "acc_1" });
+    accounts.newBookPoints.mockReset().mockResolvedValue({ points: 5, newBooksThisVisit: 1 });
+    accounts.awardPoints.mockReset().mockResolvedValue({ pointsAwarded: 5, total: 45 });
   });
 
   const post = (body: unknown, ip = `10.4.0.${++ipCounter}`) =>
@@ -42,6 +48,28 @@ describe("POST /api/saveBook", () => {
     });
   });
 
+  it("awards the server's points for a new book and reports them", async () => {
+    const res = await post({ isbn: "9780063345164", libraryId: "lib_1" });
+
+    expect((await res.json()).award).toEqual({ pointsAwarded: 5, total: 45, newBooksThisVisit: 1 });
+    expect(accounts.newBookPoints).toHaveBeenCalledWith("acc_1", "lib_1");
+    expect(accounts.awardPoints).toHaveBeenCalledWith("acc_1", "ADD_BOOK", 5, { libraryId: "lib_1", itemId: "item_1" });
+  });
+
+  it("ignores any points the browser claims", async () => {
+    await post({ isbn: "9780063345164", libraryId: "lib_1", points: 1_000_000, pointActions: [{ points: 999 }] });
+    expect(accounts.awardPoints.mock.calls[0][2]).toBe(5);
+  });
+
+  it("saves the book without points when this connection can't get a new account", async () => {
+    accounts.getOrCreateAccount.mockResolvedValue(null);
+    const res = await post({ isbn: "9780063345164", libraryId: "lib_1" });
+
+    expect(res.status).toBe(201);
+    expect((await res.json()).award).toBeNull();
+    expect(accounts.awardPoints).not.toHaveBeenCalled();
+  });
+
   it("ignores book details sent by the browser", async () => {
     await post({
       ...bookInfo,
@@ -61,8 +89,9 @@ describe("POST /api/saveBook", () => {
     const res = await post({ isbn: "9780063345164", libraryId: "lib_1" });
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({ id: "item_old" });
+    expect(await res.json()).toMatchObject({ id: "item_old", award: null });
     expect(prismaMock.item.create).not.toHaveBeenCalled();
+    expect(accounts.awardPoints).not.toHaveBeenCalled();
   });
 
   it.each([

@@ -1,6 +1,8 @@
 "use server";
 
 // import { revalidatePath } from "next/cache";
+import { getBookRecencyBonus } from "../app/libs/[id]/scoring";
+import { CREATE_LIBRARY_POINTS, awardPoints, getOrCreateAccount } from "../lib/accounts";
 import prisma from "../lib/db";
 import { normalizeIsbn } from "../lib/openLibrary";
 import { rateLimit } from "../lib/rate-limit";
@@ -28,7 +30,8 @@ const toCoordinate = (value: FormDataEntryValue | null, limit: number) => {
 };
 
 export async function createLibrary(formData: FormData) {
-  if (!createLibraryLimiter.check(getActionClientIp()).success) {
+  const clientIp = getActionClientIp();
+  if (!createLibraryLimiter.check(clientIp).success) {
     return { error: "Too many new libraries from this connection. Try again later." };
   }
 
@@ -59,7 +62,11 @@ export async function createLibrary(formData: FormData) {
       },
     });
     // revalidatePath("/libs");
-    return { id: library.id };
+    const account = await getOrCreateAccount(clientIp);
+    const award = account
+      ? await awardPoints(account.id, "CREATE_LIBRARY", CREATE_LIBRARY_POINTS, { libraryId: library.id })
+      : { pointsAwarded: 0, total: 0 };
+    return { id: library.id, ...award };
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2002") {
@@ -252,21 +259,43 @@ export async function getISBN13ByLibraryId(libraryId: string): Promise<{ updated
   }
 }
 
-// Records that someone just saw this book in the library, which resets its recency bonus.
-// Returns false when the library has no copy of the book.
-export async function confirmBookInLibrary(libraryId: string, isbn13: string): Promise<boolean> {
+// Records that someone just saw this book in the library and awards the recency bonus: the longer
+// nobody confirmed it, the bigger the bonus. Confirming resets the clock.
+export async function confirmBookInLibrary(
+  libraryId: string,
+  isbn13: string,
+): Promise<{ confirmed: boolean; pointsAwarded: number; total?: number }> {
   const isbn = normalizeIsbn(isbn13);
-  if (!isbn || typeof libraryId !== "string" || !libraryId) return false;
-  if (!confirmBookLimiter.check(getActionClientIp()).success) return false;
+  const clientIp = getActionClientIp();
+  if (!isbn || typeof libraryId !== "string" || !libraryId) return { confirmed: false, pointsAwarded: 0 };
+  if (!confirmBookLimiter.check(clientIp).success) return { confirmed: false, pointsAwarded: 0 };
   try {
-    const { count } = await prisma.item.updateMany({
+    const latest = await prisma.item.findFirst({
       where: { libraryId, isbn13: isbn },
+      orderBy: { updatedAt: "desc" },
+      select: { id: true, updatedAt: true },
+    });
+    if (!latest) return { confirmed: false, pointsAwarded: 0 };
+
+    const bonus = getBookRecencyBonus(latest.updatedAt);
+    if (bonus === 0) return { confirmed: true, pointsAwarded: 0 };
+
+    // Only the request that still sees the old time wins the bonus, so two scans can't both earn it.
+    const { count } = await prisma.item.updateMany({
+      where: { libraryId, isbn13: isbn, updatedAt: { lte: latest.updatedAt } },
       data: { updatedAt: new Date() },
     });
-    return count > 0;
+    if (count === 0) return { confirmed: true, pointsAwarded: 0 };
+
+    const account = await getOrCreateAccount(clientIp);
+    if (!account) return { confirmed: true, pointsAwarded: 0 };
+    return {
+      confirmed: true,
+      ...(await awardPoints(account.id, "CONFIRM_BOOK", bonus, { libraryId, itemId: latest.id })),
+    };
   } catch (error) {
     console.error("Error confirming book:", error);
-    return false;
+    return { confirmed: false, pointsAwarded: 0 };
   }
 }
 
@@ -330,7 +359,7 @@ export async function totalLibraryCount() {
 
 export async function totalUserCount() {
   try {
-    const totalUsers = await prisma.user.count();
+    const totalUsers = await prisma.account.count({ where: { points: { gt: 0 } } });
     return totalUsers;
   } catch (error) {
     console.error("Error getting total user count:", error);
@@ -372,26 +401,15 @@ export async function getLast50Books(): Promise<
   }
 }
 
-// Function to get the top 10 users with the most points
-export async function getTopUsers(): Promise<{ id: string; walletAddress: string | null; points: number }[]> {
+// The 10 accounts with the most points, by pseudonym.
+export async function getTopUsers(): Promise<{ id: string; displayName: string; points: number }[]> {
   try {
-    const topUsers = await prisma.user.findMany({
-      orderBy: {
-        points: "desc", // Sort by points in descending order
-      },
-      take: 10, // Limit to top 10 users
-      select: {
-        id: true,
-        walletAddress: true,
-        points: true,
-      },
+    return await prisma.account.findMany({
+      where: { points: { gt: 0 } },
+      orderBy: { points: "desc" },
+      take: 10,
+      select: { id: true, displayName: true, points: true },
     });
-
-    return topUsers.map(user => ({
-      id: user.id,
-      walletAddress: user.walletAddress,
-      points: user.points,
-    }));
   } catch (error) {
     console.error("Error fetching top users:", error);
     throw new Error("Failed to fetch top users");

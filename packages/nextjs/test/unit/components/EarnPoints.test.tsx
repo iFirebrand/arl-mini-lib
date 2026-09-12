@@ -3,61 +3,38 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { EarnPoints } from "~~/app/libs/[id]/EarnPoints";
 
-const base = {
-  failedAttempts: 0,
-  failedAttemptsBonusThreshold: 10,
-  bookRecencyBonus: 0,
-  newBookPoints: 0,
-  booksScanned: 0,
-  level1MultiplierCount: 0,
-  level1MultiplierThreshold: 3,
-};
+const base = { lastAward: null, pointsThisVisit: 0, newBooksThisVisit: 0, multiplierAfter: 3 };
 
 describe("EarnPoints", () => {
-  it("shows the empty session state before any scans", () => {
+  it("starts at zero before any scans", () => {
     render(<EarnPoints {...base} />);
-    expect(screen.getByText("Points This Session")).toBeInTheDocument();
-    expect(screen.getByText("Points & Bonuses appear here")).toBeInTheDocument();
+    expect(screen.getByText("Points This Session").nextSibling).toHaveTextContent("0");
+    expect(screen.getByText("0%")).toBeInTheDocument();
   });
 
-  it("shows new book points", () => {
-    render(<EarnPoints {...base} booksScanned={1} newBookPoints={5} level1MultiplierCount={1} />);
-    expect(screen.queryByText("Points This Session")).not.toBeInTheDocument();
-    expect(screen.getByText("New Book Points").nextSibling).toHaveTextContent("5");
-  });
-
-  it("doubles displayed new book points only once the level 1 multiplier is passed, matching the award", () => {
-    const { rerender } = render(<EarnPoints {...base} booksScanned={3} newBookPoints={5} level1MultiplierCount={3} />);
-    expect(screen.getByText("New Book Points").nextSibling).toHaveTextContent("5");
-
-    rerender(<EarnPoints {...base} booksScanned={4} newBookPoints={5} level1MultiplierCount={4} />);
+  it("shows the points the server awarded for a new book", () => {
+    render(<EarnPoints {...base} lastAward={{ kind: "new", points: 10 }} pointsThisVisit={25} newBooksThisVisit={4} />);
     expect(screen.getByText("New Book Points").nextSibling).toHaveTextContent("10");
+    expect(screen.getByText("Points This Session").nextSibling).toHaveTextContent("25");
   });
 
-  it("shows multiplier progress until the threshold is passed", () => {
-    const { rerender } = render(<EarnPoints {...base} level1MultiplierCount={2} />);
-    expect(screen.getByText("Level 1 Multiplier")).toBeInTheDocument();
+  it("shows the recency bonus the server awarded", () => {
+    render(<EarnPoints {...base} lastAward={{ kind: "recency", points: 3 }} pointsThisVisit={3} />);
+    expect(screen.getByText("Book Recency Bonus").nextSibling).toHaveTextContent("3");
+    expect(screen.queryByText("New Book Points")).not.toBeInTheDocument();
+  });
+
+  it("hides awards of zero points", () => {
+    render(<EarnPoints {...base} lastAward={{ kind: "recency", points: 0 }} />);
+    expect(screen.queryByText("Book Recency Bonus")).not.toBeInTheDocument();
+  });
+
+  it("fills the multiplier, then announces double points", () => {
+    const { rerender } = render(<EarnPoints {...base} newBooksThisVisit={2} />);
     expect(screen.getByText("66%")).toBeInTheDocument();
 
-    rerender(<EarnPoints {...base} level1MultiplierCount={4} />);
+    rerender(<EarnPoints {...base} newBooksThisVisit={3} />);
+    expect(screen.getByText("Double points for new books")).toBeInTheDocument();
     expect(screen.queryByText("Level 1 Multiplier")).not.toBeInTheDocument();
-  });
-
-  it("shows persistence progress and the bonus at 10 failed attempts", () => {
-    const { rerender } = render(<EarnPoints {...base} failedAttempts={4} />);
-    expect(screen.getByText("40%")).toBeInTheDocument();
-    expect(screen.queryByText("Persistency Bonus")).not.toBeInTheDocument();
-
-    rerender(<EarnPoints {...base} failedAttempts={10} />);
-    expect(screen.getByText("Persistency Bonus")).toBeInTheDocument();
-
-    rerender(<EarnPoints {...base} failedAttempts={13} />);
-    expect(screen.getByText("Persistency Bonus")).toBeInTheDocument();
-    expect(screen.getByText("100%")).toBeInTheDocument();
-  });
-
-  it("shows the book recency bonus", () => {
-    render(<EarnPoints {...base} bookRecencyBonus={3} />);
-    expect(screen.getByText("Book Recency Bonus").nextSibling).toHaveTextContent("3");
   });
 });

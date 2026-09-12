@@ -3,7 +3,10 @@ import { appPrisma, createTestLibrary, resetDatabase, testPrisma } from "./db";
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("~~/lib/db", async () => ({ default: (await import("./db")).appPrisma }));
-vi.mock("next/headers", () => ({ headers: () => new Headers({ referer: "http://localhost:3000/libs/abc" }) }));
+vi.mock("next/headers", async () => {
+  const jar = (await import("../mocks/cookies")).createCookieJar();
+  return { headers: () => new Headers({ referer: "http://localhost:3000/libs/abc" }), cookies: () => jar };
+});
 
 const actions = await import("~~/actions/actions");
 const { POST: saveBook } = await import("~~/app/api/saveBook/route");
@@ -40,7 +43,7 @@ describe("adding a library", () => {
         imageUrl: OWN_IMAGE,
       }),
     );
-    expect(created).toEqual({ id: expect.any(String) });
+    expect(created).toMatchObject({ id: expect.any(String) });
     const id = (created as { id: string }).id;
 
     // ~33 m away: inside the ±0.00036° lookup box.
@@ -119,14 +122,14 @@ describe("cataloging books", () => {
       ],
     });
 
-    expect(await actions.confirmBookInLibrary(library.id, bookInfo.isbn13)).toBe(true);
+    expect(await actions.confirmBookInLibrary(library.id, bookInfo.isbn13)).toMatchObject({ confirmed: true });
 
     const [confirmed] = await actions.getISBN13ByLibraryId(library.id);
     expect(Date.now() - confirmed.updatedAt.getTime()).toBeLessThan(60_000);
     const [untouched] = await actions.getISBN13ByLibraryId(other.id);
     expect(untouched.updatedAt).toEqual(stale);
 
-    expect(await actions.confirmBookInLibrary(library.id, "0000000000000")).toBe(false);
+    expect(await actions.confirmBookInLibrary(library.id, "0000000000000")).toMatchObject({ confirmed: false });
   });
 
   it("stores OpenLibrary's details, not the ones a caller sends", async () => {

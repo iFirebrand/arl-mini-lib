@@ -66,7 +66,6 @@ function AboutPage() {
             <li>
               Point <strong>multipliers</strong> kick in after a <strong>streak</strong> of scans.
             </li>
-            <li>Accumulated failed scans earn points for persistence.</li>
           </ol>
         </div>
 
@@ -109,12 +108,13 @@ function AboutPage() {
           </h3>
 
           <p className="text-lg mt-4">
-            Claiming points requires setting up a passcode-protected account. For simplicity, we use a Coinbase smart
-            wallet. No personal data is collected or stored by the site. Your passcode is stored only on your device and
-            secured by Face ID, Touch ID, or your password manager. The site only stores the public wallet address
-            associated with your account—no email, name, or other PII is required. This ensures your account remains
-            pseudonymous. Leaderboards are pseudonymous and designed for fun. Your public account address and points are
-            visible to everyone. If rewards are introduced in the future, points will determine eligibility.
+            You start earning points the moment you add a library or a book—no sign-up. Your points belong to an
+            anonymous account with a random name like &ldquo;Reader K7Q2M&rdquo;. To keep them if you clear your browser
+            or switch devices, tap <strong>Save with passkey</strong>: your phone or password manager creates a passkey,
+            secured by Face ID, Touch ID or your device PIN, and you can sign in with it anywhere. The site stores no
+            email, name or password—only your random name, your points and the passkey&apos;s public key. Leaderboards
+            show random names only. If rewards are introduced in the future, points will determine eligibility, and you
+            will be able to link a wallet to your account then.
           </p>
         </div>
         <div id="epilogue" className="card bg-base-300 rounded-box p-6">

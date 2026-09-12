@@ -81,6 +81,19 @@ describe("saveBookToDatabase", () => {
     });
   });
 
+  it("returns the points the server awarded", async () => {
+    const award = { pointsAwarded: 5, total: 45, newBooksThisVisit: 1 };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse({ id: "item_1", award }, 201)));
+
+    expect(await saveBookToDatabase(bookInfo)).toEqual(award);
+  });
+
+  it("returns null when no points were awarded", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse({ id: "item_1", award: null }, 200)));
+
+    expect(await saveBookToDatabase(bookInfo)).toBeNull();
+  });
+
   it("throws when the API responds with an error status", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse({ error: "Failed to save book" }, 500)));
 
