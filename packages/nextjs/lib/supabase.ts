@@ -1,6 +1,6 @@
 import { SupabaseClient, createClient } from "@supabase/supabase-js";
+import { randomUUID } from "node:crypto";
 import "server-only";
-import { v4 as uuidv4 } from "uuid";
 
 // Server-only. SUPABASE_SECRET_KEY bypasses all security rules, so it must never get a
 // NEXT_PUBLIC_ prefix or be imported from browser code (the "server-only" import enforces that).
@@ -55,7 +55,7 @@ async function uploadToSupabase(file: File): Promise<string> {
 
   // Create unique filename with sanitized original filename
   const sanitizedFileName = file.name.replace(/[^A-Za-z0-9._-]+/g, "_").slice(-100);
-  const uniqueFileName = `${uuidv4()}-${sanitizedFileName}`;
+  const uniqueFileName = `${randomUUID()}-${sanitizedFileName}`;
 
   // Upload file
   const { data, error } = await getSupabase().storage.from("library-images").upload(`uploads/${uniqueFileName}`, file, {
