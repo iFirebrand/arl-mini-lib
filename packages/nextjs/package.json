@@ -22,8 +22,6 @@
     "vercel:yolo": "vercel --build-env NEXT_PUBLIC_IGNORE_BUILD_ERROR=true"
   },
   "dependencies": {
-    "@ericblade/quagga2": "^1.8.4",
-    "@fastify/csrf-protection": "^7.0.1",
     "@heroicons/react": "~2.1.5",
     "@prisma/client": "6.0.1",
     "@rainbow-me/rainbowkit": "2.1.6",
@@ -37,6 +35,7 @@
     "burner-connector": "~0.0.8",
     "canvas-confetti": "^1.9.3",
     "daisyui": "4.12.10",
+    "leaflet": "^1.9.4",
     "lru-cache": "^11.0.2",
     "next": "~14.2.11",
     "next-nprogress-bar": "~2.3.13",
@@ -48,6 +47,7 @@
     "react-dom": "~18.3.1",
     "react-dom-confetti": "^0.2.0",
     "react-hot-toast": "~2.4.0",
+    "react-leaflet": "^4.2.1",
     "server-only": "^0.0.1",
     "usehooks-ts": "~3.1.0",
     "uuid": "^11.0.3",
@@ -63,6 +63,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@trivago/prettier-plugin-sort-imports": "~4.3.0",
     "@types/canvas-confetti": "^1",
+    "@types/leaflet": "^1",
     "@types/lodash.debounce": "^4.0.9",
     "@types/node": "~18.19.50",
     "@types/react": "~18.3.5",
@@ -81,7 +82,6 @@
     "tailwindcss": "~3.4.11",
     "type-fest": "~4.26.1",
     "typescript": "<5.6.0",
-    "vercel": "~37.4.2",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4"
   }

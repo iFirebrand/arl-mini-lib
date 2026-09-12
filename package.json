@@ -8,19 +8,6 @@
     ]
   },
   "scripts": {
-    "account": "yarn workspace @se-2/hardhat account",
-    "chain": "yarn workspace @se-2/hardhat chain",
-    "compile": "yarn workspace @se-2/hardhat compile",
-    "deploy": "yarn workspace @se-2/hardhat deploy",
-    "flatten": "yarn workspace @se-2/hardhat flatten",
-    "fork": "yarn workspace @se-2/hardhat fork",
-    "format": "yarn next:format && yarn hardhat:format",
-    "generate": "yarn workspace @se-2/hardhat generate",
-    "hardhat-verify": "yarn workspace @se-2/hardhat hardhat-verify",
-    "hardhat:format": "yarn workspace @se-2/hardhat format",
-    "hardhat:lint": "yarn workspace @se-2/hardhat lint",
-    "hardhat:lint-staged": "yarn workspace @se-2/hardhat lint-staged",
-    "hardhat:test": "yarn workspace @se-2/hardhat test",
     "postinstall": "husky install",
     "next:build": "yarn workspace @se-2/nextjs build",
     "next:check-types": "yarn workspace @se-2/nextjs check-types",
@@ -32,26 +19,17 @@
     "next:test:e2e": "yarn workspace @se-2/nextjs test:e2e",
     "precommit": "lint-staged",
     "start": "yarn workspace @se-2/nextjs dev",
-    "test": "yarn hardhat:test",
     "vercel": "yarn workspace @se-2/nextjs vercel",
     "vercel:yolo": "yarn workspace @se-2/nextjs vercel:yolo",
-    "verify": "yarn workspace @se-2/hardhat verify"
+    "format": "yarn next:format",
+    "test": "yarn next:test"
   },
   "devDependencies": {
-    "@types/leaflet": "^1",
     "husky": "~8.0.3",
-    "lint-staged": "~13.2.2",
-    "prisma": "^6.0.1"
+    "lint-staged": "~13.2.2"
   },
-  "packageManager": "yarn@3.2.3",
+  "packageManager": "yarn@4.18.0",
   "engines": {
     "node": ">=18.18.0"
-  },
-  "dependencies": {
-    "@prisma/client": "6.0.1",
-    "leaflet": "^1.9.4",
-    "node-fetch": "^3.3.2",
-    "react-leaflet": "^4.2.1",
-    "react-qr-barcode-scanner": "^2.0.0"
   }
 }
