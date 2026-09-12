@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   handlePoints: vi.fn(),
   fetchBookData: vi.fn(),
   saveBookToDatabase: vi.fn(),
+  confirmBookInLibrary: vi.fn(),
   onScan: undefined as undefined | ((isbn: string) => Promise<void>),
   toast: Object.assign(vi.fn(), { error: vi.fn(), success: vi.fn() }),
 }));
@@ -23,6 +24,7 @@ vi.mock("~~/app/contexts/BankedPointsContext", () => ({
 vi.mock("~~/app/utils/points/handlePoints", () => ({ handlePoints: mocks.handlePoints }));
 vi.mock("~~/app/libs/[id]/fetchBookData", () => ({ fetchBookData: mocks.fetchBookData }));
 vi.mock("~~/app/libs/[id]/saveBookToDatabase", () => ({ saveBookToDatabase: mocks.saveBookToDatabase }));
+vi.mock("~~/actions/actions", () => ({ confirmBookInLibrary: mocks.confirmBookInLibrary }));
 vi.mock("react-hot-toast", () => ({ toast: mocks.toast }));
 vi.mock("react-dom-confetti", () => ({ default: () => null }));
 // The real scanner needs a camera; capture its onScan callback instead.
@@ -70,6 +72,7 @@ describe("LibraryClient", () => {
     mocks.onScan = undefined;
     mocks.fetchBookData.mockReset();
     mocks.saveBookToDatabase.mockReset().mockResolvedValue(undefined);
+    mocks.confirmBookInLibrary.mockReset().mockResolvedValue(true);
     mocks.fetchBookData.mockImplementation(async (isbn: string) => book(isbn));
   });
 
@@ -148,12 +151,24 @@ describe("LibraryClient", () => {
     expect(mocks.toast).toHaveBeenCalledWith("No more updates needed for this book.", { icon: "ℹ️" });
   });
 
-  it("does not save a book the library already has", async () => {
+  it("confirms a book the library already has instead of saving a duplicate", async () => {
     await renderAtLibrary([{ isbn13: "9780063345164", updatedAt: new Date(Date.now() - 10 * DAY) }]);
 
     await scan("9780063345164");
 
     expect(mocks.saveBookToDatabase).not.toHaveBeenCalled();
+    expect(mocks.confirmBookInLibrary).toHaveBeenCalledWith("lib_1", "9780063345164");
+    expect(mocks.toast.success).toHaveBeenCalledWith("Thanks for confirming this book is still here!");
+    expect(screen.getByText(/Scanned Books: 1/)).toBeInTheDocument();
+  });
+
+  it("does nothing for a book someone confirmed within the last day", async () => {
+    await renderAtLibrary([{ isbn13: "9780063345164", updatedAt: new Date(Date.now() - DAY / 2) }]);
+
+    await scan("9780063345164");
+
+    expect(mocks.confirmBookInLibrary).not.toHaveBeenCalled();
+    expect(mocks.handlePoints).not.toHaveBeenCalled();
     expect(mocks.toast).toHaveBeenCalledWith("No more updates needed for this book.", { icon: "ℹ️" });
   });
 
@@ -171,13 +186,24 @@ describe("LibraryClient", () => {
     expect(screen.getByText("Book Recency Bonus").nextSibling).toHaveTextContent(bonus);
   });
 
-  it("KNOWN ISSUE: the recency bonus is displayed but never awarded", async () => {
-    // Points are only sent for new books, and new books never have a recency bonus.
+  it("awards the recency bonus once per book per visit", async () => {
+    await renderAtLibrary([{ isbn13: "9780063345164", updatedAt: new Date(Date.now() - 40 * DAY) }]);
+
+    await scan("9780063345164");
+    await scan("9780063345164");
+
+    expect(awarded()).toEqual([5]);
+    expect(mocks.confirmBookInLibrary).toHaveBeenCalledTimes(1);
+  });
+
+  it("awards nothing when the book could not be confirmed", async () => {
+    mocks.confirmBookInLibrary.mockResolvedValue(false);
     await renderAtLibrary([{ isbn13: "9780063345164", updatedAt: new Date(Date.now() - 40 * DAY) }]);
 
     await scan("9780063345164");
 
     expect(mocks.handlePoints).not.toHaveBeenCalled();
+    expect(mocks.toast.error).toHaveBeenCalledWith("Error processing book");
   });
 
   it("counts failed lookups toward the persistence bonus", async () => {
@@ -192,16 +218,28 @@ describe("LibraryClient", () => {
     expect(mocks.saveBookToDatabase).not.toHaveBeenCalled();
   });
 
-  it("adds a 5 point persistence bonus to the next new book after exactly 10 failures", async () => {
+  it("adds a one-time 5 point persistence bonus to the next points after 10 failures", async () => {
     await renderAtLibrary();
     mocks.fetchBookData.mockResolvedValue(null);
     for (let i = 0; i < 10; i++) await scan("0000000000000");
 
     mocks.fetchBookData.mockImplementation(async (isbn: string) => book(isbn));
+    await scan("9780000000001");
+    await scan("9780000000002");
+
+    expect(awarded()).toEqual([10, 5]);
+    expect(screen.getByText("Persistency Bonus")).toBeInTheDocument();
+  });
+
+  it("still gives the persistence bonus when there were more than 10 failures", async () => {
+    await renderAtLibrary();
+    mocks.fetchBookData.mockResolvedValue(null);
+    for (let i = 0; i < 12; i++) await scan("0000000000000");
+
+    mocks.fetchBookData.mockImplementation(async (isbn: string) => book(isbn));
     await scan("9780063345164");
 
     expect(awarded()).toEqual([10]);
-    expect(screen.getByText("Persistency Bonus")).toBeInTheDocument();
   });
 
   it("shows an error toast when saving fails", async () => {
@@ -212,5 +250,6 @@ describe("LibraryClient", () => {
 
     await waitFor(() => expect(mocks.toast.error).toHaveBeenCalledWith("Error processing book"));
     expect(screen.getByText(/Scanned Books: 0/)).toBeInTheDocument();
+    expect(mocks.handlePoints).not.toHaveBeenCalled();
   });
 });

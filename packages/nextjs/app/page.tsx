@@ -19,7 +19,8 @@ const Home: NextPage = () => {
   const targetDate = new Date("2025-01-31");
   const currentDate = new Date();
   const timeDifference = targetDate.getTime() - currentDate.getTime();
-  const daysRemaining = Math.ceil(timeDifference / (1000 * 3600 * 24)); // Calculate days remaining
+  // Stays at 0 once the season is over instead of counting negative days.
+  const daysRemaining = Math.max(0, Math.ceil(timeDifference / (1000 * 3600 * 24)));
 
   const questionId = "rewards-pool"; // Define your question ID here
 

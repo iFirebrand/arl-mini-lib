@@ -34,13 +34,13 @@ describe("handlePoints", () => {
     expect(setBanked).toHaveBeenCalledWith(105);
   });
 
-  it("calls addPoints with a negative amount when a wallet is connected (ignored by PointsContext)", async () => {
+  it("does not touch unbanked points when a wallet is connected", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse({ success: true, currentTotal: 5 })));
     const addPoints = vi.fn();
 
     await handlePoints(WALLET, 5, "ADD_BOOK", addPoints, vi.fn());
 
-    expect(addPoints).toHaveBeenCalledWith(-5, "ADD_BOOK");
+    expect(addPoints).not.toHaveBeenCalled();
   });
 
   it("leaves the banked total alone when the server rejects the request", async () => {

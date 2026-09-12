@@ -1,9 +1,6 @@
-/**
- * write a function that will determine if user's location is within 20 feet of a mini library.
- * The function takes an object as an input. Define the object as well.
- * The object should have longitude and lattitude of a library and longitude and lattitude of a user.
- * If the user location is within 20 feet of the library location, then return true. otherwise false.
- */
+// How close (in feet) a user must be for the scanner to unlock. Phone GPS is often off by
+// tens of meters, so this is generous.
+export const LIBRARY_MATCH_RADIUS_FEET = 1500;
 
 interface Location {
   libraryLatitude: number;
@@ -12,9 +9,10 @@ interface Location {
   userLongitude: number;
 }
 
+/** True when the user is within LIBRARY_MATCH_RADIUS_FEET of the library. */
 export function checkIfLocationMatches(location: Location): boolean {
-  // Convert 20 feet to kilometers (1 foot = 0.0003048 kilometers)
-  const distanceInKm = 1500 * 0.0003048;
+  // 1 foot = 0.0003048 kilometers
+  const distanceInKm = LIBRARY_MATCH_RADIUS_FEET * 0.0003048;
 
   // Radius of the Earth in kilometers
   const earthRadius = 6371;
@@ -34,6 +32,6 @@ export function checkIfLocationMatches(location: Location): boolean {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distance = earthRadius * c;
 
-  // Check if the distance is within 20 feet
+  // Check if the distance is within the radius
   return distance <= distanceInKm;
 }

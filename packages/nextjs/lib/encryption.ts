@@ -38,15 +38,13 @@ export const decrypt = (encrypted: string): string => {
       throw new Error("Data has expired");
     }
 
-    // Extract the JSON part before the timestamp
-    const match = decoded.data.match(/(.*)}]}/);
-    if (match && match[1]) {
-      const fullData = match[1] + "}]}";
-      // console.log("Extracted data:", fullData);
-      return fullData;
+    // data is `${text}:${timestamp}`; the timestamp never contains ":", so split on the last one.
+    const separator = decoded.data.lastIndexOf(":");
+    if (separator > 0) {
+      return decoded.data.slice(0, separator);
     }
 
-    throw new Error("Could not extract valid JSON data");
+    throw new Error("Could not extract data");
   } catch (error) {
     console.error(
       "Decryption error:",

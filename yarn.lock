@@ -3019,6 +3019,7 @@ __metadata:
     "@uniswap/v2-sdk": ~4.6.1
     "@vitejs/plugin-react": ^4.7.0
     "@vitest/coverage-v8": ^3.2.4
+    "@zxing/library": ^0.21.3
     abitype: 1.0.6
     autoprefixer: ~10.4.20
     blo: ~1.2.0

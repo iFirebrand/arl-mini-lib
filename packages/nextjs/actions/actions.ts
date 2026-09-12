@@ -213,6 +213,21 @@ export async function getISBN13ByLibraryId(libraryId: string): Promise<{ updated
   }
 }
 
+// Records that someone just saw this book in the library, which resets its recency bonus.
+// Returns false when the library has no copy of the book.
+export async function confirmBookInLibrary(libraryId: string, isbn13: string): Promise<boolean> {
+  try {
+    const { count } = await prisma.item.updateMany({
+      where: { libraryId, isbn13 },
+      data: { updatedAt: new Date() },
+    });
+    return count > 0;
+  } catch (error) {
+    console.error("Error confirming book:", error);
+    return false;
+  }
+}
+
 // Function to get ArlibSettings
 export async function getArlibSettings() {
   try {
