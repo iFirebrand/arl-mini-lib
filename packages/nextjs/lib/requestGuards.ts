@@ -1,4 +1,6 @@
-// Checks shared by API routes that change data.
+import { headers } from "next/headers";
+
+// Checks shared by API routes and server actions that change data.
 
 const toOrigin = (url: string | null | undefined) => {
   try {
@@ -21,6 +23,12 @@ export function isAllowedReferer(referer: string | null): boolean {
 }
 
 // x-forwarded-for can be a list; the first entry is the client.
-export function getClientIp(request: Request): string {
+export function getClientIp(request: Request | { headers: Headers }): string {
   return request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "anonymous";
+}
+
+// Server actions have no Request object, so read the current request's headers instead.
+// (Next.js already rejects server action calls from other origins.)
+export function getActionClientIp(): string {
+  return getClientIp({ headers: headers() as unknown as Headers });
 }

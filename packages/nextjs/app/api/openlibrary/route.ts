@@ -1,14 +1,19 @@
+import { normalizeIsbn, openLibraryUrlFor } from "../../../lib/openLibrary";
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const isbn = searchParams.get("isbn");
+    const rawIsbn = searchParams.get("isbn");
 
-    if (!isbn) {
+    if (!rawIsbn) {
       return Response.json({ error: "ISBN is required" }, { status: 400 });
     }
+    const isbn = normalizeIsbn(rawIsbn);
+    if (!isbn) {
+      return Response.json({ error: "ISBN must be 10 or 13 digits" }, { status: 400 });
+    }
 
-    const url = `http://openlibrary.org/api/volumes/brief/isbn/${isbn}.json`;
-    const response = await fetch(url);
+    const response = await fetch(openLibraryUrlFor(isbn), { signal: AbortSignal.timeout(8000) });
 
     if (!response.ok) {
       throw new Error(`OpenLibrary API responded with status: ${response.status}`);
@@ -24,4 +29,4 @@ export async function GET(request: Request) {
   }
 }
 // https://openlibrary.org/dev/docs/api/books#data
-//  % curl -X GET "http://openlibrary.org/api/volumes/brief/isbn/9780063345164.json"
+//  % curl -X GET "https://openlibrary.org/api/volumes/brief/isbn/9780063345164.json"

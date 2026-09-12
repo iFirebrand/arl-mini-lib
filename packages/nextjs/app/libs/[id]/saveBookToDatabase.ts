@@ -1,27 +1,14 @@
-interface BookInfo {
-  title: string;
-  authors: string;
-  thumbnail: string;
-  description: string;
-  isbn13: string;
-  itemInfo: string;
-  libraryId: string;
-}
+// The server looks the book up by ISBN itself, so only the ISBN and library are sent.
+export async function saveBookToDatabase(book: { isbn13: string; libraryId: string }): Promise<void> {
+  const response = await fetch("/api/saveBook", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ isbn: book.isbn13, libraryId: book.libraryId }),
+  });
 
-export async function saveBookToDatabase(book: BookInfo): Promise<void> {
-  try {
-    const response = await fetch("/api/saveBook", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(book),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Save book API failed with status: ${response.status}`);
-    }
-  } catch (error) {
-    throw error;
+  if (!response.ok) {
+    throw new Error(`Save book API failed with status: ${response.status}`);
   }
 }

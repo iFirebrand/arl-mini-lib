@@ -68,7 +68,7 @@ describe("fetchBookData", () => {
 });
 
 describe("saveBookToDatabase", () => {
-  it("POSTs the book as JSON to /api/saveBook", async () => {
+  it("sends only the ISBN and library to /api/saveBook", async () => {
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ id: "item_1" }, 201));
     vi.stubGlobal("fetch", fetchMock);
 
@@ -77,7 +77,7 @@ describe("saveBookToDatabase", () => {
     expect(fetchMock).toHaveBeenCalledWith("/api/saveBook", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(bookInfo),
+      body: JSON.stringify({ isbn: bookInfo.isbn13, libraryId: bookInfo.libraryId }),
     });
   });
 

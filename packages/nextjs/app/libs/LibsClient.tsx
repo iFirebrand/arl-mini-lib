@@ -91,12 +91,14 @@ export default function LibsClient() {
 
     try {
       const newLibrary = await createLibrary(formData);
-      handlePoints(address, 50, "CREATE_LIBRARY", addPoints, setBankedPointsTotal);
-
-      if (newLibrary.id) {
-        // handleConfettiAction();
-        window.location.href = `/profile?libraryId=${newLibrary.id}`;
+      if (!newLibrary.id) {
+        alert(newLibrary.error ?? "Failed to create library. Please try again.");
+        return;
       }
+
+      // Points only for a saved library; wait so leaving the page doesn't cancel the request.
+      await handlePoints(address, 50, "CREATE_LIBRARY", addPoints, setBankedPointsTotal);
+      window.location.href = `/profile?libraryId=${newLibrary.id}`;
     } catch (error) {
       console.error("Error creating library:", error);
       alert("Failed to create library. Please try again.");

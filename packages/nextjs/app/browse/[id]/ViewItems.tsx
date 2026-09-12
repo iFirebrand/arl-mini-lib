@@ -4,6 +4,7 @@ import React from "react";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { getItemsByLibraryId } from "../../../actions/actions";
+import { PLACEHOLDER_BOOK_COVER, PLACEHOLDER_LIBRARY_IMAGE, safeImageSrc, safeLinkHref } from "~~/lib/media";
 
 interface ViewItemsProps {
   libraryId: string;
@@ -48,7 +49,7 @@ export default function ViewItems({ libraryId, libraryData }: ViewItemsProps) {
               <td>
                 <div className="flex items-center gap-3">
                   <a
-                    href={item.itemInfo}
+                    href={safeLinkHref(item.itemInfo)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 hover:opacity-80"
@@ -57,9 +58,9 @@ export default function ViewItems({ libraryId, libraryData }: ViewItemsProps) {
                       <div className="h-20 w-16">
                         <Image
                           src={
-                            item.coverUrl && item.coverUrl !== "https://covers.openlibrary.org/b/id/-1-M.jpg"
-                              ? item.coverUrl
-                              : "https://dtmqxpohipopgolmirik.supabase.co/storage/v1/object/public/altbucket/ARLib.png"
+                            item.coverUrl !== "https://covers.openlibrary.org/b/id/-1-M.jpg"
+                              ? safeImageSrc(item.coverUrl, PLACEHOLDER_BOOK_COVER)
+                              : PLACEHOLDER_BOOK_COVER
                           }
                           alt={item.title}
                           width={80}
@@ -111,10 +112,7 @@ export default function ViewItems({ libraryId, libraryData }: ViewItemsProps) {
           </div>
           <figure>
             <Image
-              src={
-                libraryData.imageUrl ||
-                "https://dtmqxpohipopgolmirik.supabase.co/storage/v1/object/public/library-images/site-images/placeholder-library.jpeg?t=2024-12-15T15%3A45%3A04.162Z"
-              }
+              src={safeImageSrc(libraryData.imageUrl, PLACEHOLDER_LIBRARY_IMAGE)}
               alt={`${libraryData.locationName} library image`}
               width={384}
               height={384}

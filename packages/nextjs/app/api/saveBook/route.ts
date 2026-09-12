@@ -1,27 +1,56 @@
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import prisma from "../../../lib/db";
+import { lookupBook, normalizeIsbn } from "../../../lib/openLibrary";
+import { rateLimit } from "../../../lib/rate-limit";
+import { getClientIp, isAllowedReferer } from "../../../lib/requestGuards";
 
-// Adjust the import path based on your project structure
+// Same pace as scanning: a scan takes a few seconds.
+const limiter = rateLimit({ interval: 60 * 1000, uniqueTokenPerInterval: 500, limit: 30 });
 
+// Saves a scanned book. Only the ISBN and library come from the browser; the book details are
+// looked up here, so nothing a visitor types ends up in the catalog as-is.
 export async function POST(req: Request) {
-  const { title, authors, thumbnail, description, isbn13, itemInfo, libraryId } = await req.json();
+  if (!limiter.check(getClientIp(req)).success) {
+    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
+  }
+  if (!isAllowedReferer(headers().get("referer"))) {
+    return NextResponse.json({ error: "Unauthorized request origin" }, { status: 403 });
+  }
+
+  const body = await req.json().catch(() => null);
+  const isbn = normalizeIsbn(body?.isbn ?? body?.isbn13);
+  const libraryId = typeof body?.libraryId === "string" && body.libraryId.length <= 64 ? body.libraryId : null;
+  if (!isbn || !libraryId) {
+    return NextResponse.json({ error: "A valid ISBN and library are required" }, { status: 400 });
+  }
 
   try {
-    // Save the book data to the database
-    const newItem = await prisma.item.create({
-      data: {
-        title,
-        authors,
-        description,
-        thumbnail,
-        isbn13,
-        itemInfo,
-        // Correctly use the library relation
-        library: { connect: { id: libraryId } }, // Use connect to link to Library
-      },
-    });
+    const library = await prisma.library.findUnique({ where: { id: libraryId }, select: { id: true } });
+    if (!library) {
+      return NextResponse.json({ error: "Library not found" }, { status: 404 });
+    }
 
-    // Respond with the created item
+    let book;
+    try {
+      book = await lookupBook(isbn);
+    } catch (error) {
+      console.error("Error looking up book:", error);
+      return NextResponse.json({ error: "Could not reach OpenLibrary" }, { status: 502 });
+    }
+    if (!book) {
+      return NextResponse.json({ error: "Book not found" }, { status: 404 });
+    }
+
+    // One entry per book per library.
+    const existing = await prisma.item.findFirst({ where: { libraryId, isbn13: book.isbn13 } });
+    if (existing) {
+      return NextResponse.json(existing, { status: 200 });
+    }
+
+    const newItem = await prisma.item.create({
+      data: { ...book, library: { connect: { id: libraryId } } },
+    });
     return NextResponse.json(newItem, { status: 201 });
   } catch (error) {
     console.error("Error saving book:", error);

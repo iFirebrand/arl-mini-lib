@@ -1,8 +1,9 @@
-import { bookInfo } from "../fixtures/openLibrary";
+import { bookInfo, jsonResponse, openLibraryResponse } from "../fixtures/openLibrary";
 import { createTestLibrary, resetDatabase, testPrisma } from "./db";
-import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("~~/lib/db", async () => ({ default: (await import("./db")).testPrisma }));
+vi.mock("next/headers", () => ({ headers: () => new Headers({ referer: "http://localhost:3000/libs/abc" }) }));
 
 const actions = await import("~~/actions/actions");
 const { POST: saveBook } = await import("~~/app/api/saveBook/route");
@@ -16,7 +17,17 @@ const libraryForm = (fields: Record<string, string>) => {
   return data;
 };
 
-beforeEach(resetDatabase);
+const OWN_IMAGE = "http://supabase.test/storage/v1/object/public/library-images/uploads/abc-lib.jpg";
+
+beforeEach(async () => {
+  await resetDatabase();
+  // /api/saveBook looks books up on OpenLibrary; answer with a recorded response.
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockImplementation(async () => jsonResponse(openLibraryResponse)),
+  );
+});
+afterEach(() => vi.unstubAllGlobals());
 afterAll(() => testPrisma.$disconnect());
 
 describe("adding a library", () => {
@@ -26,7 +37,7 @@ describe("adding a library", () => {
         locationName: "Maple St",
         latitude: "38.883839",
         longitude: "-77.107249",
-        imageUrl: "https://x/y.jpg",
+        imageUrl: OWN_IMAGE,
       }),
     );
     expect(created).toEqual({ id: expect.any(String) });
@@ -36,7 +47,7 @@ describe("adding a library", () => {
     expect(await actions.checkLibraryExists("38.884139", "-77.107249")).toMatchObject({
       id,
       locationName: "Maple St",
-      imageUrl: "https://x/y.jpg",
+      imageUrl: OWN_IMAGE,
       active: true,
     });
     // ~55 m away: outside it.
@@ -74,8 +85,10 @@ describe("cataloging books", () => {
   it("saves a scanned book to its library and lists it everywhere books appear", async () => {
     const library = await createTestLibrary();
 
-    const res = await postBook({ ...bookInfo, libraryId: library.id });
+    // Only the ISBN is sent; the details below come from the server's own lookup.
+    const res = await postBook({ isbn: bookInfo.isbn13, libraryId: library.id });
     expect(res.status).toBe(201);
+    expect(await postBook({ isbn: bookInfo.isbn13, libraryId: library.id })).toHaveProperty("status", 200);
 
     expect(await actions.bookCount(library.id)).toBe(1);
     expect(await actions.totalBookCount()).toBe(1);
@@ -116,10 +129,24 @@ describe("cataloging books", () => {
     expect(await actions.confirmBookInLibrary(library.id, "0000000000000")).toBe(false);
   });
 
-  it("refuses to save a book for a library that does not exist", async () => {
-    const res = await postBook({ ...bookInfo, libraryId: "does-not-exist" });
+  it("stores OpenLibrary's details, not the ones a caller sends", async () => {
+    const library = await createTestLibrary();
 
-    expect(res.status).toBe(500);
+    await postBook({
+      ...bookInfo,
+      itemInfo: "javascript:alert(document.domain)",
+      title: "Spoofed",
+      libraryId: library.id,
+    });
+
+    const [item] = await testPrisma.item.findMany();
+    expect(item).toMatchObject({ title: "The Wager", itemInfo: bookInfo.itemInfo, thumbnail: bookInfo.thumbnail });
+  });
+
+  it("refuses to save a book for a library that does not exist", async () => {
+    const res = await postBook({ isbn: bookInfo.isbn13, libraryId: "does-not-exist" });
+
+    expect(res.status).toBe(404);
     expect(await testPrisma.item.count()).toBe(0);
   });
 
