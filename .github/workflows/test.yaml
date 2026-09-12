@@ -65,6 +65,10 @@ jobs:
         env:
           TEST_DATABASE_URL: postgresql://arlib:arlib@localhost:54329/arlib_test
 
+      # Builds without any secrets, then fails if browser JavaScript contains a Supabase secret key.
+      - name: Build and check for leaked secrets
+        run: yarn build
+
   preview-smoke:
     if: >-
       github.event_name == 'deployment_status' &&
