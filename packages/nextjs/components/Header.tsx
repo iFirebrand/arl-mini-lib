@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { AccountWidget } from "./AccountWidget";
 import { Bars3Icon, ChartBarIcon, FireIcon, InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
 import { SwitchTheme } from "~~/components/SwitchTheme";
-import { useOutsideClick } from "~~/hooks/scaffold-eth";
+import { useOutsideClick } from "~~/hooks/useOutsideClick";
 
 type HeaderMenuLink = {
   label: string;
