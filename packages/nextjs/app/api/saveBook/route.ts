@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   if (!limiter.check(clientIp).success) {
     return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
   }
-  if (!isAllowedReferer(headers().get("referer"))) {
+  if (!isAllowedReferer((await headers()).get("referer"))) {
     return NextResponse.json({ error: "Unauthorized request origin" }, { status: 403 });
   }
 

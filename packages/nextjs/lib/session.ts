@@ -45,17 +45,21 @@ async function verify(token: string | undefined): Promise<Record<string, unknown
 
 /** The signed-in account id, or null. */
 export async function readSessionAccountId(): Promise<string | null> {
-  const payload = await verify(cookies().get(SESSION_COOKIE)?.value);
+  const payload = await verify((await cookies()).get(SESSION_COOKIE)?.value);
   return typeof payload?.sub === "string" ? payload.sub : null;
 }
 
 export async function writeSession(accountId: string) {
-  cookies().set(SESSION_COOKIE, await sign({ sub: accountId }, SESSION_MAX_AGE), cookieOptions(SESSION_MAX_AGE));
+  (await cookies()).set(
+    SESSION_COOKIE,
+    await sign({ sub: accountId }, SESSION_MAX_AGE),
+    cookieOptions(SESSION_MAX_AGE),
+  );
 }
 
 /** Remembers a WebAuthn challenge for the next step of a passkey ceremony (5 minutes). */
 export async function writeChallenge(challenge: string, purpose: "register" | "login") {
-  cookies().set(
+  (await cookies()).set(
     CHALLENGE_COOKIE,
     await sign({ challenge, purpose }, CHALLENGE_MAX_AGE),
     cookieOptions(CHALLENGE_MAX_AGE),
@@ -64,7 +68,7 @@ export async function writeChallenge(challenge: string, purpose: "register" | "l
 
 /** Returns and forgets the pending challenge for this purpose, or null. */
 export async function takeChallenge(purpose: "register" | "login"): Promise<string | null> {
-  const payload = await verify(cookies().get(CHALLENGE_COOKIE)?.value);
-  cookies().delete(CHALLENGE_COOKIE);
+  const payload = await verify((await cookies()).get(CHALLENGE_COOKIE)?.value);
+  (await cookies()).delete(CHALLENGE_COOKIE);
   return payload?.purpose === purpose && typeof payload.challenge === "string" ? payload.challenge : null;
 }

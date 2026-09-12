@@ -1,11 +1,10 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const nextConfig = require("../../../next.config.js");
+const nextConfig = (await import("../../../next.config.js")).default;
 
 const headersFor = async (path: string) => {
-  const rules: { source: string; headers: { key: string; value: string }[] }[] = await nextConfig.headers();
+  const rules: { source: string; headers: { key: string; value: string }[] }[] = (await nextConfig.headers?.()) ?? [];
   const rule = rules.find(r => r.source === "/:path*");
   expect(rule, `no header rule covers ${path}`).toBeDefined();
   return Object.fromEntries((rule?.headers ?? []).map(h => [h.key.toLowerCase(), h.value]));

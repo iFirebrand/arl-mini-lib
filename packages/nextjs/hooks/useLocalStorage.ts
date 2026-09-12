@@ -1,30 +1,54 @@
-import { useEffect, useState } from "react";
+import { useCallback, useMemo, useSyncExternalStore } from "react";
 
-export function useLocalStorage<T>(key: string, initialValue: T) {
-  // State to store our value
-  // Pass initial state function to useState so logic is only executed once
-  const [storedValue, setStoredValue] = useState<T>(initialValue);
+// Other hooks using the same key re-read when one of them writes.
+const LOCAL_WRITE_EVENT = "arlib-local-storage";
 
-  useEffect(() => {
-    try {
-      const item = window.localStorage.getItem(key);
-      setStoredValue(item ? JSON.parse(item) : initialValue);
-    } catch (error) {
-      console.log(error);
-      setStoredValue(initialValue);
-    }
-  }, [key, initialValue]);
-
-  // Return a wrapped version of useState's setter function that ...
-  // ... persists the new value to localStorage.
-  const setValue = (value: T) => {
-    try {
-      setStoredValue(value);
-      window.localStorage.setItem(key, JSON.stringify(value));
-    } catch (error) {
-      console.log(error);
-    }
+const subscribe = (onChange: () => void) => {
+  window.addEventListener("storage", onChange);
+  window.addEventListener(LOCAL_WRITE_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(LOCAL_WRITE_EVENT, onChange);
   };
+};
+
+const read = (key: string) => {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+/** A JSON value kept in localStorage. Renders initialValue on the server and before hydration. */
+export function useLocalStorage<T>(key: string, initialValue: T) {
+  const raw = useSyncExternalStore(
+    subscribe,
+    () => read(key),
+    () => null,
+  );
+
+  const storedValue = useMemo<T>(() => {
+    if (raw === null) return initialValue;
+    try {
+      return JSON.parse(raw) as T;
+    } catch (error) {
+      console.log(error);
+      return initialValue;
+    }
+  }, [raw, initialValue]);
+
+  const setValue = useCallback(
+    (value: T) => {
+      try {
+        window.localStorage.setItem(key, JSON.stringify(value));
+        window.dispatchEvent(new Event(LOCAL_WRITE_EVENT));
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    [key],
+  );
 
   return [storedValue, setValue] as const;
 }

@@ -30,7 +30,7 @@ const toCoordinate = (value: FormDataEntryValue | null, limit: number) => {
 };
 
 export async function createLibrary(formData: FormData) {
-  const clientIp = getActionClientIp();
+  const clientIp = await getActionClientIp();
   if (!createLibraryLimiter.check(clientIp).success) {
     return { error: "Too many new libraries from this connection. Try again later." };
   }
@@ -266,7 +266,7 @@ export async function confirmBookInLibrary(
   isbn13: string,
 ): Promise<{ confirmed: boolean; pointsAwarded: number; total?: number }> {
   const isbn = normalizeIsbn(isbn13);
-  const clientIp = getActionClientIp();
+  const clientIp = await getActionClientIp();
   if (!isbn || typeof libraryId !== "string" || !libraryId) return { confirmed: false, pointsAwarded: 0 };
   if (!confirmBookLimiter.check(clientIp).success) return { confirmed: false, pointsAwarded: 0 };
   try {
@@ -438,7 +438,7 @@ export async function recordVote(questionId: string, rating: number) {
   if (!question || !Number.isInteger(rating) || rating < question.min || rating > question.max) {
     throw new Error("Invalid vote");
   }
-  if (!voteLimiter.check(getActionClientIp()).success) {
+  if (!voteLimiter.check(await getActionClientIp()).success) {
     throw new Error("Too many votes. Try again in a minute.");
   }
   try {

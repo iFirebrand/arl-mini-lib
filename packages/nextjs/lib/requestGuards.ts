@@ -29,6 +29,6 @@ export function getClientIp(request: Request | { headers: Headers }): string {
 
 // Server actions have no Request object, so read the current request's headers instead.
 // (Next.js already rejects server action calls from other origins.)
-export function getActionClientIp(): string {
-  return getClientIp({ headers: headers() as unknown as Headers });
+export async function getActionClientIp(): Promise<string> {
+  return getClientIp({ headers: (await headers()) as unknown as Headers });
 }

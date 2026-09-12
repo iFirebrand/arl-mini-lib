@@ -21,9 +21,6 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: process.env.NEXT_PUBLIC_IGNORE_BUILD_ERROR === "true",
   },
-  eslint: {
-    ignoreDuringBuilds: process.env.NEXT_PUBLIC_IGNORE_BUILD_ERROR === "true",
-  },
   images: {
     // One list shared with lib/media.ts, which swaps any other host for a placeholder before rendering.
     remotePatterns: imageHosts.map(hostname => ({ protocol: "https", hostname })),

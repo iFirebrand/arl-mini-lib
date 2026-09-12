@@ -19,7 +19,8 @@ export const metadata = {
 const RootLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <html suppressHydrationWarning>
-      <head>
+      <body>
+        {/* next/script places these itself; inside a hand-written <head> React 19 warns. */}
         <Script strategy="afterInteractive" src="https://www.googletagmanager.com/gtag/js?id=G-205LFRGM0L" />
         <Script id="google-analytics" strategy="afterInteractive">
           {`
@@ -29,8 +30,6 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
             gtag('config', 'G-205LFRGM0L');
           `}
         </Script>
-      </head>
-      <body>
         <ThemeProvider enableSystem>
           <AppWithProviders>{children}</AppWithProviders>
         </ThemeProvider>

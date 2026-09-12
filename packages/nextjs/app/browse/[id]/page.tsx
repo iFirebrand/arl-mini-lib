@@ -3,13 +3,14 @@ import { bookCount, getLibraryData } from "../../../actions/actions";
 import prisma from "../../../lib/db";
 import ViewItems from "./ViewItems";
 
-export default async function LibraryBooks({ params }: { params: { id: string } }) {
+export default async function LibraryBooks({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const library = await prisma.library.findUnique({
-    where: { id: params.id },
+    where: { id },
   });
-  const count = await bookCount(params.id);
+  const count = await bookCount(id);
 
-  const libraryData = await getLibraryData(params.id);
+  const libraryData = await getLibraryData(id);
 
   return (
     <main className="flex flex-col items-center gap-y-5 pt-24, text-center">

@@ -48,8 +48,7 @@ describe("safeImageSrc", () => {
 
   it("uses the same host list as next.config.js", async () => {
     const hosts = (await import("~~/lib/imageHosts.json")).default;
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const config = require("../../../next.config.js");
-    expect(config.images.remotePatterns.map((pattern: { hostname: string }) => pattern.hostname)).toEqual(hosts);
+    const config = (await import("../../../next.config.js")).default;
+    expect(config.images?.remotePatterns?.map((pattern: { hostname: string }) => pattern.hostname)).toEqual(hosts);
   });
 });

@@ -15,10 +15,11 @@ interface LibsClientProps {
   librariesCount: number;
 }
 
-export default function BrowseClient({ libraries: libraries, librariesCount: librariesCount }: LibsClientProps) {
-  // Dynamically import the Map component to avoid SSR issues
-  const BrowseMap = dynamic(() => import("../../components/maps/BrowseMap"), { ssr: false });
+// Leaflet needs the browser. Defined once here: creating it inside the component would remount
+// the map on every render.
+const BrowseMap = dynamic(() => import("../../components/maps/BrowseMap"), { ssr: false });
 
+export default function BrowseClient({ libraries: libraries, librariesCount: librariesCount }: LibsClientProps) {
   const position = [38.883839, -77.107249]; // Centered at the given latitude and longitude
 
   return (

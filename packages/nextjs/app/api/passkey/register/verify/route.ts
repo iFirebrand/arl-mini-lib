@@ -7,7 +7,7 @@ import { verifyRegistrationResponse } from "@simplewebauthn/server";
 
 // Step 2 of adding a passkey: check the browser's response and store the public key.
 export async function POST(request: Request) {
-  const refused = refusePasskeyRequest(request);
+  const refused = await refusePasskeyRequest(request);
   if (refused) return refused;
 
   const accountId = await readSessionAccountId();

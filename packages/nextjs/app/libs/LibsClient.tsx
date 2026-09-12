@@ -3,6 +3,8 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { checkLibraryExists, createLibrary } from "../../actions/actions";
 import { AddLibraryForm } from "../../components/forms/AddLibraryForm";
 import { handleGeoLocation } from "../../components/maps/handleGeoLocation";
@@ -21,57 +23,48 @@ type ExistingLibrary = {
   createdAt: Date;
 };
 
-export default function LibsClient() {
-  const [isGeolocationAvailable, setIsGeolocationAvailable] = useState(false);
-  const [latitude, setLatitude] = useState<string | null>(null);
-  const [longitude, setLongitude] = useState<string | null>(null);
+// Leaflet needs the browser. Defined once here: creating it inside the component would remount
+// the map on every render.
+const Map = dynamic(() => import("../../components/maps/Map"), { ssr: false });
+
+const celebrateNewLibrary = () => {
+  confetti({
+    particleCount: 600,
+    spread: 180,
+    startVelocity: 400,
+    decay: 0.5,
+    scalar: 1.2,
+    origin: { y: 0.5, x: 0.5 }, // Position the confetti to start lower on the screen
+  });
+};
+
+// latitude and longitude come from the URL (see app/libs/page.tsx).
+export default function LibsClient({ latitude, longitude }: { latitude: string | null; longitude: string | null }) {
+  const router = useRouter();
+  const isGeolocationAvailable = Boolean(latitude && longitude);
   const [libraryExists, setLibraryExists] = useState<boolean>(false);
   const [existingLibrary, setExistingLibrary] = useState<ExistingLibrary | null>(null);
   const [isGeolocationRequested, setIsGeolocationRequested] = useState(false);
 
-  // Dynamically import the Map component to avoid SSR issues
-  const Map = dynamic(() => import("../../components/maps/Map"), { ssr: false });
-
-  const handleConfettiAction = () => {
-    // Fire the confetti with options
-    confetti({
-      particleCount: 600,
-      spread: 180,
-      startVelocity: 400,
-      decay: 0.5,
-      scalar: 1.2,
-      origin: { y: 0.5, x: 0.5 }, // Position the confetti to start lower on the screen
-    });
-  };
-
   useEffect(() => {
-    // Get URL parameters on the client side
-    const urlParams = new URLSearchParams(window.location.search);
-    const lat = urlParams.get("latitude");
-    const long = urlParams.get("longitude");
-
-    if (lat && long) {
-      setLatitude(lat);
-      setLongitude(long);
-      setIsGeolocationAvailable(true);
-    }
-
-    // Check if the library already exists based on the location name
-    const checkExistingLibrary = async () => {
-      if (latitude && longitude) {
-        const result = await checkLibraryExists(latitude, longitude);
-        if (result === "not found") {
-          setLibraryExists(false);
-          setExistingLibrary(null);
-        } else {
-          setLibraryExists(true);
-          setExistingLibrary(result as ExistingLibrary);
-        }
+    if (!latitude || !longitude) return;
+    let active = true;
+    // Is there already a library at this spot?
+    checkLibraryExists(latitude, longitude).then(result => {
+      if (!active) return;
+      if (result === "not found") {
+        setLibraryExists(false);
+        setExistingLibrary(null);
+        celebrateNewLibrary();
+      } else {
+        setLibraryExists(true);
+        setExistingLibrary(result as ExistingLibrary);
       }
+    });
+    return () => {
+      active = false;
     };
-
-    checkExistingLibrary(); // Call the function to check for existing library
-  }, [latitude, longitude]); // Add latitude and longitude as dependencies
+  }, [latitude, longitude]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -90,7 +83,7 @@ export default function LibsClient() {
       }
 
       // The server awarded the points with the library; the next page shows the new total.
-      window.location.href = `/profile?libraryId=${newLibrary.id}`;
+      router.push(`/profile?libraryId=${newLibrary.id}`);
     } catch (error) {
       console.error("Error creating library:", error);
       alert("Failed to create library. Please try again.");
@@ -99,7 +92,7 @@ export default function LibsClient() {
 
   const handleGeoLocationClick = () => {
     setIsGeolocationRequested(true);
-    handleGeoLocation("/libs");
+    handleGeoLocation("/libs", url => router.push(url));
   };
 
   return (
@@ -110,10 +103,7 @@ export default function LibsClient() {
         </div>
       )}
       {!libraryExists && isGeolocationAvailable && (
-        <>
-          {handleConfettiAction()}
-          <h1 className="text-xl font-semibold text-center">New library discovered. Add it!</h1>
-        </>
+        <h1 className="text-xl font-semibold text-center">New library discovered. Add it!</h1>
       )}
       {isGeolocationAvailable ? (
         <div className="container mx-auto">
@@ -127,9 +117,9 @@ export default function LibsClient() {
           <p className="text-sm">
             {" "}
             Or you can {""}
-            <a className="link" href="/browse">
+            <Link className="link" href="/browse">
               browse
-            </a>{" "}
+            </Link>{" "}
             {""} the map to find a discovered library
           </p>
         </div>

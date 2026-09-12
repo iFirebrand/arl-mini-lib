@@ -1,20 +1,18 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { toast } from "react-hot-toast";
 import { KeyIcon, StarIcon } from "@heroicons/react/24/outline";
 import { useAccountContext } from "~~/app/contexts/AccountContext";
+import { useIsClient } from "~~/hooks/useIsClient";
 
 // Header control: points, plus the one passkey action that makes sense right now.
 export const AccountWidget = () => {
   const { account, loading, savePointsWithPasskey, signInWithPasskey } = useAccountContext();
   const [busy, setBusy] = useState(false);
-  const [passkeysSupported, setPasskeysSupported] = useState(false);
-
-  useEffect(() => {
-    setPasskeysSupported(browserSupportsWebAuthn());
-  }, []);
+  // Checked only in the browser, so server and first client render agree.
+  const passkeysSupported = useIsClient() && browserSupportsWebAuthn();
 
   const run = async (action: () => Promise<{ ok: true } | { ok: false; error: string }>, success: string) => {
     setBusy(true);

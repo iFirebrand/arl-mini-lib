@@ -8,7 +8,7 @@ import { verifyAuthenticationResponse } from "@simplewebauthn/server";
 
 // Step 2 of signing in: check the passkey's signature and switch this browser to its account.
 export async function POST(request: Request) {
-  const refused = refusePasskeyRequest(request);
+  const refused = await refusePasskeyRequest(request);
   if (refused) return refused;
 
   const expectedChallenge = await takeChallenge("login");

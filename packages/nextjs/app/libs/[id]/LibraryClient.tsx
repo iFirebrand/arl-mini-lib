@@ -158,7 +158,7 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
       }
 
       toast.success("Book added successfully!");
-    } catch (error) {
+    } catch {
       toast.error("Error processing book");
     } finally {
       setIsProcessing(false);

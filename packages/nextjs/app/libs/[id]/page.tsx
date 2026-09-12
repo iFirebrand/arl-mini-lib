@@ -3,10 +3,11 @@ import { getISBN13ByLibraryId } from "../../../actions/actions";
 import prisma from "../../../lib/db";
 import LibraryClient from "./LibraryClient";
 
-export default async function LibraryPage({ params }: { params: { id: string } }) {
+export default async function LibraryPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   // Fetch library data on the server side
   const libraryData = await prisma.library.findUnique({
-    where: { id: params.id },
+    where: { id },
   });
 
   // let isbn13s: { updatedAt: Date; isbn13: string }[] = [];

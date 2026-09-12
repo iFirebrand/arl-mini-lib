@@ -1,14 +1,15 @@
 import { TEST_APP_ROLE_PASSWORD, getTestDatabaseUrl } from "./testDatabaseUrl";
 import { execSync } from "node:child_process";
 
-// Runs once before the integration suite: recreate the schema from prisma/schema.prisma, then
+// Runs once before the integration suite: bring the schema in line with prisma/schema.prisma, then
 // apply the production role setup so the app's queries run as the least-privilege arlib_app role.
 export default function setup() {
   const url = getTestDatabaseUrl();
   const run = (command: string, input?: string) =>
     execSync(command, { env: { ...process.env, DATABASE_URL: url, DIRECT_URL: url }, input, stdio: "pipe" });
   try {
-    run("npx prisma db push --force-reset --skip-generate");
+    // Syncs tables without wiping the database; tests clear their own tables (resetDatabase).
+    run("npx prisma db push --skip-generate");
     run(`npx prisma db execute --url "${url}" --file test/setup/supabase-roles.sql`);
     run(`npx prisma db execute --url "${url}" --file prisma/sql/app-role.sql`);
     run(

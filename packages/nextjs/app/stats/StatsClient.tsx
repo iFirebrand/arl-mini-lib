@@ -147,8 +147,9 @@ export default function StatsClient({
               </thead>
               <tbody>
                 {/* Dynamically generated rows from last50Books */}
-                {last50Books.map(book => (
-                  <tr key={book.title}>
+                {last50Books.map((book, index) => (
+                  // The same book can be in several libraries, so the title alone isn't a unique key.
+                  <tr key={`${index}-${book.libraryId}-${book.title}`}>
                     <td>
                       <a href={safeLinkHref(book.itemInfo)} target="_blank" rel="noopener noreferrer">
                         <div className="flex items-center gap-3">
@@ -167,14 +168,8 @@ export default function StatsClient({
                             </div>
                           </div>
                           <div>
-                            <a
-                              href={safeLinkHref(book.itemInfo)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="font-bold"
-                            >
-                              {book.title}
-                            </a>
+                            {/* Already inside the row's link; a nested <a> breaks hydration. */}
+                            <span className="font-bold">{book.title}</span>
                           </div>
                         </div>
                       </a>
