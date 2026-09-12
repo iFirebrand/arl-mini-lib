@@ -26,8 +26,11 @@ describe("EarnPoints", () => {
     expect(screen.getByText("New Book Points").nextSibling).toHaveTextContent("5");
   });
 
-  it("doubles displayed new book points once the level 1 multiplier is full", () => {
-    render(<EarnPoints {...base} booksScanned={3} newBookPoints={5} level1MultiplierCount={3} />);
+  it("doubles displayed new book points only once the level 1 multiplier is passed, matching the award", () => {
+    const { rerender } = render(<EarnPoints {...base} booksScanned={3} newBookPoints={5} level1MultiplierCount={3} />);
+    expect(screen.getByText("New Book Points").nextSibling).toHaveTextContent("5");
+
+    rerender(<EarnPoints {...base} booksScanned={4} newBookPoints={5} level1MultiplierCount={4} />);
     expect(screen.getByText("New Book Points").nextSibling).toHaveTextContent("10");
   });
 
@@ -47,6 +50,10 @@ describe("EarnPoints", () => {
 
     rerender(<EarnPoints {...base} failedAttempts={10} />);
     expect(screen.getByText("Persistency Bonus")).toBeInTheDocument();
+
+    rerender(<EarnPoints {...base} failedAttempts={13} />);
+    expect(screen.getByText("Persistency Bonus")).toBeInTheDocument();
+    expect(screen.getByText("100%")).toBeInTheDocument();
   });
 
   it("shows the book recency bonus", () => {

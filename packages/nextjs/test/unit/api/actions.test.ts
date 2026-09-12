@@ -182,6 +182,28 @@ describe("getISBN13ByLibraryId", () => {
   });
 });
 
+describe("confirmBookInLibrary", () => {
+  it("refreshes updatedAt on the library's copies of the book", async () => {
+    prismaMock.item.updateMany.mockResolvedValue({ count: 1 });
+
+    expect(await actions.confirmBookInLibrary("lib_1", "9780063345164")).toBe(true);
+    expect(prismaMock.item.updateMany).toHaveBeenCalledWith({
+      where: { libraryId: "lib_1", isbn13: "9780063345164" },
+      data: { updatedAt: expect.any(Date) },
+    });
+  });
+
+  it("returns false when the library has no copy", async () => {
+    prismaMock.item.updateMany.mockResolvedValue({ count: 0 });
+    expect(await actions.confirmBookInLibrary("lib_1", "9780063345164")).toBe(false);
+  });
+
+  it("returns false instead of throwing on errors", async () => {
+    prismaMock.item.updateMany.mockRejectedValue(new Error("boom"));
+    expect(await actions.confirmBookInLibrary("lib_1", "9780063345164")).toBe(false);
+  });
+});
+
 describe("getArlibSettings", () => {
   it("reads the settings row with id '1'", async () => {
     const settings = {

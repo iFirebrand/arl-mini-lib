@@ -46,9 +46,13 @@ describe("encryption", () => {
     expect(() => decrypt(encrypted)).toThrow("Invalid data");
   });
 
-  it("cannot read back a payload with an empty actions list (known quirk)", () => {
-    // decrypt() finds the JSON by searching for a trailing `}]}`, which an empty array never has.
+  it("round-trips a payload with an empty actions list", () => {
     const empty = JSON.stringify({ points: 0, actions: [] });
-    expect(() => decrypt(encrypt(empty))).toThrow("Invalid data");
+    expect(decrypt(encrypt(empty))).toBe(empty);
+  });
+
+  it("round-trips text that itself contains colons", () => {
+    const text = JSON.stringify({ note: "a:b:c", actions: [{ action: "ADD_BOOK" }] });
+    expect(decrypt(encrypt(text))).toBe(text);
   });
 });

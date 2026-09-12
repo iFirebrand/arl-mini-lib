@@ -86,5 +86,20 @@ describe("AddLibraryForm", () => {
     fireEvent.submit(form);
 
     expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText(/Upload failed/)).toBeInTheDocument();
+    expect(screen.queryByText("✓ lib.jpg")).not.toBeInTheDocument();
+  });
+
+  it("clears the failure message after a successful retry", async () => {
+    upload.mockResolvedValueOnce(undefined);
+    const user = userEvent.setup();
+    const { fileInput } = renderForm();
+
+    await user.upload(fileInput, new File(["img"], "bad.jpg", { type: "image/jpeg" }));
+    await waitFor(() => expect(screen.getByText(/Upload failed/)).toBeInTheDocument());
+
+    await user.upload(fileInput, new File(["img"], "good.jpg", { type: "image/jpeg" }));
+    await waitFor(() => expect(screen.getByText("✓ good.jpg")).toBeInTheDocument());
+    expect(screen.queryByText(/Upload failed/)).not.toBeInTheDocument();
   });
 });

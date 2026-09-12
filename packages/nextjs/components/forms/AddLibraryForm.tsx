@@ -19,11 +19,14 @@ export const AddLibraryForm = ({
   const [isUploading, setIsUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string>("");
   const [fileName, setFileName] = useState<string>("");
+  const [uploadFailed, setUploadFailed] = useState(false);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
       setFileName(file.name);
+      setImageUrl("");
+      setUploadFailed(false);
       setIsUploading(true);
       try {
         const url = await handleImageUpload(file);
@@ -33,6 +36,7 @@ export const AddLibraryForm = ({
         setImageUrl(url);
       } catch (error) {
         console.error("Error uploading image:", error);
+        setUploadFailed(true);
       } finally {
         setIsUploading(false);
       }
@@ -88,7 +92,10 @@ export const AddLibraryForm = ({
                 <span className="text-sm">Uploading...</span>
               </div>
             )}
-            {!isUploading && fileName && <span className="text-sm text-green-600">✓ {fileName}</span>}
+            {!isUploading && imageUrl && <span className="text-sm text-green-600">✓ {fileName}</span>}
+            {!isUploading && uploadFailed && (
+              <span className="text-sm text-red-500">Upload failed. Please try another photo (JPEG, PNG or GIF).</span>
+            )}
           </div>
 
           <input type="hidden" id="latitude" name="latitude" value={isGeolocationAvailable ? (latitude ?? "") : ""} />

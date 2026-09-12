@@ -15,8 +15,10 @@ export function EarnPoints({
   level1MultiplierCount: number;
   level1MultiplierThreshold: number;
 }) {
-  const bonusPercentage = Math.floor((failedAttempts / failedAttemptsBonusThreshold) * 100);
+  const bonusPercentage = Math.min(100, Math.floor((failedAttempts / failedAttemptsBonusThreshold) * 100));
   const level1MultiplierPercentage = Math.floor((level1MultiplierCount / level1MultiplierThreshold) * 100);
+  // Matches LibraryClient: new books are doubled once the multiplier is passed, not when it fills.
+  const isMultiplierActive = level1MultiplierCount > level1MultiplierThreshold;
 
   return (
     <div>
@@ -38,7 +40,7 @@ export function EarnPoints({
           </div>
         )}
 
-        {failedAttempts === failedAttemptsBonusThreshold && (
+        {failedAttempts >= failedAttemptsBonusThreshold && (
           <div className="stat">
             <div className="stat-title">Persistency Bonus</div>
             <div className="stat-value">5</div>
@@ -49,7 +51,7 @@ export function EarnPoints({
         {newBookPoints > 0 && (
           <div className="stat">
             <div className="stat-title">New Book Points</div>
-            <div className="stat-value">{level1MultiplierPercentage >= 100 ? newBookPoints * 2 : newBookPoints}</div>
+            <div className="stat-value">{isMultiplierActive ? newBookPoints * 2 : newBookPoints}</div>
             <div className="stat-desc">First scan at library pays big</div>
           </div>
         )}

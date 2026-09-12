@@ -20,7 +20,7 @@ const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif"];
 async function uploadToSupabase(file: File): Promise<string> {
   // File validation
   if (file.size > MAX_SIZE) {
-    throw new Error("File size exceeds 2MB limit");
+    throw new Error("File size exceeds 10MB limit");
   }
 
   if (!ALLOWED_TYPES.includes(file.type)) {

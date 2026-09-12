@@ -95,6 +95,27 @@ describe("cataloging books", () => {
     ]);
   });
 
+  it("confirming a book resets its last-seen time so the recency bonus starts over", async () => {
+    const library = await createTestLibrary();
+    const other = await createTestLibrary({ locationName: "Oak St" });
+    const stale = new Date(Date.now() - 40 * 24 * 60 * 60 * 1000);
+    await testPrisma.item.createMany({
+      data: [
+        { title: "The Wager", isbn13: bookInfo.isbn13, libraryId: library.id, updatedAt: stale },
+        { title: "The Wager", isbn13: bookInfo.isbn13, libraryId: other.id, updatedAt: stale },
+      ],
+    });
+
+    expect(await actions.confirmBookInLibrary(library.id, bookInfo.isbn13)).toBe(true);
+
+    const [confirmed] = await actions.getISBN13ByLibraryId(library.id);
+    expect(Date.now() - confirmed.updatedAt.getTime()).toBeLessThan(60_000);
+    const [untouched] = await actions.getISBN13ByLibraryId(other.id);
+    expect(untouched.updatedAt).toEqual(stale);
+
+    expect(await actions.confirmBookInLibrary(library.id, "0000000000000")).toBe(false);
+  });
+
   it("refuses to save a book for a library that does not exist", async () => {
     const res = await postBook({ ...bookInfo, libraryId: "does-not-exist" });
 

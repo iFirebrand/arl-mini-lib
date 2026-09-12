@@ -47,9 +47,8 @@ describe("uploadToSupabase", () => {
   });
 
   it("rejects files over 10 MB before uploading", async () => {
-    // The error message says 2MB, but the enforced limit is 10 MB.
     await expect(uploadToSupabase(makeFile("a.jpg", "image/jpeg", 10 * 1024 * 1024 + 1))).rejects.toThrow(
-      "File size exceeds",
+      "File size exceeds 10MB limit",
     );
     await expect(uploadToSupabase(makeFile("a.jpg", "image/jpeg", 10 * 1024 * 1024))).resolves.toBeTruthy();
   });

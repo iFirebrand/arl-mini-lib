@@ -9,6 +9,7 @@ const model = () => ({
   findMany: vi.fn(),
   count: vi.fn(),
   upsert: vi.fn(),
+  updateMany: vi.fn(),
 });
 
 export const prismaMock = {
