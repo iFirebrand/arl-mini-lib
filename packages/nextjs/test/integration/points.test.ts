@@ -1,7 +1,7 @@
-import { resetDatabase, testPrisma } from "./db";
+import { appPrisma, resetDatabase, testPrisma } from "./db";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("~~/lib/db", async () => ({ default: (await import("./db")).testPrisma }));
+vi.mock("~~/lib/db", async () => ({ default: (await import("./db")).appPrisma }));
 vi.mock("next/headers", () => ({ headers: () => new Headers({ referer: "http://localhost:3000/libs/abc" }) }));
 
 const { GET, POST } = await import("~~/app/api/points/route");
@@ -24,7 +24,7 @@ const balance = async (walletAddress: string) =>
     .currentTotal;
 
 beforeEach(resetDatabase);
-afterAll(() => testPrisma.$disconnect());
+afterAll(() => Promise.all([testPrisma.$disconnect(), appPrisma.$disconnect()]));
 
 describe("banking points", () => {
   it("creates a user on first deposit and adds to it afterwards", async () => {
