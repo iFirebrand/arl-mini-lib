@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import prisma from "../../../lib/db";
 import { validatePointActions } from "../../../lib/points";
 import { rateLimit } from "../../../lib/rate-limit";
+import { getClientIp, isAllowedReferer } from "../../../lib/requestGuards";
 
 // Scanning a book takes a few seconds, so 30 requests a minute leaves room for real use.
 const limiter = rateLimit({
@@ -11,30 +12,9 @@ const limiter = rateLimit({
   limit: 30,
 });
 
-const toOrigin = (url: string | null | undefined) => {
-  try {
-    return url ? new URL(url).origin : null;
-  } catch {
-    return null;
-  }
-};
-
-// Compares whole origins, so look-alikes such as https://arlib.me.example.com are rejected.
-const isAllowedReferer = (referer: string | null) => {
-  const origin = toOrigin(referer);
-  if (!origin) return false;
-  const allowed = ["https://arlib.me", "https://www.arlib.me", process.env.NEXT_PUBLIC_APP_URL];
-  if (process.env.NODE_ENV !== "production") {
-    allowed.push("http://localhost:3000", "http://192.168.1.232:3000");
-  }
-  return allowed.some(url => toOrigin(url) === origin);
-};
-
 export async function POST(request: Request) {
   try {
-    // Rate limiting. x-forwarded-for can be a list; the first entry is the client.
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "anonymous";
-    const { success } = limiter.check(ip);
+    const { success } = limiter.check(getClientIp(request));
     if (!success) {
       return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
     }

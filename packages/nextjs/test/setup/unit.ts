@@ -3,10 +3,9 @@ import { cleanup } from "@testing-library/react";
 import { afterEach, beforeEach, vi } from "vitest";
 
 // Unit tests must never reach a real database or Supabase project.
-// lib/supabase.ts throws at import time without these, so give it harmless values.
+// lib/supabase.ts needs these before it uploads anything, so give it harmless values.
 process.env.NEXT_PUBLIC_SUPABASE_URL = "http://supabase.test";
-process.env.NEXT_PUBLIC_SUPABASE_KEY = "test-key";
-process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "test-anon-key";
+process.env.SUPABASE_SECRET_KEY = "sb_secret_test";
 delete process.env.DATABASE_URL;
 delete process.env.DIRECT_URL;
 

@@ -1,3 +1,4 @@
+import { CLIENT_SECRET_MARKERS } from "../scripts/secretMarkers.mjs";
 import { expect, test } from "@playwright/test";
 
 // Keep everything here read-only: these tests may run against production data.
@@ -82,4 +83,21 @@ test.describe("API", () => {
     expect(res.status()).toBe(200);
     expect(await res.json()).toEqual({ success: true, currentTotal: expect.any(Number) });
   });
+});
+
+test.describe("security", () => {
+  // Pages whose scripts include the most client code, including the add-library photo upload.
+  for (const path of ["/", "/libs", "/browse", "/stats"]) {
+    test(`no Supabase secret key in the scripts for ${path}`, async ({ request }) => {
+      const html = await (await request.get(path)).text();
+      const scripts = [...new Set(html.match(/\/_next\/static\/[^"']+\.js/g) ?? [])];
+      expect(scripts.length).toBeGreaterThan(0);
+
+      for (const script of scripts) {
+        const source = await (await request.get(script)).text();
+        const found = CLIENT_SECRET_MARKERS.filter(marker => source.includes(marker));
+        expect(found, `secret marker in ${script}`).toEqual([]);
+      }
+    });
+  }
 });

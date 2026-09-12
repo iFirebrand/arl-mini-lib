@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "prisma generate && next build",
+    "build": "prisma generate && next build && node scripts/check-client-bundle.mjs",
+    "check:bundle": "node scripts/check-client-bundle.mjs",
     "check-types": "tsc --noEmit --incremental",
     "dev": "next dev",
     "format": "prettier --write . '!(node_modules|.next|contracts)/**/*'",
@@ -47,6 +48,7 @@
     "react-dom": "~18.3.1",
     "react-dom-confetti": "^0.2.0",
     "react-hot-toast": "~2.4.0",
+    "server-only": "^0.0.1",
     "usehooks-ts": "~3.1.0",
     "uuid": "^11.0.3",
     "viem": "2.21.32",
