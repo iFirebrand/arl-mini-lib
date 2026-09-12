@@ -1,8 +1,8 @@
 import { bookInfo, jsonResponse, openLibraryResponse } from "../fixtures/openLibrary";
-import { createTestLibrary, resetDatabase, testPrisma } from "./db";
+import { appPrisma, createTestLibrary, resetDatabase, testPrisma } from "./db";
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("~~/lib/db", async () => ({ default: (await import("./db")).testPrisma }));
+vi.mock("~~/lib/db", async () => ({ default: (await import("./db")).appPrisma }));
 vi.mock("next/headers", () => ({ headers: () => new Headers({ referer: "http://localhost:3000/libs/abc" }) }));
 
 const actions = await import("~~/actions/actions");
@@ -28,7 +28,7 @@ beforeEach(async () => {
   );
 });
 afterEach(() => vi.unstubAllGlobals());
-afterAll(() => testPrisma.$disconnect());
+afterAll(() => Promise.all([testPrisma.$disconnect(), appPrisma.$disconnect()]));
 
 describe("adding a library", () => {
   it("creates it and finds it again from a nearby location", async () => {

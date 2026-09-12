@@ -1,9 +1,13 @@
+import { getTestAppDatabaseUrl } from "../setup/testDatabaseUrl";
 import { PrismaClient } from "@prisma/client";
 
-// Real PrismaClient connected to the test database. Integration tests swap it in for lib/db.ts,
-// which would otherwise sign in to the production Supabase project first:
-//   vi.mock("~~/lib/db", async () => ({ default: (await import("./db")).testPrisma }));
+// Admin connection for setting up and inspecting test data.
 export const testPrisma = new PrismaClient();
+
+// What the app gets: the least-privilege arlib_app role, exactly as in production. Swap it in for
+// lib/db.ts, which would otherwise use DATABASE_URL:
+//   vi.mock("~~/lib/db", async () => ({ default: (await import("./db")).appPrisma }));
+export const appPrisma = new PrismaClient({ datasourceUrl: getTestAppDatabaseUrl() });
 
 export async function resetDatabase() {
   await testPrisma.$executeRawUnsafe(
