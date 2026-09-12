@@ -86,6 +86,14 @@ test.describe("API", () => {
 });
 
 test.describe("security", () => {
+  test("pages send the security headers", async ({ request }) => {
+    const headers = (await request.get("/")).headers();
+    expect(headers["x-content-type-options"]).toBe("nosniff");
+    expect(headers["x-frame-options"]).toBe("DENY");
+    expect(headers["content-security-policy"]).toContain("frame-ancestors 'none'");
+    expect(headers["permissions-policy"]).toContain("camera=(self)");
+  });
+
   // Pages whose scripts include the most client code, including the add-library photo upload.
   for (const path of ["/", "/libs", "/browse", "/stats"]) {
     test(`no Supabase secret key in the scripts for ${path}`, async ({ request }) => {
