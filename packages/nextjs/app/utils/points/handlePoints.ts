@@ -16,8 +16,6 @@ export const handlePoints = async (
       return;
     }
 
-    addPoints(-points, actionType);
-
     const pointAction = {
       points,
       type: actionType,

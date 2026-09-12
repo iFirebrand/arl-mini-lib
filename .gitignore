@@ -24,3 +24,5 @@ dist
 
 # database
 .db
+.vercel
+.env*

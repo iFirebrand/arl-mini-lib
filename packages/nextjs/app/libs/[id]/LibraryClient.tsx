@@ -7,9 +7,11 @@ import Scan from "./App";
 import { EarnPoints } from "./EarnPoints";
 import { fetchBookData } from "./fetchBookData";
 import { saveBookToDatabase } from "./saveBookToDatabase";
+import { getBookRecencyBonus } from "./scoring";
 import Confetti from "react-dom-confetti";
 import { toast } from "react-hot-toast";
 import { useAccount } from "wagmi";
+import { confirmBookInLibrary } from "~~/actions/actions";
 import { useBankedPoints } from "~~/app/contexts/BankedPointsContext";
 import { usePoints } from "~~/app/contexts/PointsContext";
 import { handlePoints } from "~~/app/utils/points/handlePoints";
@@ -39,6 +41,7 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
   const [scannedBooks, setScannedBooks] = useState<BookInfo[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
+  const [persistenceBonusAwarded, setPersistenceBonusAwarded] = useState(false);
   const [bookRecencyBonus, setBookRecencyBonus] = useState(0);
   const [newBookPoints, setNewBookPoints] = useState(0);
   const [currentBookTitle, setCurrentBookTitle] = useState("");
@@ -93,8 +96,10 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
   const handleAddPointsForBook = useCallback(() => {
     let totalPoints = 0;
 
-    if (failedAttempts === failedAttemptsBonusThreshold) {
+    // Awarded once per visit, with the first points earned after enough failed scans.
+    if (failedAttempts >= failedAttemptsBonusThreshold && !persistenceBonusAwarded) {
       totalPoints += 5;
+      setPersistenceBonusAwarded(true);
     }
 
     if (level1MultiplierCount <= level1MultiplierThreshold) {
@@ -106,7 +111,14 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
     totalPoints += bookRecencyBonus;
 
     addPointsForBook(Math.floor(Number(totalPoints)));
-  }, [failedAttempts, level1MultiplierCount, newBookPoints, bookRecencyBonus, addPointsForBook]);
+  }, [
+    failedAttempts,
+    persistenceBonusAwarded,
+    level1MultiplierCount,
+    newBookPoints,
+    bookRecencyBonus,
+    addPointsForBook,
+  ]);
 
   useEffect(() => {
     if (shouldAddPoints) {
@@ -174,45 +186,34 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
 
       setCurrentBookTitle(bookData.title);
 
-      let bookRecencyStatus = 0;
-      const scannedBook = isbn13s.find(book => book.isbn13 === bookData.isbn13);
-      if (scannedBook) {
-        const timeDifference = new Date().getTime() - new Date(scannedBook.updatedAt).getTime();
-        const daysDifference = timeDifference / (1000 * 3600 * 24);
-        if (daysDifference >= 1 && daysDifference <= 7) {
-          bookRecencyStatus = 1;
-        } else if (daysDifference >= 8 && daysDifference <= 14) {
-          bookRecencyStatus = 2;
-        } else if (daysDifference >= 15 && daysDifference <= 21) {
-          bookRecencyStatus = 3;
-        } else if (daysDifference >= 22 && daysDifference <= 28) {
-          bookRecencyStatus = 4;
-        } else if (daysDifference > 29) {
-          bookRecencyStatus = 5;
-        }
-      }
-      setBookRecencyBonus(bookRecencyStatus);
+      const alreadyScanned = scannedBooks.some(book => book.isbn13 === bookData.isbn13);
+      const inLibrary = isbn13s.find(book => book.isbn13 === bookData.isbn13);
+      const recencyBonus = inLibrary ? getBookRecencyBonus(inLibrary.updatedAt) : 0;
 
-      if (
-        !isbn13s.some(book => book.isbn13 === bookData.isbn13) &&
-        !scannedBooks.some(book => book.isbn13 === bookData.isbn13)
-      ) {
-        setLevel1MultiplierCount(prev => prev + 1);
-        setNewBookPoints(5);
-        setShouldAddPoints(true);
-      }
-
-      if (
-        scannedBooks.some(book => book.isbn13 === bookData.isbn13) ||
-        isbn13s.some(book => book.isbn13 === bookData.isbn13)
-      ) {
+      if (alreadyScanned || (inLibrary && recencyBonus === 0)) {
         toast("No more updates needed for this book.", {
           icon: "ℹ️",
         });
         return;
       }
 
+      if (inLibrary) {
+        // The library already has this book; reward confirming it's still on the shelf.
+        if (!(await confirmBookInLibrary(library.id, bookData.isbn13))) {
+          throw new Error("Could not confirm book");
+        }
+        setBookRecencyBonus(recencyBonus);
+        setShouldAddPoints(true);
+        setScannedBooks(prev => [...prev, bookData]);
+        toast.success("Thanks for confirming this book is still here!");
+        return;
+      }
+
+      // Points only once the book is saved.
       await saveBookToDatabase(bookData);
+      setLevel1MultiplierCount(prev => prev + 1);
+      setNewBookPoints(5);
+      setShouldAddPoints(true);
       setScannedBooks(prev => [...prev, bookData]);
 
       toast.success("Book added successfully!");
@@ -257,7 +258,7 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
           <div className="card bg-base-100 max-w-96 shadow-xl">
             <div className="card-body">
               <h2 className="card-title">You must be at the library to scan</h2>
-              <p>The scanning feature is activated when you are about 30 feet from the library.</p>
+              <p>The scanning feature turns on when your phone&apos;s location shows you at the library.</p>
               <div className="card-actions justify-end">
                 <Link href="/" className="btn btn-primary">
                   Back to Home
