@@ -1,5 +1,12 @@
-// The server looks the book up by ISBN itself, so only the ISBN and library are sent.
-export async function saveBookToDatabase(book: { isbn13: string; libraryId: string }): Promise<void> {
+export interface BookAward {
+  pointsAwarded: number;
+  total: number;
+  newBooksThisVisit: number;
+}
+
+// The server looks the book up by ISBN itself and decides the points, so only the ISBN and
+// library are sent. Returns the points awarded, or null if none (e.g. the book was already there).
+export async function saveBookToDatabase(book: { isbn13: string; libraryId: string }): Promise<BookAward | null> {
   const response = await fetch("/api/saveBook", {
     method: "POST",
     headers: {
@@ -11,4 +18,5 @@ export async function saveBookToDatabase(book: { isbn13: string; libraryId: stri
   if (!response.ok) {
     throw new Error(`Save book API failed with status: ${response.status}`);
   }
+  return (await response.json()).award ?? null;
 }

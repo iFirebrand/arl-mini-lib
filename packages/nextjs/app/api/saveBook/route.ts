@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { awardPoints, getOrCreateAccount, newBookPoints } from "../../../lib/accounts";
 import prisma from "../../../lib/db";
 import { lookupBook, normalizeIsbn } from "../../../lib/openLibrary";
 import { rateLimit } from "../../../lib/rate-limit";
@@ -11,7 +12,8 @@ const limiter = rateLimit({ interval: 60 * 1000, uniqueTokenPerInterval: 500, li
 // Saves a scanned book. Only the ISBN and library come from the browser; the book details are
 // looked up here, so nothing a visitor types ends up in the catalog as-is.
 export async function POST(req: Request) {
-  if (!limiter.check(getClientIp(req)).success) {
+  const clientIp = getClientIp(req);
+  if (!limiter.check(clientIp).success) {
     return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
   }
   if (!isAllowedReferer(headers().get("referer"))) {
@@ -42,16 +44,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 });
     }
 
-    // One entry per book per library.
+    // One entry per book per library, and no points for a book the library already has.
     const existing = await prisma.item.findFirst({ where: { libraryId, isbn13: book.isbn13 } });
     if (existing) {
-      return NextResponse.json(existing, { status: 200 });
+      return NextResponse.json({ ...existing, award: null }, { status: 200 });
     }
 
     const newItem = await prisma.item.create({
       data: { ...book, library: { connect: { id: libraryId } } },
     });
-    return NextResponse.json(newItem, { status: 201 });
+
+    // Points are decided here, never by the browser.
+    const account = await getOrCreateAccount(clientIp);
+    let award = null;
+    if (account) {
+      const { points, newBooksThisVisit } = await newBookPoints(account.id, libraryId);
+      award = {
+        ...(await awardPoints(account.id, "ADD_BOOK", points, { libraryId, itemId: newItem.id })),
+        newBooksThisVisit,
+      };
+    }
+    return NextResponse.json({ ...newItem, award }, { status: 201 });
   } catch (error) {
     console.error("Error saving book:", error);
     return NextResponse.json({ error: "Failed to save book" }, { status: 500 });

@@ -73,15 +73,10 @@ test.describe("API", () => {
     expect(await res.json()).toEqual({ error: "ISBN is required" });
   });
 
-  test("points lookup requires a wallet", async ({ request }) => {
-    const res = await request.get("/api/points");
-    expect(res.status()).toBe(400);
-  });
-
-  test("points lookup returns a total for any wallet", async ({ request }) => {
-    const res = await request.get("/api/points?walletAddress=0x000000000000000000000000000000000000dEaD");
+  test("a new visitor has no account until they earn points", async ({ request }) => {
+    const res = await request.get("/api/account");
     expect(res.status()).toBe(200);
-    expect(await res.json()).toEqual({ success: true, currentTotal: expect.any(Number) });
+    expect(await res.json()).toEqual({ account: null });
   });
 });
 

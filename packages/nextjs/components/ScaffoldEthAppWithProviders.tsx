@@ -7,8 +7,7 @@ import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
 import { useTheme } from "next-themes";
 import { Toaster } from "react-hot-toast";
 import { WagmiProvider } from "wagmi";
-import { BankedPointsProvider } from "~~/app/contexts/BankedPointsContext";
-import { PointsProvider } from "~~/app/contexts/PointsContext";
+import { AccountProvider } from "~~/app/contexts/AccountContext";
 import { Footer } from "~~/components/Footer";
 import { Header } from "~~/components/Header";
 import { BlockieAvatar } from "~~/components/scaffold-eth";
@@ -55,11 +54,9 @@ export const ScaffoldEthAppWithProviders = ({ children }: { children: React.Reac
           avatar={BlockieAvatar}
           theme={mounted ? (isDarkMode ? darkTheme() : lightTheme()) : lightTheme()}
         >
-          <PointsProvider>
-            <BankedPointsProvider>
-              <ScaffoldEthApp>{children}</ScaffoldEthApp>
-            </BankedPointsProvider>
-          </PointsProvider>
+          <AccountProvider>
+            <ScaffoldEthApp>{children}</ScaffoldEthApp>
+          </AccountProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

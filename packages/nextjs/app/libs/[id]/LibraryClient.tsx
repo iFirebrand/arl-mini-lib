@@ -1,20 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { checkIfLocationMatches } from "../../../components/maps/checkIfLocationMatches";
 import Scan from "./App";
-import { EarnPoints } from "./EarnPoints";
+import { Award, EarnPoints } from "./EarnPoints";
 import { fetchBookData } from "./fetchBookData";
 import { saveBookToDatabase } from "./saveBookToDatabase";
 import { getBookRecencyBonus } from "./scoring";
 import Confetti from "react-dom-confetti";
 import { toast } from "react-hot-toast";
-import { useAccount } from "wagmi";
 import { confirmBookInLibrary } from "~~/actions/actions";
-import { useBankedPoints } from "~~/app/contexts/BankedPointsContext";
-import { usePoints } from "~~/app/contexts/PointsContext";
-import { handlePoints } from "~~/app/utils/points/handlePoints";
+import { useAccountContext } from "~~/app/contexts/AccountContext";
 
 interface LibraryClientProps {
   library: {
@@ -36,20 +33,19 @@ interface BookInfo {
   libraryId: string;
 }
 
+// Matches MULTIPLIER_AFTER on the server: new books after the first three in a visit earn double.
+const MULTIPLIER_AFTER = 3;
+
 export default function LibraryClient({ library, isbn13s }: LibraryClientProps) {
   const [isAtLibrary, setIsAtLibrary] = useState(false);
   const [scannedBooks, setScannedBooks] = useState<BookInfo[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [failedAttempts, setFailedAttempts] = useState(0);
-  const [persistenceBonusAwarded, setPersistenceBonusAwarded] = useState(false);
-  const [bookRecencyBonus, setBookRecencyBonus] = useState(0);
-  const [newBookPoints, setNewBookPoints] = useState(0);
   const [currentBookTitle, setCurrentBookTitle] = useState("");
-  const [level1MultiplierCount, setLevel1MultiplierCount] = useState(0);
-  const [shouldAddPoints, setShouldAddPoints] = useState(false);
-  const { address } = useAccount();
-  const { addPoints } = usePoints();
-  const { setBankedPointsTotal } = useBankedPoints();
+  // Everything below comes from the server's response; the browser never decides points.
+  const [lastAward, setLastAward] = useState<Award | null>(null);
+  const [pointsThisVisit, setPointsThisVisit] = useState(0);
+  const [newBooksThisVisit, setNewBooksThisVisit] = useState(0);
+  const { account, refresh, setPoints } = useAccountContext();
 
   const [isExploding, setIsExploding] = useState(false);
   const targetRef = useRef(null);
@@ -69,12 +65,6 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
     colors: ["#0057B7", "#FFDD00"],
   };
 
-  useEffect(() => {
-    if (newBookPoints === 5) {
-      handleConfettiAction();
-    }
-  }, [newBookPoints]);
-
   const handleConfettiAction = () => {
     setIsExploding(true);
     setTimeout(() => {
@@ -82,59 +72,14 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
     }, 3000);
   };
 
-  const addPointsForBook = useCallback(
-    (amount: number) => {
-      handlePoints(address, amount, "ADD_BOOK", addPoints, setBankedPointsTotal);
-    },
-    [address, addPoints, setBankedPointsTotal],
-  );
-
-  const level1MultiplierThreshold = 3;
-
-  const failedAttemptsBonusThreshold = 10;
-
-  const handleAddPointsForBook = useCallback(() => {
-    let totalPoints = 0;
-
-    // Awarded once per visit, with the first points earned after enough failed scans.
-    if (failedAttempts >= failedAttemptsBonusThreshold && !persistenceBonusAwarded) {
-      totalPoints += 5;
-      setPersistenceBonusAwarded(true);
-    }
-
-    if (level1MultiplierCount <= level1MultiplierThreshold) {
-      totalPoints += newBookPoints;
-    } else {
-      totalPoints += newBookPoints * 2;
-    }
-
-    totalPoints += bookRecencyBonus;
-
-    addPointsForBook(Math.floor(Number(totalPoints)));
-  }, [
-    failedAttempts,
-    persistenceBonusAwarded,
-    level1MultiplierCount,
-    newBookPoints,
-    bookRecencyBonus,
-    addPointsForBook,
-  ]);
-
-  useEffect(() => {
-    if (shouldAddPoints) {
-      handleAddPointsForBook();
-      setShouldAddPoints(false);
-    }
-  }, [shouldAddPoints, handleAddPointsForBook]);
-
-  useEffect(() => {
-    console.log("State variables:", {
-      failedAttempts,
-      bookRecencyBonus,
-      newBookPoints,
-      level1MultiplierCount,
-    });
-  }, [failedAttempts, bookRecencyBonus, newBookPoints, level1MultiplierCount]);
+  const recordAward = (kind: Award["kind"], points: number, total?: number) => {
+    setLastAward({ kind, points });
+    if (points <= 0) return;
+    setPointsThisVisit(previous => previous + points);
+    // The first award creates the account; load it so the header shows it.
+    if (account && total !== undefined) setPoints(total);
+    else refresh();
+  };
 
   useEffect(() => {
     const getPosition = (): Promise<GeolocationPosition> => {
@@ -169,17 +114,13 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
 
     setIsProcessing(true);
     setIsLoading(true);
-
-    // Reset state variables
-    setNewBookPoints(0);
-    setBookRecencyBonus(0);
+    setLastAward(null);
 
     try {
       if (!library) return;
       const bookData: BookInfo | null = await fetchBookData(isbn, library.id);
 
       if (!bookData) {
-        setFailedAttempts(prev => prev + 1);
         toast.error("Not found. Try again? Newer books only for now.");
         return;
       }
@@ -188,9 +129,8 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
 
       const alreadyScanned = scannedBooks.some(book => book.isbn13 === bookData.isbn13);
       const inLibrary = isbn13s.find(book => book.isbn13 === bookData.isbn13);
-      const recencyBonus = inLibrary ? getBookRecencyBonus(inLibrary.updatedAt) : 0;
 
-      if (alreadyScanned || (inLibrary && recencyBonus === 0)) {
+      if (alreadyScanned || (inLibrary && getBookRecencyBonus(inLibrary.updatedAt) === 0)) {
         toast("No more updates needed for this book.", {
           icon: "ℹ️",
         });
@@ -198,23 +138,24 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
       }
 
       if (inLibrary) {
-        // The library already has this book; reward confirming it's still on the shelf.
-        if (!(await confirmBookInLibrary(library.id, bookData.isbn13))) {
+        // The library already has this book; confirming it's still on the shelf earns a bonus.
+        const result = await confirmBookInLibrary(library.id, bookData.isbn13);
+        if (!result.confirmed) {
           throw new Error("Could not confirm book");
         }
-        setBookRecencyBonus(recencyBonus);
-        setShouldAddPoints(true);
+        recordAward("recency", result.pointsAwarded, result.total);
         setScannedBooks(prev => [...prev, bookData]);
         toast.success("Thanks for confirming this book is still here!");
         return;
       }
 
-      // Points only once the book is saved.
-      await saveBookToDatabase(bookData);
-      setLevel1MultiplierCount(prev => prev + 1);
-      setNewBookPoints(5);
-      setShouldAddPoints(true);
+      const award = await saveBookToDatabase(bookData);
       setScannedBooks(prev => [...prev, bookData]);
+      if (award) {
+        setNewBooksThisVisit(award.newBooksThisVisit);
+        recordAward("new", award.pointsAwarded, award.total);
+        handleConfettiAction();
+      }
 
       toast.success("Book added successfully!");
     } catch (error) {
@@ -240,17 +181,12 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
               <h2>{currentBookTitle}</h2>
             </div>
 
-            {
-              <EarnPoints
-                failedAttempts={failedAttempts}
-                failedAttemptsBonusThreshold={failedAttemptsBonusThreshold}
-                bookRecencyBonus={bookRecencyBonus}
-                newBookPoints={newBookPoints}
-                booksScanned={scannedBooks.length}
-                level1MultiplierCount={level1MultiplierCount}
-                level1MultiplierThreshold={level1MultiplierThreshold}
-              />
-            }
+            <EarnPoints
+              lastAward={lastAward}
+              pointsThisVisit={pointsThisVisit}
+              newBooksThisVisit={newBooksThisVisit}
+              multiplierAfter={MULTIPLIER_AFTER}
+            />
           </div>
         </div>
       ) : (

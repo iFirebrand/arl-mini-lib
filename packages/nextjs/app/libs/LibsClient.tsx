@@ -6,11 +6,7 @@ import dynamic from "next/dynamic";
 import { checkLibraryExists, createLibrary } from "../../actions/actions";
 import { AddLibraryForm } from "../../components/forms/AddLibraryForm";
 import { handleGeoLocation } from "../../components/maps/handleGeoLocation";
-import { useBankedPoints } from "../contexts/BankedPointsContext";
-import { usePoints } from "../contexts/PointsContext";
-import { handlePoints } from "../utils/points/handlePoints";
 import confetti from "canvas-confetti";
-import { useAccount } from "wagmi";
 import { ShowLibraryCard } from "~~/components/minilibs/ShowLibraryCard";
 
 type ExistingLibrary = {
@@ -26,9 +22,6 @@ type ExistingLibrary = {
 };
 
 export default function LibsClient() {
-  const { address } = useAccount();
-  const { addPoints } = usePoints();
-  const { setBankedPointsTotal } = useBankedPoints();
   const [isGeolocationAvailable, setIsGeolocationAvailable] = useState(false);
   const [latitude, setLatitude] = useState<string | null>(null);
   const [longitude, setLongitude] = useState<string | null>(null);
@@ -91,13 +84,12 @@ export default function LibsClient() {
 
     try {
       const newLibrary = await createLibrary(formData);
-      if (!newLibrary.id) {
+      if (!("id" in newLibrary)) {
         alert(newLibrary.error ?? "Failed to create library. Please try again.");
         return;
       }
 
-      // Points only for a saved library; wait so leaving the page doesn't cancel the request.
-      await handlePoints(address, 50, "CREATE_LIBRARY", addPoints, setBankedPointsTotal);
+      // The server awarded the points with the library; the next page shows the new total.
       window.location.href = `/profile?libraryId=${newLibrary.id}`;
     } catch (error) {
       console.error("Error creating library:", error);

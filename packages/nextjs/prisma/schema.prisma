@@ -43,6 +43,8 @@ model Library {
   items Item[] @relation("LibraryItems")
 }
 
+// Wallet-based players from before accounts existed. Read-only: their points were copied into
+// Account rows (prisma/sql/import-wallet-users.sql), claimable by that wallet later.
 model User {
   id String @id @default(cuid())
   walletAddress String? @unique
@@ -50,6 +52,51 @@ model User {
   curatorOf Library[] @relation("LibraryCurators")
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
+}
+
+// An anonymous player, created the first time they earn points. No email or name is stored;
+// a passkey lets them sign back in on any device.
+model Account {
+  id            String       @id @default(cuid())
+  displayName   String       @unique
+  points        Int          @default(0)
+  // Linked later, to convert points into tokens.
+  walletAddress String?      @unique
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  passkeys      Passkey[]
+  pointEvents   PointEvent[]
+}
+
+model Passkey {
+  // WebAuthn credential ID, base64url.
+  id         String    @id
+  accountId  String
+  account    Account   @relation(fields: [accountId], references: [id])
+  publicKey  Bytes
+  counter    Int       @default(0)
+  transports String?
+  deviceType String
+  backedUp   Boolean
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+
+  @@index([accountId])
+}
+
+// Every point ever awarded, so totals can be audited before points become tokens.
+model PointEvent {
+  id        String   @id @default(cuid())
+  accountId String
+  account   Account  @relation(fields: [accountId], references: [id])
+  // ADD_BOOK, CONFIRM_BOOK, CREATE_LIBRARY, IMPORTED_WALLET_POINTS
+  action    String
+  points    Int
+  libraryId String?
+  itemId    String?
+  createdAt DateTime @default(now())
+
+  @@index([accountId, createdAt])
 }
 model Item {
   id String @id @default(cuid())

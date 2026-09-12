@@ -1,8 +1,8 @@
 -- Least-privilege database access for arlib.me.
 --
 -- The app (Prisma at runtime) connects as arlib_app, which can only do what the code does:
--- read everything it shows, add libraries/books/users/votes, and update book "last confirmed"
--- times and point totals. No DELETE, TRUNCATE or schema changes. The postgres role is kept for
+-- read everything it shows, add libraries/books/votes/accounts/passkeys/point history, and
+-- update book "last confirmed" times, point totals and passkey counters. No DELETE, TRUNCATE or schema changes. The postgres role is kept for
 -- migrations (DIRECT_URL) and never used by the running site.
 --
 -- Safe to re-run. The role's password is set separately and never stored in the repo:
@@ -26,6 +26,10 @@ grant select, insert, update on "Item"          to arlib_app;
 grant select, insert, update on "User"          to arlib_app;
 grant select, insert         on "Poll"          to arlib_app;
 grant select                 on "ArlibSettings" to arlib_app;
+grant select, insert, update on "Account"       to arlib_app;
+grant select, insert, update on "Passkey"       to arlib_app;
+-- Update moves a player's history when an anonymous account is merged into a passkey account.
+grant select, insert, update on "PointEvent"    to arlib_app;
 
 -- Row-level security stays on; arlib_app gets exactly the matching policies.
 do $$
@@ -38,7 +42,10 @@ begin
       ('Item', 'select'), ('Item', 'insert'), ('Item', 'update'),
       ('User', 'select'), ('User', 'insert'), ('User', 'update'),
       ('Poll', 'select'), ('Poll', 'insert'),
-      ('ArlibSettings', 'select')
+      ('ArlibSettings', 'select'),
+      ('Account', 'select'), ('Account', 'insert'), ('Account', 'update'),
+      ('Passkey', 'select'), ('Passkey', 'insert'), ('Passkey', 'update'),
+      ('PointEvent', 'select'), ('PointEvent', 'insert'), ('PointEvent', 'update')
     ) as t(tbl, cmd)
   loop
     execute format('drop policy if exists %I on %I', 'arlib_app ' || rule.cmd, rule.tbl);

@@ -5,6 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("~~/lib/db", async () => ({ default: (await import("../../mocks/prisma")).prismaMock }));
 
+// Account creation and point awards have their own tests (accounts.test.ts, integration).
+const accounts = vi.hoisted(() => ({ getOrCreateAccount: vi.fn(), awardPoints: vi.fn() }));
+vi.mock("~~/lib/accounts", () => ({ ...accounts, CREATE_LIBRARY_POINTS: 50 }));
+
 // Server actions rate-limit by client IP; give every call its own IP unless a test pins one.
 const client = vi.hoisted(() => ({ ip: "", counter: 0 }));
 vi.mock("next/headers", () => ({
@@ -31,6 +35,10 @@ const formData = (fields: Record<string, string>) => {
 
 beforeEach(() => {
   client.ip = "";
+  accounts.getOrCreateAccount.mockReset().mockResolvedValue({ id: "acc_1" });
+  accounts.awardPoints
+    .mockReset()
+    .mockImplementation(async (_id, _action, points) => ({ pointsAwarded: points, total: 100 }));
   Object.values(prismaMock).forEach(model => Object.values(model).forEach(fn => fn.mockReset()));
 });
 
@@ -42,11 +50,28 @@ describe("createLibrary", () => {
   it("parses coordinates from the form and returns the new id", async () => {
     prismaMock.library.create.mockResolvedValue({ id: "lib_new" });
 
-    expect(await actions.createLibrary(formData(fields))).toEqual({ id: "lib_new" });
+    expect(await actions.createLibrary(formData(fields))).toEqual({ id: "lib_new", pointsAwarded: 50, total: 100 });
+    expect(accounts.awardPoints).toHaveBeenCalledWith("acc_1", "CREATE_LIBRARY", 50, { libraryId: "lib_new" });
     expect(prismaMock.library.create).toHaveBeenCalledWith({
       data: { locationName: "Maple St", latitude: 38.8812, longitude: -77.1043, imageUrl: OWN_IMAGE },
       select: { id: true },
     });
+  });
+
+  it("still creates the library when this connection can't get a new account", async () => {
+    prismaMock.library.create.mockResolvedValue({ id: "lib_new" });
+    accounts.getOrCreateAccount.mockResolvedValue(null);
+
+    expect(await actions.createLibrary(formData(fields))).toEqual({ id: "lib_new", pointsAwarded: 0, total: 0 });
+    expect(accounts.awardPoints).not.toHaveBeenCalled();
+  });
+
+  it("awards nothing when the library fails to save", async () => {
+    prismaMock.library.create.mockRejectedValue(new Error("connection refused"));
+
+    await actions.createLibrary(formData(fields));
+
+    expect(accounts.awardPoints).not.toHaveBeenCalled();
   });
 
   it("trims the name and allows a library without a photo", async () => {
@@ -82,7 +107,7 @@ describe("createLibrary", () => {
     prismaMock.library.create.mockResolvedValue({ id: "lib_new" });
     client.ip = "192.0.2.10";
     for (let i = 0; i < 10; i++) {
-      expect(await actions.createLibrary(formData(fields))).toEqual({ id: "lib_new" });
+      expect(await actions.createLibrary(formData(fields))).toMatchObject({ id: "lib_new" });
     }
     expect(await actions.createLibrary(formData(fields))).toEqual({
       error: "Too many new libraries from this connection. Try again later.",
@@ -232,29 +257,64 @@ describe("getISBN13ByLibraryId", () => {
 });
 
 describe("confirmBookInLibrary", () => {
-  it("refreshes updatedAt on the library's copies of the book", async () => {
+  const DAY = 24 * 60 * 60 * 1000;
+  const lastSeen = (daysAgo: number) => ({ id: "item_1", updatedAt: new Date(Date.now() - daysAgo * DAY) });
+
+  it("refreshes a stale book and awards its recency bonus", async () => {
+    const latest = lastSeen(10);
+    prismaMock.item.findFirst.mockResolvedValue(latest);
     prismaMock.item.updateMany.mockResolvedValue({ count: 1 });
 
-    expect(await actions.confirmBookInLibrary("lib_1", "9780063345164")).toBe(true);
+    expect(await actions.confirmBookInLibrary("lib_1", "9780063345164")).toEqual({
+      confirmed: true,
+      pointsAwarded: 2,
+      total: 100,
+    });
     expect(prismaMock.item.updateMany).toHaveBeenCalledWith({
-      where: { libraryId: "lib_1", isbn13: "9780063345164" },
+      where: { libraryId: "lib_1", isbn13: "9780063345164", updatedAt: { lte: latest.updatedAt } },
       data: { updatedAt: expect.any(Date) },
+    });
+    expect(accounts.awardPoints).toHaveBeenCalledWith("acc_1", "CONFIRM_BOOK", 2, {
+      libraryId: "lib_1",
+      itemId: "item_1",
     });
   });
 
-  it("returns false when the library has no copy", async () => {
-    prismaMock.item.updateMany.mockResolvedValue({ count: 0 });
-    expect(await actions.confirmBookInLibrary("lib_1", "9780063345164")).toBe(false);
+  it("awards nothing, and doesn't reset the clock, for a book confirmed within a day", async () => {
+    prismaMock.item.findFirst.mockResolvedValue(lastSeen(0.5));
+
+    expect(await actions.confirmBookInLibrary("lib_1", "9780063345164")).toEqual({ confirmed: true, pointsAwarded: 0 });
+    expect(prismaMock.item.updateMany).not.toHaveBeenCalled();
+    expect(accounts.awardPoints).not.toHaveBeenCalled();
   });
 
-  it("returns false instead of throwing on errors", async () => {
-    prismaMock.item.updateMany.mockRejectedValue(new Error("boom"));
-    expect(await actions.confirmBookInLibrary("lib_1", "9780063345164")).toBe(false);
+  it("awards nothing when a simultaneous scan already claimed the bonus", async () => {
+    prismaMock.item.findFirst.mockResolvedValue(lastSeen(40));
+    prismaMock.item.updateMany.mockResolvedValue({ count: 0 });
+
+    expect(await actions.confirmBookInLibrary("lib_1", "9780063345164")).toEqual({ confirmed: true, pointsAwarded: 0 });
+    expect(accounts.awardPoints).not.toHaveBeenCalled();
+  });
+
+  it("reports a book the library doesn't have", async () => {
+    prismaMock.item.findFirst.mockResolvedValue(null);
+    expect(await actions.confirmBookInLibrary("lib_1", "9780063345164")).toEqual({
+      confirmed: false,
+      pointsAwarded: 0,
+    });
+  });
+
+  it("returns unconfirmed instead of throwing on errors", async () => {
+    prismaMock.item.findFirst.mockRejectedValue(new Error("boom"));
+    expect(await actions.confirmBookInLibrary("lib_1", "9780063345164")).toEqual({
+      confirmed: false,
+      pointsAwarded: 0,
+    });
   });
 
   it("rejects malformed ISBNs without touching the database", async () => {
-    expect(await actions.confirmBookInLibrary("lib_1", "not-an-isbn")).toBe(false);
-    expect(prismaMock.item.updateMany).not.toHaveBeenCalled();
+    expect(await actions.confirmBookInLibrary("lib_1", "not-an-isbn")).toEqual({ confirmed: false, pointsAwarded: 0 });
+    expect(prismaMock.item.findFirst).not.toHaveBeenCalled();
   });
 });
 
@@ -287,7 +347,7 @@ describe("stats", () => {
   it("counts books, libraries and users", async () => {
     prismaMock.item.count.mockResolvedValueOnce(135).mockResolvedValueOnce(12);
     prismaMock.library.count.mockResolvedValue(60);
-    prismaMock.user.count.mockResolvedValue(7);
+    prismaMock.account.count.mockResolvedValue(7);
 
     expect(await actions.totalBookCount()).toBe(135);
     expect(await actions.bookCount("lib_1")).toBe(12);
@@ -334,11 +394,15 @@ describe("stats", () => {
     expect(prismaMock.item.findMany.mock.calls[0][0]).toMatchObject({ take: 50, orderBy: { createdAt: "desc" } });
   });
 
-  it("getTopUsers asks for the 10 highest point totals", async () => {
-    prismaMock.user.findMany.mockResolvedValue([{ id: "u1", walletAddress: "0xabc", points: 99 }]);
+  it("getTopUsers lists the 10 accounts with the most points, by pseudonym", async () => {
+    prismaMock.account.findMany.mockResolvedValue([{ id: "a1", displayName: "Reader K7Q2M", points: 99 }]);
 
-    expect(await actions.getTopUsers()).toEqual([{ id: "u1", walletAddress: "0xabc", points: 99 }]);
-    expect(prismaMock.user.findMany.mock.calls[0][0]).toMatchObject({ orderBy: { points: "desc" }, take: 10 });
+    expect(await actions.getTopUsers()).toEqual([{ id: "a1", displayName: "Reader K7Q2M", points: 99 }]);
+    expect(prismaMock.account.findMany.mock.calls[0][0]).toMatchObject({
+      where: { points: { gt: 0 } },
+      orderBy: { points: "desc" },
+      take: 10,
+    });
   });
 });
 

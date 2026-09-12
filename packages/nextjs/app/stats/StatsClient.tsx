@@ -4,7 +4,6 @@ import React from "react";
 import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { BlockieAvatar } from "../../components/scaffold-eth/BlockieAvatar";
 import { PLACEHOLDER_BOOK_COVER, safeImageSrc, safeLinkHref } from "~~/lib/media";
 
 // import { getLibraryData } from "../../actions/actions";
@@ -24,7 +23,7 @@ interface StatsClientProps {
   newLibrariesCount: number;
   topUsers: {
     id: string;
-    walletAddress: string | null;
+    displayName: string;
     points: number;
   }[];
   librariesWithDescriptionCount: number;
@@ -88,7 +87,7 @@ export default function StatsClient({
           </Link>
 
           <div className="stat">
-            <div className="stat-title">Users With Wallets</div>
+            <div className="stat-title">Readers With Points</div>
             <div className="stat-value text-center">{totalUsers}</div>
             <div className="stat-desc">Wallets keep points</div>
           </div>
@@ -98,9 +97,9 @@ export default function StatsClient({
           <div className="text-center">
             <div
               className="tooltip tooltip-top"
-              data-tip="When you login your points are automatically moved into in your wallet."
+              data-tip="Everyone gets a random name. Save your points with a passkey to keep them on any device."
             >
-              <h1 className="text-xl font-semibold text-center">Top 10 Users With Points in Their Wallets</h1>
+              <h1 className="text-xl font-semibold text-center">Top 10 Readers</h1>
             </div>
           </div>
 
@@ -120,7 +119,7 @@ export default function StatsClient({
                   {topUsers.map((user, index) => (
                     <tr key={user.id}>
                       <td>{index + 1}</td>
-                      <td>{user.walletAddress && <BlockieAvatar address={user.walletAddress} size={24} />}</td>
+                      <td>{user.displayName}</td>
                       <td>{user.points}</td>
                     </tr>
                   ))}

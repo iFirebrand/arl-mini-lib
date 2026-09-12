@@ -69,6 +69,15 @@ jobs:
       - name: Build and check for leaked secrets
         run: yarn build
 
+      # Real passkey sign-up and sign-in in Chrome, against the throwaway database.
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Passkey flows
+        run: yarn test:e2e:flows
+        env:
+          TEST_DATABASE_URL: postgresql://arlib:arlib@localhost:54329/arlib_test
+
   preview-smoke:
     if: >-
       github.event_name == 'deployment_status' &&

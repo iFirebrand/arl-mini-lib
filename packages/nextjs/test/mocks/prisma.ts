@@ -10,6 +10,7 @@ const model = () => ({
   count: vi.fn(),
   upsert: vi.fn(),
   updateMany: vi.fn(),
+  update: vi.fn(),
 });
 
 export const prismaMock = {
@@ -18,4 +19,7 @@ export const prismaMock = {
   user: model(),
   poll: model(),
   arlibSettings: model(),
+  account: model(),
+  passkey: model(),
+  pointEvent: model(),
 };
