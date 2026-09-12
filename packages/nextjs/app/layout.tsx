@@ -1,10 +1,9 @@
 import Script from "next/script";
-import "@rainbow-me/rainbowkit/styles.css";
 import "leaflet/dist/leaflet.css";
-import { ScaffoldEthAppWithProviders } from "~~/components/ScaffoldEthAppWithProviders";
+import { AppWithProviders } from "~~/components/AppWithProviders";
 import { ThemeProvider } from "~~/components/ThemeProvider";
+import { getMetadata } from "~~/lib/metadata";
 import "~~/styles/globals.css";
-import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = {
   ...getMetadata({
@@ -17,7 +16,7 @@ export const metadata = {
   },
 };
 
-const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
+const RootLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <html suppressHydrationWarning>
       <head>
@@ -33,11 +32,11 @@ const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
       </head>
       <body>
         <ThemeProvider enableSystem>
-          <ScaffoldEthAppWithProviders>{children}</ScaffoldEthAppWithProviders>
+          <AppWithProviders>{children}</AppWithProviders>
         </ThemeProvider>
       </body>
     </html>
   );
 };
 
-export default ScaffoldEthApp;
+export default RootLayout;
