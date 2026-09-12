@@ -5,6 +5,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("~~/lib/db", async () => ({ default: (await import("../../mocks/prisma")).prismaMock }));
 
+// Server actions rate-limit by client IP; give every call its own IP unless a test pins one.
+const client = vi.hoisted(() => ({ ip: "", counter: 0 }));
+vi.mock("next/headers", () => ({
+  headers: () => new Headers({ "x-forwarded-for": client.ip || `10.3.0.${++client.counter}` }),
+}));
+
 const actions = await import("~~/actions/actions");
 
 const libraryRow = {
@@ -24,19 +30,62 @@ const formData = (fields: Record<string, string>) => {
 };
 
 beforeEach(() => {
+  client.ip = "";
   Object.values(prismaMock).forEach(model => Object.values(model).forEach(fn => fn.mockReset()));
 });
 
 describe("createLibrary", () => {
-  const fields = { locationName: "Maple St", latitude: "38.8812", longitude: "-77.1043", imageUrl: "https://x/y.jpg" };
+  // NEXT_PUBLIC_SUPABASE_URL is http://supabase.test in unit tests.
+  const OWN_IMAGE = "http://supabase.test/storage/v1/object/public/library-images/uploads/abc-lib.jpg";
+  const fields = { locationName: "Maple St", latitude: "38.8812", longitude: "-77.1043", imageUrl: OWN_IMAGE };
 
   it("parses coordinates from the form and returns the new id", async () => {
     prismaMock.library.create.mockResolvedValue({ id: "lib_new" });
 
     expect(await actions.createLibrary(formData(fields))).toEqual({ id: "lib_new" });
     expect(prismaMock.library.create).toHaveBeenCalledWith({
-      data: { locationName: "Maple St", latitude: 38.8812, longitude: -77.1043, imageUrl: "https://x/y.jpg" },
+      data: { locationName: "Maple St", latitude: 38.8812, longitude: -77.1043, imageUrl: OWN_IMAGE },
       select: { id: true },
+    });
+  });
+
+  it("trims the name and allows a library without a photo", async () => {
+    prismaMock.library.create.mockResolvedValue({ id: "lib_new" });
+
+    await actions.createLibrary(formData({ ...fields, locationName: "  Maple St  ", imageUrl: "" }));
+
+    expect(prismaMock.library.create.mock.calls[0][0].data).toMatchObject({ locationName: "Maple St", imageUrl: null });
+  });
+
+  it.each([
+    ["an empty name", { locationName: "   " }, "Library name must be 1 to 80 characters"],
+    ["a name over 80 characters", { locationName: "x".repeat(81) }, "Library name must be 1 to 80 characters"],
+    ["a missing latitude", { latitude: "" }, "A valid location is required"],
+    ["a latitude out of range", { latitude: "91" }, "A valid location is required"],
+    ["a non-numeric longitude", { longitude: "west" }, "A valid location is required"],
+    [
+      "a photo from another site",
+      { imageUrl: "https://example.com/x.jpg" },
+      "Library photos must be uploaded through the app",
+    ],
+    [
+      "a script URL as the photo",
+      { imageUrl: "javascript:alert(1)" },
+      "Library photos must be uploaded through the app",
+    ],
+  ])("rejects %s without writing", async (_label, override, error) => {
+    expect(await actions.createLibrary(formData({ ...fields, ...override }))).toEqual({ error });
+    expect(prismaMock.library.create).not.toHaveBeenCalled();
+  });
+
+  it("limits each connection to 10 new libraries an hour", async () => {
+    prismaMock.library.create.mockResolvedValue({ id: "lib_new" });
+    client.ip = "192.0.2.10";
+    for (let i = 0; i < 10; i++) {
+      expect(await actions.createLibrary(formData(fields))).toEqual({ id: "lib_new" });
+    }
+    expect(await actions.createLibrary(formData(fields))).toEqual({
+      error: "Too many new libraries from this connection. Try again later.",
     });
   });
 
@@ -202,6 +251,11 @@ describe("confirmBookInLibrary", () => {
     prismaMock.item.updateMany.mockRejectedValue(new Error("boom"));
     expect(await actions.confirmBookInLibrary("lib_1", "9780063345164")).toBe(false);
   });
+
+  it("rejects malformed ISBNs without touching the database", async () => {
+    expect(await actions.confirmBookInLibrary("lib_1", "not-an-isbn")).toBe(false);
+    expect(prismaMock.item.updateMany).not.toHaveBeenCalled();
+  });
 });
 
 describe("getArlibSettings", () => {
@@ -300,5 +354,22 @@ describe("recordVote", () => {
   it("throws so the UI can show an error", async () => {
     prismaMock.poll.create.mockRejectedValue(new Error("boom"));
     await expect(actions.recordVote("rewards-pool", 3)).rejects.toThrow("Failed to record vote");
+  });
+
+  it.each([
+    ["an unknown question", "free-money", 3],
+    ["a rating above 4", "rewards-pool", 5],
+    ["a rating of 0", "rewards-pool", 0],
+    ["a fractional rating", "rewards-pool", 2.5],
+  ])("rejects %s", async (_label, questionId, rating) => {
+    await expect(actions.recordVote(questionId as string, rating as number)).rejects.toThrow("Invalid vote");
+    expect(prismaMock.poll.create).not.toHaveBeenCalled();
+  });
+
+  it("limits each connection to 5 votes a minute", async () => {
+    prismaMock.poll.create.mockResolvedValue({});
+    client.ip = "192.0.2.11";
+    for (let i = 0; i < 5; i++) await actions.recordVote("rewards-pool", 4);
+    await expect(actions.recordVote("rewards-pool", 4)).rejects.toThrow("Too many votes");
   });
 });

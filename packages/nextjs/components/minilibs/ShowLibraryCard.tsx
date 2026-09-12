@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { PLACEHOLDER_LIBRARY_IMAGE, safeImageSrc } from "~~/lib/media";
 
 interface LibraryCard {
   id: string;
@@ -13,10 +14,7 @@ export const ShowLibraryCard = ({ existingLibrary }: { existingLibrary: LibraryC
     <div className="hero bg-base-200 min-h-screen">
       <div className="hero-content flex-col lg:flex-row">
         <Image
-          src={
-            existingLibrary.imageUrl ||
-            "https://dtmqxpohipopgolmirik.supabase.co/storage/v1/object/public/library-images/site-images/placeholder-library.jpeg?t=2024-12-15T15%3A45%3A04.162Z"
-          }
+          src={safeImageSrc(existingLibrary.imageUrl, PLACEHOLDER_LIBRARY_IMAGE)}
           alt={`${existingLibrary.locationName} library image`}
           width={384}
           height={384}

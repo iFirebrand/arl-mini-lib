@@ -2,18 +2,57 @@
 
 // import { revalidatePath } from "next/cache";
 import prisma from "../lib/db";
+import { normalizeIsbn } from "../lib/openLibrary";
+import { rateLimit } from "../lib/rate-limit";
+import { getActionClientIp } from "../lib/requestGuards";
 import { Prisma } from "@prisma/client";
 
-// Adjust the import based on your database setup
+// Every exported function here is a public endpoint, so writes validate input and are rate-limited.
+const createLibraryLimiter = rateLimit({ interval: 60 * 60 * 1000, uniqueTokenPerInterval: 500, limit: 10 });
+const voteLimiter = rateLimit({ interval: 60 * 1000, uniqueTokenPerInterval: 500, limit: 5 });
+const confirmBookLimiter = rateLimit({ interval: 60 * 1000, uniqueTokenPerInterval: 500, limit: 30 });
+
+const MAX_LIBRARY_NAME = 80;
+const POLL_QUESTIONS: Record<string, { min: number; max: number }> = { "rewards-pool": { min: 1, max: 4 } };
+
+// Library photos must come from our own upload route (/api/upload).
+const isOwnLibraryImage = (url: string) =>
+  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+  url.startsWith(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/library-images/`);
+
+const toCoordinate = (value: FormDataEntryValue | null, limit: number) => {
+  const number = Number(value);
+  return typeof value === "string" && value.trim() !== "" && Number.isFinite(number) && Math.abs(number) <= limit
+    ? number
+    : null;
+};
 
 export async function createLibrary(formData: FormData) {
+  if (!createLibraryLimiter.check(getActionClientIp()).success) {
+    return { error: "Too many new libraries from this connection. Try again later." };
+  }
+
+  const locationName = String(formData.get("locationName") ?? "").trim();
+  const latitude = toCoordinate(formData.get("latitude"), 90);
+  const longitude = toCoordinate(formData.get("longitude"), 180);
+  const imageUrl = String(formData.get("imageUrl") ?? "").trim();
+  if (!locationName || locationName.length > MAX_LIBRARY_NAME) {
+    return { error: `Library name must be 1 to ${MAX_LIBRARY_NAME} characters` };
+  }
+  if (latitude === null || longitude === null) {
+    return { error: "A valid location is required" };
+  }
+  if (imageUrl && !isOwnLibraryImage(imageUrl)) {
+    return { error: "Library photos must be uploaded through the app" };
+  }
+
   try {
     const library = await prisma.library.create({
       data: {
-        locationName: formData.get("locationName") as string,
-        longitude: parseFloat(formData.get("longitude") as string),
-        latitude: parseFloat(formData.get("latitude") as string),
-        imageUrl: formData.get("imageUrl") as string,
+        locationName,
+        longitude,
+        latitude,
+        imageUrl: imageUrl || null,
       },
       select: {
         id: true,
@@ -216,9 +255,12 @@ export async function getISBN13ByLibraryId(libraryId: string): Promise<{ updated
 // Records that someone just saw this book in the library, which resets its recency bonus.
 // Returns false when the library has no copy of the book.
 export async function confirmBookInLibrary(libraryId: string, isbn13: string): Promise<boolean> {
+  const isbn = normalizeIsbn(isbn13);
+  if (!isbn || typeof libraryId !== "string" || !libraryId) return false;
+  if (!confirmBookLimiter.check(getActionClientIp()).success) return false;
   try {
     const { count } = await prisma.item.updateMany({
-      where: { libraryId, isbn13 },
+      where: { libraryId, isbn13: isbn },
       data: { updatedAt: new Date() },
     });
     return count > 0;
@@ -374,6 +416,13 @@ export async function getNewLibrariesCount(): Promise<number> {
 }
 
 export async function recordVote(questionId: string, rating: number) {
+  const question = POLL_QUESTIONS[questionId];
+  if (!question || !Number.isInteger(rating) || rating < question.min || rating > question.max) {
+    throw new Error("Invalid vote");
+  }
+  if (!voteLimiter.check(getActionClientIp()).success) {
+    throw new Error("Too many votes. Try again in a minute.");
+  }
   try {
     await prisma.poll.create({
       data: { questionId, rating },

@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { BlockieAvatar } from "../../components/scaffold-eth/BlockieAvatar";
+import { PLACEHOLDER_BOOK_COVER, safeImageSrc, safeLinkHref } from "~~/lib/media";
 
 // import { getLibraryData } from "../../actions/actions";
 
@@ -150,12 +151,12 @@ export default function StatsClient({
                 {last50Books.map(book => (
                   <tr key={book.title}>
                     <td>
-                      <a href={book.itemInfo} target="_blank" rel="noopener noreferrer">
+                      <a href={safeLinkHref(book.itemInfo)} target="_blank" rel="noopener noreferrer">
                         <div className="flex items-center gap-3">
                           <div className="avatar">
                             <div className="mask mask-squircle h-12 w-12">
                               <Image
-                                src={book.thumbnail}
+                                src={safeImageSrc(book.thumbnail, PLACEHOLDER_BOOK_COVER)}
                                 alt={`Thumbnail of ${book.title}`}
                                 width={48}
                                 height={48}
@@ -167,7 +168,12 @@ export default function StatsClient({
                             </div>
                           </div>
                           <div>
-                            <a href={book.itemInfo} target="_blank" rel="noopener noreferrer" className="font-bold">
+                            <a
+                              href={safeLinkHref(book.itemInfo)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-bold"
+                            >
                               {book.title}
                             </a>
                           </div>

@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import { PLACEHOLDER_LIBRARY_IMAGE, safeImageSrc } from "~~/lib/media";
 
 interface PersonalityClientProps {
   totalLibraries: number;
@@ -19,10 +20,7 @@ interface Library {
 const LibraryItem: React.FC<{ library: Library }> = ({ library }) => (
   <div className="flex flex-col items-center p-4 w-full">
     <Image
-      src={
-        library.imageUrl ||
-        "https://dtmqxpohipopgolmirik.supabase.co/storage/v1/object/public/library-images/site-images/placeholder-library.jpeg?t=2024-12-15T15%3A45%3A04.162Z"
-      }
+      src={safeImageSrc(library.imageUrl, PLACEHOLDER_LIBRARY_IMAGE)}
       alt={`${library.locationName} library image`}
       width={288}
       height={288}

@@ -1,4 +1,5 @@
 // @ts-check
+const imageHosts = require("./lib/imageHosts.json");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -15,7 +16,8 @@ const nextConfig = {
     return config;
   },
   images: {
-    domains: ["books.google.com", "covers.openlibrary.org", "img.daisyui.com", "dtmqxpohipopgolmirik.supabase.co"],
+    // One list shared with lib/media.ts, which swaps any other host for a placeholder before rendering.
+    remotePatterns: imageHosts.map(hostname => ({ protocol: "https", hostname })),
   },
 };
 

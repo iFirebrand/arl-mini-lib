@@ -1,5 +1,6 @@
-// Trimmed copy of a real response from
-// http://openlibrary.org/api/volumes/brief/isbn/9780063345164.json
+// Made-up book in the shape of an OpenLibrary brief-volumes response
+// (https://openlibrary.org/api/volumes/brief/isbn/<isbn>.json). The real record for this ISBN is
+// a different book; tests only rely on the shape.
 export const openLibraryResponse = {
   records: {
     "/books/OL50548140M": {
