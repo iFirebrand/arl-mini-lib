@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTheme } from "next-themes";
 import { MoonIcon, SunIcon } from "@heroicons/react/24/outline";
+import { useIsClient } from "~~/hooks/useIsClient";
 
 export const SwitchTheme = ({ className }: { className?: string }) => {
   const { setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  // The theme is only known in the browser.
+  const mounted = useIsClient();
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const isDarkMode = resolvedTheme === "dark";
@@ -26,10 +28,6 @@ export const SwitchTheme = ({ className }: { className?: string }) => {
       setIsTransitioning(false);
     }, 500);
   };
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   if (!mounted) return null;
 

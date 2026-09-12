@@ -8,11 +8,11 @@ import "server-only";
 const limiter = rateLimit({ interval: 60 * 1000, uniqueTokenPerInterval: 500, limit: 20 });
 
 /** A response to send back if this passkey request should be refused, otherwise null. */
-export function refusePasskeyRequest(request: Request): NextResponse | null {
+export async function refusePasskeyRequest(request: Request): Promise<NextResponse | null> {
   if (!limiter.check(getClientIp(request)).success) {
     return NextResponse.json({ error: "Too many attempts. Try again in a minute." }, { status: 429 });
   }
-  if (!isAllowedReferer(headers().get("referer"))) {
+  if (!isAllowedReferer((await headers()).get("referer"))) {
     return NextResponse.json({ error: "Unauthorized request origin" }, { status: 403 });
   }
   return null;

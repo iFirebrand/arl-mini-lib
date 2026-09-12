@@ -66,6 +66,26 @@ test.describe("pages", () => {
   });
 });
 
+test.describe("in the browser", () => {
+  for (const path of ["/", "/browse", "/stats", "/stats/personality", "/about", "/libs"]) {
+    test(`${path} runs without uncaught errors`, async ({ page }) => {
+      const errors: string[] = [];
+      page.on("pageerror", error => errors.push(error.message));
+      await page.goto(path, { waitUntil: "load" });
+      // Hydration and effects run right after load. (Not "networkidle": lazy book covers and
+      // analytics keep /stats busy.)
+      await page.waitForTimeout(1500);
+      expect(errors).toEqual([]);
+    });
+  }
+
+  test("browse draws the map", async ({ page }) => {
+    await page.goto("/browse");
+    await expect(page.locator(".leaflet-container")).toBeVisible();
+    await expect(page.locator(".leaflet-tile-loaded").first()).toBeVisible();
+  });
+});
+
 test.describe("API", () => {
   test("OpenLibrary proxy requires an ISBN", async ({ request }) => {
     const res = await request.get("/api/openlibrary");

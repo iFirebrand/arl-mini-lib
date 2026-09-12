@@ -9,7 +9,7 @@ import { generateRegistrationOptions } from "@simplewebauthn/server";
 
 // Step 1 of adding a passkey to the visitor's account (created now if they don't have one).
 export async function POST(request: Request) {
-  const refused = refusePasskeyRequest(request);
+  const refused = await refusePasskeyRequest(request);
   if (refused) return refused;
 
   const account = await getOrCreateAccount(getClientIp(request));

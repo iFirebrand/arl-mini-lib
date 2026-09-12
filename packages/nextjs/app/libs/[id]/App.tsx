@@ -20,8 +20,8 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading }) => {
   const [lastScanTime, setLastScanTime] = useState<number>(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const codeReader = useRef<BrowserMultiFormatReader>(new BrowserMultiFormatReader());
-  const startScanningRef = useRef<() => void>();
-  const handleResultRef = useRef<typeof handleResult>();
+  const startScanningRef = useRef<(() => void) | undefined>(undefined);
+  const handleResultRef = useRef<typeof handleResult | undefined>(undefined);
   const SCAN_DELAY = 2000; // 2 seconds
 
   const startScanning = useCallback((): void => {

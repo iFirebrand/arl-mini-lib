@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { NextPage } from "next";
 import { FireIcon, InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
 import { recordVote } from "~~/actions/actions";
@@ -11,6 +13,7 @@ import { useLocalStorage } from "~~/hooks/useLocalStorage";
 // Import the recordVote function
 
 const Home: NextPage = () => {
+  const router = useRouter();
   const [isGeolocationRequested, setIsGeolocationRequested] = useState(false);
   const [voted, setVoted] = useLocalStorage("bpyr", false);
   const [selectedRating, setSelectedRating] = useState<number | null>(0);
@@ -26,7 +29,7 @@ const Home: NextPage = () => {
 
   const handleGeoLocationClick = () => {
     setIsGeolocationRequested(true);
-    handleGeoLocation("/libs");
+    handleGeoLocation("/libs", url => router.push(url));
   };
 
   const handleVoteSubmit = async (e: React.MouseEvent) => {
@@ -86,9 +89,9 @@ const Home: NextPage = () => {
             <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
               <MapIcon className="h-8 w-8 fill-secondary" />
               <p className="mb-2">See all mapped libraries</p>
-              <a href="/browse" className="btn btn-accent mt-4">
+              <Link href="/browse" className="btn btn-accent mt-4">
                 Browse Libs
-              </a>
+              </Link>
               <p className="mt-2">This list is updated in real-time as people add libraries</p>
             </div>
             <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">

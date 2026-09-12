@@ -47,20 +47,33 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
   const [account, setAccount] = useState<Account | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const refresh = useCallback(async () => {
+  const load = useCallback(async (): Promise<Account | null | undefined> => {
     try {
       const response = await fetch("/api/account", { cache: "no-store" });
-      setAccount((await response.json()).account ?? null);
+      return (await response.json()).account ?? null;
     } catch (error) {
       console.error("Error loading account:", error);
-    } finally {
-      setLoading(false);
+      return undefined;
     }
   }, []);
 
+  const refresh = useCallback(async () => {
+    const loaded = await load();
+    if (loaded !== undefined) setAccount(loaded);
+    setLoading(false);
+  }, [load]);
+
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    let active = true;
+    load().then(loaded => {
+      if (!active) return;
+      if (loaded !== undefined) setAccount(loaded);
+      setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [load]);
 
   const setPoints = useCallback((total: number) => {
     setAccount(current => (current ? { ...current, points: total } : current));
