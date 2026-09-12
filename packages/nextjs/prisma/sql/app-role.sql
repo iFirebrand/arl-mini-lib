@@ -31,7 +31,18 @@ grant select, insert, update on "Passkey"       to arlib_app;
 -- Update moves a player's history when an anonymous account is merged into a passkey account.
 grant select, insert, update on "PointEvent"    to arlib_app;
 
--- Row-level security stays on; arlib_app gets exactly the matching policies.
+-- Row-level security on every app table (Prisma creates new tables with it off), and arlib_app
+-- gets exactly the matching policies.
+alter table "Library" enable row level security;
+alter table "Item" enable row level security;
+alter table "User" enable row level security;
+alter table "Poll" enable row level security;
+alter table "ArlibSettings" enable row level security;
+alter table "_LibraryCurators" enable row level security;
+alter table "Account" enable row level security;
+alter table "Passkey" enable row level security;
+alter table "PointEvent" enable row level security;
+
 do $$
 declare
   rule record;

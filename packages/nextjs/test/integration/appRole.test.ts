@@ -62,6 +62,14 @@ describe("the arlib_app role", () => {
   });
 });
 
+describe("row-level security", () => {
+  it("is on for every app table", async () => {
+    const tables = await testPrisma.$queryRaw<{ tablename: string; rowsecurity: boolean }[]>`
+      select tablename, rowsecurity from pg_tables where schemaname = 'public' order by tablename`;
+    expect(tables.filter(table => !table.rowsecurity).map(table => table.tablename)).toEqual([]);
+  });
+});
+
 describe("the Supabase Data API roles", () => {
   it("hold no privileges on any app table", async () => {
     const grants = await testPrisma.$queryRaw<{ grantee: string; table_name: string }[]>`
