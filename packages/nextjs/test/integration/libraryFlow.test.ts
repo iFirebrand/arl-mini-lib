@@ -1,0 +1,156 @@
+import { bookInfo } from "../fixtures/openLibrary";
+import { createTestLibrary, resetDatabase, testPrisma } from "./db";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("~~/lib/db", async () => ({ default: (await import("./db")).testPrisma }));
+
+const actions = await import("~~/actions/actions");
+const { POST: saveBook } = await import("~~/app/api/saveBook/route");
+
+const postBook = (body: unknown) =>
+  saveBook(new Request("http://localhost:3000/api/saveBook", { method: "POST", body: JSON.stringify(body) }));
+
+const libraryForm = (fields: Record<string, string>) => {
+  const data = new FormData();
+  Object.entries(fields).forEach(([key, value]) => data.set(key, value));
+  return data;
+};
+
+beforeEach(resetDatabase);
+afterAll(() => testPrisma.$disconnect());
+
+describe("adding a library", () => {
+  it("creates it and finds it again from a nearby location", async () => {
+    const created = await actions.createLibrary(
+      libraryForm({
+        locationName: "Maple St",
+        latitude: "38.883839",
+        longitude: "-77.107249",
+        imageUrl: "https://x/y.jpg",
+      }),
+    );
+    expect(created).toEqual({ id: expect.any(String) });
+    const id = (created as { id: string }).id;
+
+    // ~33 m away: inside the ±0.00036° lookup box.
+    expect(await actions.checkLibraryExists("38.884139", "-77.107249")).toMatchObject({
+      id,
+      locationName: "Maple St",
+      imageUrl: "https://x/y.jpg",
+      active: true,
+    });
+    // ~55 m away: outside it.
+    expect(await actions.checkLibraryExists("38.884339", "-77.107249")).toBe("not found");
+
+    expect(await actions.getLibraryData(id)).toMatchObject({ id, latitude: 38.883839, longitude: -77.107249 });
+    expect(await actions.totalLibraryCount()).toBe(1);
+  });
+
+  it("only counts libraries created in the last 7 days as new", async () => {
+    await createTestLibrary();
+    await createTestLibrary({ createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000) });
+
+    expect(await actions.getNewLibrariesCount()).toBe(1);
+  });
+
+  it("reports libraries that have a personality description", async () => {
+    const described = await createTestLibrary({ description: "Cozy, heavy on mysteries" });
+    await createTestLibrary({ locationName: "Oak St" });
+
+    expect(await actions.getLibrariesWithDescriptionCount()).toBe(1);
+    expect(await actions.getManyLibraryDescriptions()).toEqual([
+      {
+        libraryId: described.id,
+        description: "Cozy, heavy on mysteries",
+        locationName: "Maple St Little Library",
+        imageUrl: null,
+      },
+    ]);
+    expect(await actions.getLibraryDescription(described.id)).toEqual({ description: "Cozy, heavy on mysteries" });
+  });
+});
+
+describe("cataloging books", () => {
+  it("saves a scanned book to its library and lists it everywhere books appear", async () => {
+    const library = await createTestLibrary();
+
+    const res = await postBook({ ...bookInfo, libraryId: library.id });
+    expect(res.status).toBe(201);
+
+    expect(await actions.bookCount(library.id)).toBe(1);
+    expect(await actions.totalBookCount()).toBe(1);
+    expect(await actions.getISBN13ByLibraryId(library.id)).toEqual([
+      { isbn13: bookInfo.isbn13, updatedAt: expect.any(Date) },
+    ]);
+    expect(await actions.getItemsByLibraryId(library.id)).toEqual([
+      {
+        title: "The Wager",
+        coverUrl: bookInfo.thumbnail,
+        itemInfo: `https://openlibrary.org/isbn/${bookInfo.isbn13}`,
+        updatedAt: expect.any(Date),
+      },
+    ]);
+    expect(await actions.getLast50Books()).toEqual([
+      expect.objectContaining({ title: "The Wager", libraryId: library.id, libraryName: library.locationName }),
+    ]);
+  });
+
+  it("refuses to save a book for a library that does not exist", async () => {
+    const res = await postBook({ ...bookInfo, libraryId: "does-not-exist" });
+
+    expect(res.status).toBe(500);
+    expect(await testPrisma.item.count()).toBe(0);
+  });
+
+  it("returns the most recent 50 books, newest first", async () => {
+    const library = await createTestLibrary();
+    const base = Date.now() - 60 * 60 * 1000;
+    await testPrisma.item.createMany({
+      data: Array.from({ length: 55 }, (_, i) => ({
+        title: `Book ${i}`,
+        libraryId: library.id,
+        createdAt: new Date(base + i * 1000),
+      })),
+    });
+
+    const books = await actions.getLast50Books();
+
+    expect(books).toHaveLength(50);
+    expect(books[0].title).toBe("Book 54");
+    expect(books[49].title).toBe("Book 5");
+  });
+
+  it("pages a library's books 50 at a time", async () => {
+    const library = await createTestLibrary();
+    await testPrisma.item.createMany({
+      data: Array.from({ length: 60 }, (_, i) => ({ title: `Book ${i}`, libraryId: library.id })),
+    });
+
+    expect(await actions.getItemsByLibraryId(library.id, 1)).toHaveLength(50);
+    expect(await actions.getItemsByLibraryId(library.id, 2)).toHaveLength(10);
+  });
+});
+
+describe("site settings and polls", () => {
+  it("reads the ArlibSettings row", async () => {
+    await testPrisma.arlibSettings.create({
+      data: {
+        id: "1",
+        booksNeededToNameLibrary: 20,
+        seasonEndsAt: new Date("2025-01-31T00:00:00Z"),
+        totalItems: 0,
+        totalLibraries: 0,
+      },
+    });
+
+    expect(await actions.getArlibSettings()).toMatchObject({ id: "1", booksNeededToNameLibrary: 20 });
+  });
+
+  it("records a poll vote", async () => {
+    await actions.recordVote("rewards-pool", 4);
+
+    expect(await testPrisma.poll.findMany()).toEqual([
+      expect.objectContaining({ questionId: "rewards-pool", rating: 4 }),
+    ]);
+  });
+});
