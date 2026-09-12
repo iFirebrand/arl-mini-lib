@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { decrypt, encrypt } from "~~/lib/encryption";
+import { MAX_POINTS_PER_REQUEST } from "~~/lib/points";
 
 // We'll create this
 
@@ -20,7 +21,8 @@ export const PointsContext = createContext<PointsContextType | undefined>(undefi
 
 const POINTS_STORAGE_KEY = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || "arlib_temp_points";
 const MAX_POINTS_PER_ACTION = 100; // Reasonable limit per action
-const MAX_TOTAL_TEMP_POINTS = 2000; // Reasonable total limit
+// Banked in one request once a wallet connects, so it must stay within what /api/points accepts.
+const MAX_TOTAL_TEMP_POINTS = MAX_POINTS_PER_REQUEST;
 
 export function PointsProvider({ children }: { children: React.ReactNode }) {
   const [points, setPoints] = useState(0);

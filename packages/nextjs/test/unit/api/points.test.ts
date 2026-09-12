@@ -74,11 +74,31 @@ describe("POST /api/points", () => {
     expect(res.status).toBe(403);
   });
 
-  it("KNOWN ISSUE: accepts any referer when NEXT_PUBLIC_APP_URL is unset (Preview and Development today)", async () => {
-    // allowedOrigins falls back to "", and every string starts with "".
+  it("still rejects other sites when NEXT_PUBLIC_APP_URL is unset", async () => {
     delete process.env.NEXT_PUBLIC_APP_URL;
     const res = await postPoints(validBody, { referer: "https://evil.example.com/" });
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(403);
+  });
+
+  it.each(["https://arlib.me.evil.example.com/", "https://www.arlib.me.evil.example.com/", "http://arlib.me/"])(
+    "rejects look-alike origin %s",
+    async referer => {
+      expect((await postPoints(validBody, { referer })).status).toBe(403);
+    },
+  );
+
+  it("rejects malformed referers", async () => {
+    expect((await postPoints(validBody, { referer: "not a url" })).status).toBe(403);
+  });
+
+  it("rejects localhost in production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    try {
+      expect((await postPoints(validBody, { referer: "http://localhost:3000/libs" })).status).toBe(403);
+      expect((await postPoints(validBody, { referer: "https://arlib.me/libs" })).status).toBe(200);
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   it("requires a wallet address", async () => {
@@ -92,15 +112,27 @@ describe("POST /api/points", () => {
     expect(res.status).toBe(400);
   });
 
-  it("rejects a negative total", async () => {
-    const res = await postPoints({ walletAddress: WALLET, pointActions: [{ points: -10 }] });
-    expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "Invalid points value" });
+  it("banks points saved before a wallet was connected", async () => {
+    const res = await postPoints({
+      walletAddress: WALLET,
+      pointActions: [
+        { action: "CREATE_LIBRARY", points: 50, timestamp: 1 },
+        { action: "ADD_BOOK", points: 5, timestamp: 2 },
+      ],
+    });
+    expect(res.status).toBe(200);
+    expect(prismaMock.user.upsert.mock.calls[0][0].update).toEqual({ points: { increment: 55 } });
   });
 
-  it("rejects a total above 1,000,000", async () => {
-    const res = await postPoints({ walletAddress: WALLET, pointActions: [{ points: 1_000_001 }] });
+  it.each([
+    ["an unknown action", [{ points: 10, type: "TEST_POINTS" }], "Unknown point action"],
+    ["more points than the action can earn", [{ points: 1_000_000, type: "ADD_BOOK" }], "Invalid points value"],
+    ["negative points", [{ points: -10, type: "ADD_BOOK" }], "Invalid points value"],
+  ])("rejects %s without touching the database", async (_label, pointActions, error) => {
+    const res = await postPoints({ walletAddress: WALLET, pointActions });
     expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error });
+    expect(prismaMock.user.upsert).not.toHaveBeenCalled();
   });
 
   it("returns 500 when the database write fails", async () => {
@@ -110,13 +142,20 @@ describe("POST /api/points", () => {
     expect(await res.json()).toEqual({ error: "Failed to save points" });
   });
 
-  it("rate-limits an IP after 499 requests a minute", async () => {
+  it("rate-limits an IP after 30 requests a minute", async () => {
     const ip = "192.0.2.99";
-    for (let i = 0; i < 499; i++) {
+    for (let i = 0; i < 30; i++) {
       expect((await postPoints(validBody, { ip })).status).toBe(200);
     }
     expect((await postPoints(validBody, { ip })).status).toBe(429);
     expect((await postPoints(validBody, { ip: "192.0.2.100" })).status).toBe(200);
+  });
+
+  it("rate-limits by the client IP when x-forwarded-for lists proxies", async () => {
+    for (let i = 0; i < 30; i++) {
+      await postPoints(validBody, { ip: `198.51.100.7, 10.0.0.${i}` });
+    }
+    expect((await postPoints(validBody, { ip: "198.51.100.7, 10.9.9.9" })).status).toBe(429);
   });
 });
 
