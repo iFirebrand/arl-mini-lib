@@ -37,6 +37,10 @@ export default function WatchPage() {
           A one-minute walkthrough recorded at a real Arlington library: checking in with your phone&apos;s location,
           then scanning book barcodes to put the shelf online.
         </p>
+        <p className="rounded-xl border border-base-300/70 bg-base-100 px-4 py-3 text-sm text-base-content/75">
+          This video was recorded on the previous version of the site, so the screens look different today. The steps
+          are the same.
+        </p>
         <ol className="flex list-decimal flex-col gap-2 pl-5 text-base-content/85 marker:font-semibold">
           <li>At the library, tap “I&apos;m at a library”.</li>
           <li>New library? Add a photo and a name: 50 points.</li>
