@@ -2,7 +2,7 @@ import React from "react";
 import { bookInfo } from "../../fixtures/openLibrary";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import LibraryClient from "~~/app/libs/[id]/LibraryClient";
+import LibraryClient, { BOOK_NOT_FOUND } from "~~/app/libs/[id]/LibraryClient";
 
 const mocks = vi.hoisted(() => ({
   account: null as null | { displayName: string; points: number; hasPasskey: boolean },
@@ -164,13 +164,13 @@ describe("LibraryClient", () => {
     expect(sessionPoints()).toHaveTextContent("0");
   });
 
-  it("reports books OpenLibrary doesn't know", async () => {
+  it("reports books no catalog knows", async () => {
     mocks.fetchBookData.mockResolvedValue(null);
     await renderAtLibrary();
 
     await scan("0000000000000");
 
-    expect(mocks.toast.error).toHaveBeenCalledWith("Not found. Try again? Newer books only for now.");
+    expect(mocks.toast.error).toHaveBeenCalledWith(BOOK_NOT_FOUND);
     expect(mocks.saveBookToDatabase).not.toHaveBeenCalled();
   });
 

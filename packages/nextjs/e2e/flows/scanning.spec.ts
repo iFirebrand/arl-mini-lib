@@ -1,4 +1,4 @@
-import { openLibraryResponse } from "../../test/fixtures/openLibrary";
+import { bookInfo } from "../../test/fixtures/openLibrary";
 import prepareTestDatabase from "../../test/setup/integrationGlobal";
 import { getTestDatabaseUrl } from "../../test/setup/testDatabaseUrl";
 import { BARCODE_VIDEO_ISBN } from "../fixtures/barcodeVideo";
@@ -35,9 +35,9 @@ for (const reader of ["the browser's reader", "the WebAssembly reader iPhones us
     });
 
     const lookups: string[] = [];
-    await page.route("**/api/openlibrary?*", async route => {
+    await page.route("**/api/book?*", async route => {
       lookups.push(new URL(route.request().url()).searchParams.get("isbn") ?? "");
-      await route.fulfill({ json: openLibraryResponse });
+      await route.fulfill({ json: { book: { ...bookInfo, libraryId: undefined } } });
     });
     await page.route("**/api/saveBook", route =>
       route.fulfill({ status: 201, json: { award: { pointsAwarded: 5, total: 5, newBooksThisVisit: 1 } } }),
