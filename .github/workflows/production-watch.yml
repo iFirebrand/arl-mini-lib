@@ -1,0 +1,80 @@
+name: Production watch
+
+# Every hour, run the read-only smoke tests against www.arlib.me. A failure opens an issue labeled
+# production-alert (GitHub notifies the repository's watchers); later failures comment on it, and
+# the next passing run closes it.
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: production-watch
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: packages/nextjs
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Smoke test production
+        run: yarn test:e2e
+        env:
+          E2E_BASE_URL: https://www.arlib.me
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: packages/nextjs/playwright-report
+          retention-days: 14
+
+      - name: Open or update the alert issue
+        if: failure()
+        run: |
+          gh label create production-alert --color B60205 --description "Hourly production smoke test failed" 2>/dev/null || true
+          open=$(gh issue list --label production-alert --state open --json number --jq '.[0].number')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body "Still failing: $RUN_URL"
+          else
+            gh issue create --label production-alert --title "Production smoke test failing" \
+              --body "The hourly smoke test against https://www.arlib.me failed: $RUN_URL. The Playwright report is attached to the run. This issue closes itself when a run passes again."
+          fi
+
+      - name: Close the alert issue after recovery
+        if: success()
+        run: |
+          for number in $(gh issue list --label production-alert --state open --json number --jq '.[].number'); do
+            gh issue close "$number" --comment "Passing again: $RUN_URL"
+          done

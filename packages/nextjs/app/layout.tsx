@@ -2,6 +2,7 @@ import Script from "next/script";
 import "leaflet/dist/leaflet.css";
 import { AppWithProviders } from "~~/components/AppWithProviders";
 import { ThemeProvider } from "~~/components/ThemeProvider";
+import { VercelInsights } from "~~/components/VercelInsights";
 import { getMetadata } from "~~/lib/metadata";
 import "~~/styles/globals.css";
 
@@ -27,12 +28,14 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-205LFRGM0L');
+            // Automated browsers (smoke tests) aren't visitors.
+            if (!navigator.webdriver) gtag('config', 'G-205LFRGM0L');
           `}
         </Script>
         <ThemeProvider enableSystem>
           <AppWithProviders>{children}</AppWithProviders>
         </ThemeProvider>
+        <VercelInsights />
       </body>
     </html>
   );
