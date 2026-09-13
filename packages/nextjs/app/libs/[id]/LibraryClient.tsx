@@ -12,6 +12,7 @@ import Confetti from "react-dom-confetti";
 import { toast } from "react-hot-toast";
 import { confirmBookInLibrary } from "~~/actions/actions";
 import { useAccountContext } from "~~/app/contexts/AccountContext";
+import { Container } from "~~/components/ui/Page";
 
 interface LibraryClientProps {
   library: {
@@ -166,19 +167,42 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
     }
   };
 
-  if (!library) return <div>Library not found</div>;
+  if (!library) {
+    return (
+      <Container width="narrow" className="flex flex-col items-center gap-4 py-16 text-center">
+        <h1 className="text-3xl font-semibold">Library not found</h1>
+        <p className="text-base-content/75">It may have been removed, or the link is incomplete.</p>
+        <Link href="/browse" className="btn btn-primary rounded-full">
+          See all libraries
+        </Link>
+      </Container>
+    );
+  }
 
   return (
-    <div className="flex flex-col items-center gap-y-5 pt-24 text-center px-[5%]">
-      <h1 className="text-2xl font-semibold">Scan to catalog at {library.locationName} library</h1>
+    <Container className="flex flex-col gap-6 py-6 sm:py-8">
+      <div className="flex flex-col gap-1">
+        <p className="text-sm font-semibold uppercase tracking-wider text-link">Scan to catalog</p>
+        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{library.locationName}</h1>
+      </div>
+
       {isAtLibrary ? (
-        <div>
-          <Scan onScan={handleScan} isLoading={isLoading} />
-          <div ref={targetRef} className="flex flex-col items-center gap-y-5 pt-24 text-center px-[5%]">
-            <h1 className="text-2xl font-semibold">Scanned Books: {scannedBooks.length} </h1>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+          <div className="flex flex-col gap-3">
+            <Scan onScan={handleScan} isLoading={isLoading} />
+            <p className="text-sm text-base-content/65">
+              Hold the barcode on the back of the book inside the frame, in good light. Books scan one at a time.
+            </p>
+          </div>
+
+          <aside
+            ref={targetRef}
+            className="flex flex-col gap-4 rounded-box border border-base-300/70 bg-base-100 p-5 shadow-card lg:sticky lg:top-24"
+          >
             <div>
               <Confetti active={isExploding} config={config}></Confetti>
-              <h2>{currentBookTitle}</h2>
+              <h2 className="text-xl font-semibold">Scanned Books: {scannedBooks.length}</h2>
+              {currentBookTitle && <p className="mt-1 text-base-content/75">Last: {currentBookTitle}</p>}
             </div>
 
             <EarnPoints
@@ -187,30 +211,35 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
               newBooksThisVisit={newBooksThisVisit}
               multiplierAfter={MULTIPLIER_AFTER}
             />
-          </div>
+
+            <Link href={`/browse/${library.id}`} className="text-sm font-medium text-link hover:underline">
+              See this library&apos;s catalog
+            </Link>
+          </aside>
         </div>
       ) : (
-        <div className="flex justify-center w-full">
-          <div className="card bg-base-100 max-w-96 shadow-xl">
-            <div className="card-body">
-              <h2 className="card-title">You must be at the library to scan</h2>
-              <p>The scanning feature turns on when your phone&apos;s location shows you at the library.</p>
-              <div className="card-actions justify-end">
-                <Link href="/" className="btn btn-primary">
-                  Back to Home
-                </Link>
-              </div>
-            </div>
-            <div className="card-body">
-              <h2 className="card-title">Or try troubleshooting</h2>
-              <p>
-                Is precise location enabled on your phone? 📲 Settings {">"} General {">"} Privacy {">"} Location
-                Services {">"} Chrome or Safari {">"} Allow Location Access While Using App {">"} Precise location 😮‍💨
-              </p>
-            </div>
+        <div className="flex max-w-2xl flex-col gap-4 rounded-box border border-base-300/70 bg-base-100 p-6 shadow-card">
+          <h2 className="text-2xl font-semibold">You must be at the library to scan</h2>
+          <p className="text-base-content/80">
+            The scanning feature turns on when your phone&apos;s location shows you at the library.
+          </p>
+          <div className="rounded-xl bg-base-200 p-4 text-sm text-base-content/80">
+            <p className="font-semibold">Or try troubleshooting</p>
+            <p className="mt-1">
+              Is precise location enabled on your phone? Settings › Privacy › Location Services › Chrome or Safari ›
+              While Using the App, with Precise Location on.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link href={`/browse/${library.id}`} className="btn btn-primary rounded-full">
+              See the catalog
+            </Link>
+            <Link href="/" className="btn btn-ghost rounded-full">
+              Back to Home
+            </Link>
           </div>
         </div>
       )}
-    </div>
+    </Container>
   );
 }

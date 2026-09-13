@@ -9,7 +9,7 @@ test.describe("pages", () => {
     expect(response?.status()).toBe(200);
 
     await expect(page.getByRole("heading", { level: 1, name: "Arlington Mini Libraries" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Enable Geolocation" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "I'm at a library" })).toBeVisible();
     // Scope to the page body: on mobile the header's copies of these links are collapsed.
     await expect(page.locator('main a[href="/browse"]').first()).toBeVisible();
     await expect(page.locator('main a[href="/about"]').first()).toBeVisible();
@@ -30,7 +30,7 @@ test.describe("pages", () => {
     expect(href).toMatch(/^\/browse\/.+/);
     const libraryPage = await page.goto(String(href));
     expect(libraryPage?.status()).toBe(200);
-    await expect(page.getByText(/\d+ 📚 at /)).toBeVisible();
+    await expect(page.getByText(/^\d+ books? on the shelf$/)).toBeVisible();
   });
 
   test("stats page shows totals", async ({ page }) => {
@@ -59,6 +59,23 @@ test.describe("pages", () => {
     await expect(page.getByText("Library not found")).toBeVisible();
   });
 
+  test("the video has its own page and plays in a tall frame", async ({ page }) => {
+    await page.goto("/");
+    await page.locator('main a[href="/watch"]').first().click();
+    await expect(page).toHaveURL(/\/watch$/);
+    const frame = page.locator('iframe[src*="youtube-nocookie.com/embed/"]');
+    await expect(frame).toBeVisible();
+    const box = await frame.boundingBox();
+    expect(box && box.height > box.width * 1.5).toBe(true);
+  });
+
+  test("account page explains accounts to a new visitor", async ({ page }) => {
+    const response = await page.goto("/account");
+    expect(response?.status()).toBe(200);
+    await expect(page.getByRole("heading", { name: "How accounts work" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Create account" }).last()).toBeVisible();
+  });
+
   test("moderation page is not found for visitors", async ({ page }) => {
     const response = await page.goto("/moderate");
     expect(response?.status()).toBe(404);
@@ -72,7 +89,7 @@ test.describe("pages", () => {
 });
 
 test.describe("in the browser", () => {
-  for (const path of ["/", "/browse", "/stats", "/stats/personality", "/about", "/libs"]) {
+  for (const path of ["/", "/browse", "/stats", "/stats/personality", "/about", "/libs", "/watch", "/account"]) {
     test(`${path} runs without uncaught errors`, async ({ page }) => {
       const errors: string[] = [];
       page.on("pageerror", error => errors.push(error.message));

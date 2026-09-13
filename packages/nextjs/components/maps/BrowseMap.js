@@ -29,13 +29,8 @@ const Map = ({ libraries, position }) => {
         <Marker key={library.id} position={[library.latitude, library.longitude]}>
           <Popup>
             <div>
-              <p>{library.locationName}</p>
-              <a
-                href={`/browse/${library.id}`}
-                className="text-blue-500 hover:text-blue-700"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <p className="m-0 mb-1 font-semibold">{library.locationName}</p>
+              <a href={`/browse/${library.id}`} className="font-semibold text-link underline">
                 See books here
               </a>
             </div>

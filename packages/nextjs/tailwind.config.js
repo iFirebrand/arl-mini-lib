@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./app/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}", "./utils/**/*.{js,ts,jsx,tsx}"],
-  plugins: [require("daisyui"), "@tailwindcss/aspect-ratio"],
+  plugins: [require("daisyui")],
   darkTheme: "dark",
   darkMode: ["selector", "[data-theme='dark']"],
   daisyui: {
@@ -25,6 +25,7 @@ module.exports = {
           warning: "#FFCF72",
           error: "#FF8863",
           "--rounded-btn": "9999rem",
+          "--rounded-box": "1.25rem",
           ".tooltip": { "--tooltip-tail": "6px" },
           ".link": { textUnderlineOffset: "2px" },
           ".link:hover": { opacity: "80%" },
@@ -49,6 +50,7 @@ module.exports = {
           warning: "#FFCF72",
           error: "#FF8863",
           "--rounded-btn": "9999rem",
+          "--rounded-box": "1.25rem",
           ".tooltip": { "--tooltip-tail": "6px", "--tooltip-color": "oklch(var(--p))" },
           ".link": { textUnderlineOffset: "2px" },
           ".link:hover": { opacity: "80%" },
@@ -58,7 +60,20 @@ module.exports = {
   },
   theme: {
     extend: {
-      boxShadow: { center: "0 0 12px -2px rgb(0 0 0 / 0.05)" },
+      // Set by next/font in app/layout.tsx.
+      fontFamily: {
+        sans: ["var(--font-body)", "ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
+        display: ["var(--font-display)", "Georgia", "Cambria", "Times New Roman", "serif"],
+      },
+      colors: {
+        // Links and small emphasis: the Ukrainian flag blue from the confetti and footer, lightened in dark mode.
+        link: "var(--color-link)",
+        flag: { blue: "#0057B7", yellow: "#FFDD00" },
+      },
+      boxShadow: {
+        center: "0 0 12px -2px rgb(0 0 0 / 0.05)",
+        card: "0 1px 2px rgb(33 38 56 / 0.06), 0 8px 24px -12px rgb(33 38 56 / 0.18)",
+      },
       animation: { "pulse-fast": "pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite" },
     },
   },

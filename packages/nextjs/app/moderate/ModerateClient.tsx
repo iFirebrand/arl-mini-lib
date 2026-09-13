@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { HideButton } from "~~/components/moderation/HideButton";
+import { Container } from "~~/components/ui/Page";
 import type { ModerationQueue } from "~~/lib/moderation";
 
 const formatDate = (date: Date) =>
@@ -13,9 +14,9 @@ export default function ModerateClient({ queue }: { queue: ModerationQueue }) {
   const [books, setBooks] = useState(queue.books);
 
   return (
-    <main className="container mx-auto max-w-4xl px-4 py-8 flex flex-col gap-10">
+    <Container width="narrow" className="flex flex-col gap-10 py-8 sm:py-10">
       <div>
-        <h1 className="text-3xl font-bold">Moderate</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Moderate</h1>
         <p className="opacity-70">
           New libraries and books appear on the site right away. Hide anything that shouldn&apos;t be there; hidden
           items stay in the database and can be brought back here.
@@ -78,6 +79,6 @@ export default function ModerateClient({ queue }: { queue: ModerationQueue }) {
           ))}
         </ul>
       </section>
-    </main>
+    </Container>
   );
 }

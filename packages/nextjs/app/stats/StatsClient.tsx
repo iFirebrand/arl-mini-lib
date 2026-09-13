@@ -1,12 +1,10 @@
 "use client";
 
 import React from "react";
-import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Card, Container, PageHeader } from "~~/components/ui/Page";
 import { PLACEHOLDER_BOOK_COVER, safeImageSrc, safeLinkHref } from "~~/lib/media";
-
-// import { getLibraryData } from "../../actions/actions";
 
 interface StatsClientProps {
   last50Books: {
@@ -29,6 +27,36 @@ interface StatsClientProps {
   librariesWithDescriptionCount: number;
 }
 
+const Stat = ({
+  label,
+  value,
+  note,
+  href,
+  className: extra = "",
+}: {
+  label: string;
+  value: number;
+  note: string;
+  href?: string;
+  className?: string;
+}) => {
+  const body = (
+    <>
+      <span className="text-sm font-medium text-base-content/70">{label}</span>
+      <span className="font-display text-4xl font-semibold tabular-nums">{value}</span>
+      <span className="text-xs text-base-content/60">{note}</span>
+    </>
+  );
+  const className = `flex flex-col gap-1 rounded-box border border-base-300/70 bg-base-100 p-4 shadow-card sm:p-5 transition ${extra}`;
+  return href ? (
+    <Link href={href} className={`${className} hover:-translate-y-0.5`}>
+      {body}
+    </Link>
+  ) : (
+    <div className={className}>{body}</div>
+  );
+};
+
 export default function StatsClient({
   last50Books,
   totalBooks,
@@ -38,156 +66,107 @@ export default function StatsClient({
   newLibrariesCount,
   librariesWithDescriptionCount,
 }: StatsClientProps) {
-  useEffect(() => {
-    // Get URL parameters on the client side
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlLibraryId = urlParams.get("libraryId");
-
-    if (urlLibraryId) {
-      // Fetch library data
-      const fetchLibraryData = async () => {
-        try {
-          // TODO: fetch stats
-        } catch (error) {
-          console.error("Error fetching library data:", error);
-        }
-      };
-
-      fetchLibraryData();
-    }
-  }, []);
-
   return (
-    <main>
-      <div className="flex items-center flex-col flex-grow pt-10">
-        <div className="text-center">
-          <h1 className="text-xl font-semibold text-center">Latest Stats</h1>
-        </div>
-        <div className="stats stats-vertical lg:stats-horizontal shadow">
-          <div className="stat">
-            <div className="stat-title">Total Books</div>
-            <div className="stat-value text-center">{totalBooks}</div>
-            <div className="stat-desc">across all libraries</div>
-          </div>
+    <Container className="pb-12">
+      <PageHeader eyebrow="Across Arlington" title="Latest Stats">
+        What the community has mapped and cataloged so far.
+      </PageHeader>
 
-          <div className="stat">
-            <div className="stat-title">New Libraries </div>
-            <div className="stat-value text-center">{newLibrariesCount}</div>
-            <div className="stat-desc">in the last 7 days</div>
-          </div>
-          <div className="stat">
-            <div className="stat-title">Total Libraries</div>
-            <div className="stat-value text-center">{totalLibraries}</div>
-            <div className="stat-desc">on ArLib.me</div>
-          </div>
-          <Link href="/stats/personality" className="stat">
-            <div className="stat-title">Libs with Character</div>
-            <div className="stat-value text-center">{librariesWithDescriptionCount}</div>
-            <div className="stat-desc">Catalog gives personality</div>
-          </Link>
-
-          <div className="stat">
-            <div className="stat-title">Readers With Points</div>
-            <div className="stat-value text-center">{totalUsers}</div>
-            <div className="stat-desc">Random names, no email</div>
-          </div>
-        </div>
-        <div className="flex flex-col items-center">
-          <p></p>
-          <div className="text-center">
-            <div
-              className="tooltip tooltip-top"
-              data-tip="Everyone gets a random name. Save your points with a passkey to keep them on any device."
-            >
-              <h1 className="text-xl font-semibold text-center">Top 10 Readers</h1>
-            </div>
-          </div>
-
-          <div className="flex">
-            <div className="overflow-x-auto">
-              <table className="table">
-                {/* head */}
-                <thead>
-                  <tr>
-                    <th>Rank</th>
-                    <th>User</th>
-                    <th>Points</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {/* Dynamically generated rows from topUsers */}
-                  {topUsers.map((user, index) => (
-                    <tr key={user.id}>
-                      <td>{index + 1}</td>
-                      <td>{user.displayName}</td>
-                      <td>{user.points}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {/* Chat bubble container */}
-          </div>
-        </div>
-        <div className="flex flex-col items-center">
-          <div className="text-center">
-            <p></p>
-            <h1 className="text-xl font-semibold text-center">Last 50 Books Added</h1>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="table">
-              {/* head */}
-              <thead>
-                <tr>
-                  <th>Book</th>
-                  <th>Library Name</th>
-                  {/* <th>Reserved</th>
-                  <th>Reserved 2</th> */}
-                </tr>
-              </thead>
-              <tbody>
-                {/* Dynamically generated rows from last50Books */}
-                {last50Books.map((book, index) => (
-                  // The same book can be in several libraries, so the title alone isn't a unique key.
-                  <tr key={`${index}-${book.libraryId}-${book.title}`}>
-                    <td>
-                      <a href={safeLinkHref(book.itemInfo)} target="_blank" rel="noopener noreferrer">
-                        <div className="flex items-center gap-3">
-                          <div className="avatar">
-                            <div className="mask mask-squircle h-12 w-12">
-                              <Image
-                                src={safeImageSrc(book.thumbnail, PLACEHOLDER_BOOK_COVER)}
-                                alt={`Thumbnail of ${book.title}`}
-                                width={48}
-                                height={48}
-                                onError={e => {
-                                  e.currentTarget.src =
-                                    "https://dtmqxpohipopgolmirik.supabase.co/storage/v1/object/public/altbucket/ARLib.png";
-                                }}
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            {/* Already inside the row's link; a nested <a> breaks hydration. */}
-                            <span className="font-bold">{book.title}</span>
-                          </div>
-                        </div>
-                      </a>
-                    </td>
-                    <td>
-                      <a href={`/browse/${book.libraryId}`} className="text-blue-500 hover:underline">
-                        {book.libraryName}
-                      </a>
-                    </td>
-                    <td></td>
-                    <th>{/* <button className="btn btn-ghost btn-xs">details</button> */}</th>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
+        <Stat label="Total Books" value={totalBooks} note="across all libraries" />
+        <Stat label="Total Libraries" value={totalLibraries} note="on ArLib.me" />
+        <Stat label="New Libraries" value={newLibrariesCount} note="in the last 7 days" />
+        <Stat
+          label="Libs with Character"
+          value={librariesWithDescriptionCount}
+          note="a catalog gives personality"
+          href="/stats/personality"
+        />
+        {/* Spans the row on phones, so no tile sits alone. */}
+        <Stat
+          label="Readers With Points"
+          value={totalUsers}
+          note="Random names, no email"
+          className="col-span-2 sm:col-span-1"
+        />
       </div>
-    </main>
+
+      <div className="mt-8 grid gap-6 lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-start">
+        <Card className="p-5">
+          <h2 className="text-xl font-semibold">Top 10 Readers</h2>
+          <p className="mt-1 text-sm text-base-content/65">
+            Everyone gets a random name. Save your points with a passkey to keep them on any device.
+          </p>
+          {topUsers.length === 0 ? (
+            <p className="mt-4 text-base-content/70">No points earned yet.</p>
+          ) : (
+            <ol className="mt-4 flex flex-col">
+              {topUsers.map((user, index) => (
+                <li
+                  key={user.id}
+                  className="flex items-center gap-3 border-t border-base-300/70 py-2.5 first:border-t-0"
+                >
+                  <span
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold tabular-nums ${
+                      index === 0 ? "bg-flag-yellow text-neutral" : "bg-base-200"
+                    }`}
+                  >
+                    {index + 1}
+                  </span>
+                  <span className="flex-1 font-medium">{user.displayName}</span>
+                  <span className="tabular-nums text-base-content/80">{user.points}</span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </Card>
+
+        <Card className="p-5">
+          <h2 className="text-xl font-semibold">Last 50 Books Added</h2>
+          <ul className="mt-3 grid gap-x-6 sm:grid-cols-2">
+            {last50Books.map((book, index) => (
+              // The same book can be in several libraries, so the title alone isn't a unique key.
+              <li
+                key={`${index}-${book.libraryId}-${book.title}`}
+                className="flex items-center gap-3 border-t border-base-300/70 py-2.5"
+              >
+                <a
+                  href={safeLinkHref(book.itemInfo)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                >
+                  <Image
+                    src={safeImageSrc(book.thumbnail, PLACEHOLDER_BOOK_COVER)}
+                    alt={`Thumbnail of ${book.title}`}
+                    width={40}
+                    height={60}
+                    className="h-[60px] w-10 rounded bg-base-300 object-cover"
+                    onError={e => {
+                      e.currentTarget.src = PLACEHOLDER_BOOK_COVER;
+                    }}
+                  />
+                </a>
+                <div className="min-w-0">
+                  <a
+                    href={safeLinkHref(book.itemInfo)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="line-clamp-2 font-medium leading-snug hover:underline"
+                  >
+                    {book.title}
+                  </a>
+                  <Link href={`/browse/${book.libraryId}`} className="text-sm text-link hover:underline">
+                    {book.libraryName}
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      </div>
+    </Container>
   );
 }

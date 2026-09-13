@@ -2,6 +2,13 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+:root {
+  --color-link: #0057b7;
+}
+[data-theme="dark"] {
+  --color-link: #b9d3fd;
+}
+
 :root,
 [data-theme] {
   background: oklch(var(--b2));
@@ -9,26 +16,25 @@
 
 body {
   min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
 }
 
 h1,
 h2,
-h3,
-h4 {
-  margin-bottom: 0.5rem;
-  line-height: 1;
-}
-
-p {
-  margin: 1rem 0;
+h3 {
+  @apply font-display;
+  text-wrap: balance;
 }
 
 .btn {
-  @apply shadow-md;
+  @apply normal-case;
 }
 
-.btn.btn-ghost {
-  @apply shadow-none;
+/* The camera and map sit inside cards; keep Leaflet's own z-indexes inside them. */
+.leaflet-container {
+  isolation: isolate;
+  font: inherit;
 }
 
 .leaflet-div-icon {

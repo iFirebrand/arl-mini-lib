@@ -1,149 +1,64 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AccountWidget } from "./AccountWidget";
-import {
-  Bars3Icon,
-  ChartBarIcon,
-  FireIcon,
-  InformationCircleIcon,
-  MapIcon,
-  ShieldCheckIcon,
-} from "@heroicons/react/24/outline";
+import { ABOUT, AT_A_LIBRARY, CHARACTER, MAP, MODERATE, STATS, isActive } from "./navigation";
 import { useAccountContext } from "~~/app/contexts/AccountContext";
 import { SwitchTheme } from "~~/components/SwitchTheme";
-import { useOutsideClick } from "~~/hooks/useOutsideClick";
 
-type HeaderMenuLink = {
-  label: string;
-  href: string;
-  icon?: React.ReactNode;
-};
-
-export const menuLinks: HeaderMenuLink[] = [
-  {
-    label: "Home",
-    href: "/",
-  },
-  {
-    label: "Map",
-    href: "/browse",
-    icon: <MapIcon className="h-4 w-4" />,
-  },
-  {
-    label: "@Lib",
-    href: "/libs",
-    icon: <span className="loading loading-ring loading-sm"></span>,
-  },
-  {
-    label: "About",
-    href: "/about",
-    icon: <InformationCircleIcon className="h-4 w-4" />,
-  },
-  {
-    label: "Stats",
-    href: "/stats",
-    icon: <ChartBarIcon className="h-4 w-4" />,
-  },
-  {
-    label: "Personality",
-    href: "/stats/personality",
-    icon: <FireIcon className="h-4 w-4" />,
-  },
-  {
-    label: "",
-    href: "#",
-    icon: <SwitchTheme className="h-4 w-4" />,
-  },
-];
-
-const moderateLink: HeaderMenuLink = {
-  label: "Moderate",
-  href: "/moderate",
-  icon: <ShieldCheckIcon className="h-4 w-4" />,
-};
-
-export const HeaderMenuLinks = () => {
+// Top bar on every page. Below 1280px wide the page links move to the bottom tab bar (BottomNav).
+export const Header = () => {
   const pathname = usePathname();
   const { account } = useAccountContext();
-  const links = account?.isModerator ? [...menuLinks.slice(0, -1), moderateLink, ...menuLinks.slice(-1)] : menuLinks;
+  const links = [MAP, AT_A_LIBRARY, STATS, CHARACTER, ABOUT, ...(account?.isModerator ? [MODERATE] : [])];
 
   return (
-    <>
-      {links.map(({ label, href, icon }) => {
-        const isActive = pathname === href;
-        return (
-          <li key={href}>
-            <Link
-              href={href}
-              passHref
-              className={`${
-                isActive ? "bg-secondary shadow-md" : ""
-              } hover:bg-secondary hover:shadow-md focus:!bg-secondary active:!text-neutral py-1.5 px-3 text-sm rounded-full gap-2 grid grid-flow-col`}
-            >
-              {icon}
-              <span>{label}</span>
-            </Link>
-          </li>
-        );
-      })}
-    </>
-  );
-};
-
-export const Header = () => {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const burgerMenuRef = useRef<HTMLDivElement>(null);
-
-  useOutsideClick(
-    burgerMenuRef,
-    useCallback(() => setIsDrawerOpen(false), []),
-  );
-
-  return (
-    <div className="sticky lg:static top-0 navbar bg-base-100 min-h-0 flex-shrink-0 justify-between z-20 shadow-md shadow-secondary px-0 sm:px-2">
-      <div className="navbar-start w-auto lg:w-1/2">
-        <div className="lg:hidden dropdown" ref={burgerMenuRef}>
-          <label
-            tabIndex={0}
-            className={`ml-1 btn btn-ghost ${isDrawerOpen ? "hover:bg-secondary" : "hover:bg-transparent"}`}
-            onClick={() => {
-              setIsDrawerOpen(prevIsOpenState => !prevIsOpenState);
-            }}
-          >
-            <Bars3Icon className="h-1/2" />
-          </label>
-          {isDrawerOpen && (
-            <ul
-              tabIndex={0}
-              className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 z-30"
-              onClick={() => {
-                setIsDrawerOpen(false);
-              }}
-            >
-              <HeaderMenuLinks />
-            </ul>
-          )}
-        </div>
-        <Link href="/" passHref className="hidden lg:flex items-center gap-2 ml-4 mr-6 shrink-0">
-          <div className="flex relative w-10 h-10">
-            <Image alt="logo" className="cursor-pointer" fill src="/logo.svg" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-bold leading-tight">ArLib.me (alpha)</span>
-            <span className="text-xs">Arlington Mini Libraries</span>
-          </div>
+    <header className="sticky top-0 z-30 border-b border-base-300/70 bg-base-100/90 backdrop-blur supports-[backdrop-filter]:bg-base-100/75">
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
+        <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="ArLib.me home">
+          <Image alt="" src="/logo.svg" width={36} height={36} className="h-9 w-9" priority />
+          <span className="flex flex-col leading-none">
+            <span className="flex items-center gap-1.5 font-display text-lg font-semibold tracking-tight">
+              ArLib.me
+              <span className="rounded-full bg-secondary px-1.5 py-0.5 font-sans text-[0.625rem] font-semibold uppercase tracking-wider text-secondary-content">
+                alpha
+              </span>
+            </span>
+            <span className="mt-1 hidden text-xs text-base-content/70 sm:block">Arlington Mini Libraries</span>
+          </span>
         </Link>
-        <ul className="hidden lg:flex lg:flex-nowrap menu menu-horizontal px-1 gap-2">
-          <HeaderMenuLinks />
-        </ul>
+
+        <nav aria-label="Main" className="ml-4 hidden xl:block">
+          <ul className="flex items-center gap-1">
+            {links.map(link => {
+              const active = isActive(link, pathname);
+              const Icon = link.icon;
+              return (
+                <li key={link.href} className="whitespace-nowrap">
+                  <Link
+                    href={link.href}
+                    aria-current={active ? "page" : undefined}
+                    className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                      active ? "bg-secondary text-secondary-content" : "text-base-content/80 hover:bg-base-200"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                    {link.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        <div className="ml-auto flex items-center gap-1.5">
+          <SwitchTheme />
+          <AccountWidget />
+        </div>
       </div>
-      <div className="navbar-end flex-grow mr-4">
-        <AccountWidget />
-      </div>
-    </div>
+    </header>
   );
 };

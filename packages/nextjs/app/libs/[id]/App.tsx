@@ -107,31 +107,33 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading }) => {
   }, []);
 
   return (
-    <main className="w-full flex flex-col items-center p-8">
-      <div className="w-full max-w-2xl flex flex-col items-center gap-4">
-        {/* <h1 className="text-2xl font-bold">Start to scan barcode</h1> */}
+    <div className="flex w-full flex-col gap-3">
+      <div className="relative overflow-hidden rounded-box bg-neutral shadow-card">
+        <video ref={videoRef} className="aspect-[4/3] w-full object-cover" muted playsInline />
+        {/* Where to hold the barcode. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-[12%] top-1/2 h-1/3 -translate-y-1/2 rounded-2xl border-2 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.25)]"
+        />
+      </div>
 
-        <div className="flex gap-2">
-          <button className="btn btn-primary" onClick={startScanning}>
-            Start
-          </button>
-          <button className="btn btn-secondary" onClick={resetScanning}>
-            Stop
-          </button>
-        </div>
-
-        <div>
-          <video ref={videoRef} width={300} height={200} className="border border-gray-300 rounded" />
-        </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <button className="btn btn-neutral rounded-full" onClick={startScanning}>
+          Start
+        </button>
+        <button className="btn btn-ghost rounded-full" onClick={resetScanning}>
+          Stop
+        </button>
 
         {videoDevices.length > 1 && (
-          <div className="flex flex-col gap-2">
-            <label htmlFor="sourceSelect">Change video source:</label>
+          <label className="ml-auto flex items-center gap-2 text-sm">
+            <span className="text-base-content/70">Camera</span>
             <select
               id="sourceSelect"
-              className="select select-bordered w-full max-w-xs"
+              className="select select-bordered select-sm max-w-[12rem]"
               value={selectedDeviceId}
               onChange={e => setSelectedDeviceId(e.target.value)}
+              aria-label="Change video source"
             >
               {videoDevices.map(device => (
                 <option key={device.deviceId} value={device.deviceId}>
@@ -139,10 +141,10 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading }) => {
                 </option>
               ))}
             </select>
-          </div>
+          </label>
         )}
       </div>
-    </main>
+    </div>
   );
 };
 

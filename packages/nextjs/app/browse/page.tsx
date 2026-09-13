@@ -2,8 +2,6 @@
 import prisma from "../../lib/db";
 import BrowseClient from "./BrowseClient";
 
-// Import the client component
-
 export const dynamic = "force-dynamic";
 
 async function fetchLibraries() {
@@ -17,25 +15,21 @@ async function fetchLibraries() {
       },
     },
     orderBy: { createdAt: "desc" },
-    select: { id: true, locationName: true, latitude: true, longitude: true },
-  });
-
-  const librariesCount = await prisma.library.count({
-    where: {
-      active: true,
-      locationName: {
-        not: {
-          equals: "",
-        },
-      },
+    select: {
+      id: true,
+      locationName: true,
+      latitude: true,
+      longitude: true,
+      imageUrl: true,
+      _count: { select: { items: { where: { hidden: false } } } },
     },
   });
 
-  return { libraries, librariesCount };
+  return libraries.map(({ _count, ...library }) => ({ ...library, bookCount: _count.items }));
 }
 
 export default async function BrowsePage() {
-  const { libraries, librariesCount } = await fetchLibraries(); // Fetch libraries data
+  const libraries = await fetchLibraries();
 
-  return <BrowseClient libraries={libraries} librariesCount={librariesCount} />;
+  return <BrowseClient libraries={libraries} librariesCount={libraries.length} />;
 }

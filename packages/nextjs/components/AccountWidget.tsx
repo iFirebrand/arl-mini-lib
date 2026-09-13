@@ -1,58 +1,53 @@
 "use client";
 
-import React, { useState } from "react";
-import { browserSupportsWebAuthn } from "@simplewebauthn/browser";
-import { toast } from "react-hot-toast";
+import React from "react";
+import Link from "next/link";
 import { KeyIcon, StarIcon } from "@heroicons/react/24/outline";
 import { useAccountContext } from "~~/app/contexts/AccountContext";
-import { useIsClient } from "~~/hooks/useIsClient";
+import { usePasskeyActions } from "~~/hooks/usePasskeyActions";
 
-// Header control: points, plus the passkey actions that make sense right now. Accounts need no
-// email: creating one saves a passkey on this device, which signs in anywhere.
+// Header control: points (a link to /account), plus the passkey actions that make sense right now.
+// Accounts need no email: creating one saves a passkey on this device, which signs in anywhere.
+// On phones and tablets the passkey buttons live on /account, to keep the bar uncluttered.
 export const AccountWidget = () => {
-  const { account, loading, savePointsWithPasskey, signInWithPasskey } = useAccountContext();
-  const [busy, setBusy] = useState(false);
-  // Checked only in the browser, so server and first client render agree.
-  const passkeysSupported = useIsClient() && browserSupportsWebAuthn();
-
-  const run = async (action: () => Promise<{ ok: true } | { ok: false; error: string }>, success: string) => {
-    setBusy(true);
-    const result = await action();
-    setBusy(false);
-    if (result.ok) toast.success(success);
-    else toast.error(result.error);
-  };
+  const { account, loading } = useAccountContext();
+  const { busy, supported, createAccount, savePoints, signIn } = usePasskeyActions();
 
   if (loading) return null;
 
-  return (
-    <div className="flex gap-2 items-center">
-      <span
-        className="btn btn-primary btn-sm px-4 rounded-full no-animation cursor-default"
-        title={account ? account.displayName : "Earn points by adding libraries and books"}
-      >
-        <StarIcon className="h-4 w-4 mr-1" aria-hidden="true" />
-        <span>{account?.points ?? 0} points</span>
-      </span>
+  const button = "btn btn-sm rounded-full hidden xl:inline-flex";
 
-      {passkeysSupported && !account && (
+  return (
+    <div className="flex items-center gap-2">
+      <Link
+        href="/account"
+        className="btn btn-primary btn-sm rounded-full px-3.5 font-semibold"
+        title={
+          account ? `${account.displayName}: your account` : "Your account. Earn points by adding libraries and books."
+        }
+      >
+        <StarIcon className="h-4 w-4" aria-hidden="true" />
+        <span>{account?.points ?? 0} points</span>
+      </Link>
+
+      {supported && !account && (
         <button
-          className="btn btn-secondary btn-sm rounded-full"
+          className={`${button} btn-secondary`}
           disabled={busy}
           title="Create an account with a passkey. No email or password."
-          onClick={() => run(savePointsWithPasskey, "Account created. Your passkey signs you in on any device.")}
+          onClick={createAccount}
         >
           <KeyIcon className="h-4 w-4" aria-hidden="true" />
           Create account
         </button>
       )}
 
-      {passkeysSupported && account && !account.hasPasskey && (
+      {supported && account && !account.hasPasskey && (
         <button
-          className="btn btn-secondary btn-sm rounded-full"
+          className={`${button} btn-secondary`}
           disabled={busy}
           title="Keep your points on any device. No email or password."
-          onClick={() => run(savePointsWithPasskey, "Points saved to your passkey")}
+          onClick={savePoints}
         >
           <KeyIcon className="h-4 w-4" aria-hidden="true" />
           Save with passkey
@@ -60,12 +55,12 @@ export const AccountWidget = () => {
       )}
 
       {/* Also for anonymous players: signing in to an existing passkey account merges their points. */}
-      {passkeysSupported && !account?.hasPasskey && (
+      {supported && !account?.hasPasskey && (
         <button
-          className="btn btn-ghost btn-sm rounded-full"
+          className={`${button} btn-ghost`}
           disabled={busy}
           title="Already saved points with a passkey? Sign in to use them here."
-          onClick={() => run(signInWithPasskey, "Signed in")}
+          onClick={signIn}
         >
           <KeyIcon className="h-4 w-4" aria-hidden="true" />
           Sign in
@@ -73,7 +68,7 @@ export const AccountWidget = () => {
       )}
 
       {account?.hasPasskey && (
-        <span className="text-xs opacity-70 hidden sm:inline" title="Signed in with a passkey">
+        <span className="hidden text-sm text-base-content/70 xl:inline" title="Signed in with a passkey">
           {account.displayName}
         </span>
       )}

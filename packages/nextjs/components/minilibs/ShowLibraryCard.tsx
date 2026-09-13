@@ -1,4 +1,6 @@
 import Image from "next/image";
+import Link from "next/link";
+import { QrCodeIcon } from "@heroicons/react/24/outline";
 import { PLACEHOLDER_LIBRARY_IMAGE, safeImageSrc } from "~~/lib/media";
 
 interface LibraryCard {
@@ -8,30 +10,44 @@ interface LibraryCard {
   imageUrl: string | null;
 }
 
-export const ShowLibraryCard = ({ existingLibrary }: { existingLibrary: LibraryCard | null }) => {
+// A library with its photo and the two things to do next: scan its books or browse its catalog.
+export const ShowLibraryCard = ({
+  existingLibrary,
+  eyebrow,
+}: {
+  existingLibrary: LibraryCard | null;
+  eyebrow?: string;
+}) => {
   if (!existingLibrary) return <div></div>;
   return (
-    <div className="hero bg-base-200 min-h-screen">
-      <div className="hero-content flex-col lg:flex-row">
-        <Image
-          src={safeImageSrc(existingLibrary.imageUrl, PLACEHOLDER_LIBRARY_IMAGE)}
-          alt={`${existingLibrary.locationName} library image`}
-          width={384}
-          height={384}
-          className="rounded-lg shadow-2xl"
-        />
-        <div>
-          <h1 className="text-5xl font-bold">{existingLibrary.locationName}</h1>
-          <p className="py-6">
-            {existingLibrary.description ||
-              "This mini library is brimming with potential but could use a few more books in its online catalog to truly shine! Cataloging just a handful of titles can help capture the mood and unique offerings of this space. Scan a few books to help activate AI narrative for this library and bring its story to life!"}
-          </p>
-
-          <a href={`/browse/${existingLibrary.id}`} className="btn btn-primary">
+    <article className="grid overflow-hidden rounded-box border border-base-300/70 bg-base-100 text-left shadow-card md:grid-cols-2">
+      <Image
+        src={safeImageSrc(existingLibrary.imageUrl, PLACEHOLDER_LIBRARY_IMAGE)}
+        alt={`${existingLibrary.locationName} library image`}
+        width={640}
+        height={480}
+        sizes="(min-width: 768px) 480px, 100vw"
+        className="aspect-[4/3] h-full w-full bg-base-300 object-cover"
+      />
+      <div className="flex flex-col gap-4 p-6 sm:p-8">
+        {eyebrow && <p className="text-sm font-semibold uppercase tracking-wider text-link">{eyebrow}</p>}
+        <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+          {existingLibrary.locationName}
+        </h1>
+        <p className="leading-relaxed text-base-content/80">
+          {existingLibrary.description ||
+            "This mini library is brimming with potential but could use a few more books in its online catalog to truly shine! Cataloging just a handful of titles can help capture the mood and unique offerings of this space. Scan a few books to help activate AI narrative for this library and bring its story to life!"}
+        </p>
+        <div className="mt-auto flex flex-wrap gap-2">
+          <Link href={`/libs/${existingLibrary.id}`} className="btn btn-neutral rounded-full">
+            <QrCodeIcon className="h-5 w-5" aria-hidden="true" />
+            Scan books
+          </Link>
+          <Link href={`/browse/${existingLibrary.id}`} className="btn btn-primary rounded-full">
             View Catalog
-          </a>
+          </Link>
         </div>
       </div>
-    </div>
+    </article>
   );
 };
