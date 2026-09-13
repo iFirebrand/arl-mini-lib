@@ -89,7 +89,7 @@ export default function StatsClient({
           <div className="stat">
             <div className="stat-title">Readers With Points</div>
             <div className="stat-value text-center">{totalUsers}</div>
-            <div className="stat-desc">Wallets keep points</div>
+            <div className="stat-desc">Random names, no email</div>
           </div>
         </div>
         <div className="flex flex-col items-center">

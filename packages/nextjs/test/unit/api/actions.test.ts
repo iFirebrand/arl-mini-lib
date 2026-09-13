@@ -318,27 +318,6 @@ describe("confirmBookInLibrary", () => {
   });
 });
 
-describe("getArlibSettings", () => {
-  it("reads the settings row with id '1'", async () => {
-    const settings = {
-      id: "1",
-      booksNeededToNameLibrary: 20,
-      seasonEndsAt: new Date("2025-01-31"),
-      totalItems: 0,
-      totalLibraries: 0,
-    };
-    prismaMock.arlibSettings.findFirst.mockResolvedValue(settings);
-
-    expect(await actions.getArlibSettings()).toEqual(settings);
-    expect(prismaMock.arlibSettings.findFirst.mock.calls[0][0].where).toEqual({ id: "1" });
-  });
-
-  it("returns 'settings not found' when the row is missing", async () => {
-    prismaMock.arlibSettings.findFirst.mockResolvedValue(null);
-    expect(await actions.getArlibSettings()).toBe("settings not found");
-  });
-});
-
 describe("stats", () => {
   afterEach(() => {
     vi.useRealTimers();
@@ -403,37 +382,5 @@ describe("stats", () => {
       orderBy: { points: "desc" },
       take: 10,
     });
-  });
-});
-
-describe("recordVote", () => {
-  it("stores the rating for the question", async () => {
-    prismaMock.poll.create.mockResolvedValue({});
-
-    await actions.recordVote("rewards-pool", 3);
-
-    expect(prismaMock.poll.create).toHaveBeenCalledWith({ data: { questionId: "rewards-pool", rating: 3 } });
-  });
-
-  it("throws so the UI can show an error", async () => {
-    prismaMock.poll.create.mockRejectedValue(new Error("boom"));
-    await expect(actions.recordVote("rewards-pool", 3)).rejects.toThrow("Failed to record vote");
-  });
-
-  it.each([
-    ["an unknown question", "free-money", 3],
-    ["a rating above 4", "rewards-pool", 5],
-    ["a rating of 0", "rewards-pool", 0],
-    ["a fractional rating", "rewards-pool", 2.5],
-  ])("rejects %s", async (_label, questionId, rating) => {
-    await expect(actions.recordVote(questionId as string, rating as number)).rejects.toThrow("Invalid vote");
-    expect(prismaMock.poll.create).not.toHaveBeenCalled();
-  });
-
-  it("limits each connection to 5 votes a minute", async () => {
-    prismaMock.poll.create.mockResolvedValue({});
-    client.ip = "192.0.2.11";
-    for (let i = 0; i < 5; i++) await actions.recordVote("rewards-pool", 4);
-    await expect(actions.recordVote("rewards-pool", 4)).rejects.toThrow("Too many votes");
   });
 });

@@ -11,11 +11,9 @@ import { Prisma } from "@prisma/client";
 
 // Every exported function here is a public endpoint, so writes validate input and are rate-limited.
 const createLibraryLimiter = rateLimit({ interval: 60 * 60 * 1000, uniqueTokenPerInterval: 500, limit: 10 });
-const voteLimiter = rateLimit({ interval: 60 * 1000, uniqueTokenPerInterval: 500, limit: 5 });
 const confirmBookLimiter = rateLimit({ interval: 60 * 1000, uniqueTokenPerInterval: 500, limit: 30 });
 
 const MAX_LIBRARY_NAME = 80;
-const POLL_QUESTIONS: Record<string, { min: number; max: number }> = { "rewards-pool": { min: 1, max: 4 } };
 
 // Library photos must come from our own upload route (/api/upload).
 const isOwnLibraryImage = (url: string) =>
@@ -299,37 +297,6 @@ export async function confirmBookInLibrary(
   }
 }
 
-// Function to get ArlibSettings
-export async function getArlibSettings() {
-  try {
-    const settings = await prisma.arlibSettings.findFirst({
-      where: {
-        id: "1",
-      },
-      select: {
-        id: true,
-        booksNeededToNameLibrary: true,
-        seasonEndsAt: true,
-        totalItems: true,
-        totalLibraries: true,
-      },
-    });
-
-    return settings
-      ? {
-          id: settings.id,
-          booksNeededToNameLibrary: settings.booksNeededToNameLibrary,
-          seasonEndsAt: settings.seasonEndsAt,
-          totalItems: settings.totalItems,
-          totalLibraries: settings.totalLibraries,
-        }
-      : "settings not found";
-  } catch (error) {
-    console.error("Error getting ArlibSettings:", error);
-    throw new Error("Error getting ArlibSettings");
-  }
-}
-
 export async function bookCount(libraryId: string) {
   const numberOfBooks = await prisma.item.count({
     where: { libraryId: libraryId },
@@ -430,24 +397,6 @@ export async function getNewLibrariesCount(): Promise<number> {
   } catch (error) {
     console.error("Error fetching new libraries count:", error);
     return 0;
-  }
-}
-
-export async function recordVote(questionId: string, rating: number) {
-  const question = POLL_QUESTIONS[questionId];
-  if (!question || !Number.isInteger(rating) || rating < question.min || rating > question.max) {
-    throw new Error("Invalid vote");
-  }
-  if (!voteLimiter.check(await getActionClientIp()).success) {
-    throw new Error("Too many votes. Try again in a minute.");
-  }
-  try {
-    await prisma.poll.create({
-      data: { questionId, rating },
-    });
-  } catch (error) {
-    console.error("Error recording vote:", error);
-    throw new Error(`Failed to record vote: ${error}`);
   }
 }
 
