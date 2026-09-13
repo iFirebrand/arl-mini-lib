@@ -7,7 +7,8 @@ import { KeyIcon, StarIcon } from "@heroicons/react/24/outline";
 import { useAccountContext } from "~~/app/contexts/AccountContext";
 import { useIsClient } from "~~/hooks/useIsClient";
 
-// Header control: points, plus the one passkey action that makes sense right now.
+// Header control: points, plus the passkey actions that make sense right now. Accounts need no
+// email: creating one saves a passkey on this device, which signs in anywhere.
 export const AccountWidget = () => {
   const { account, loading, savePointsWithPasskey, signInWithPasskey } = useAccountContext();
   const [busy, setBusy] = useState(false);
@@ -33,6 +34,18 @@ export const AccountWidget = () => {
         <StarIcon className="h-4 w-4 mr-1" aria-hidden="true" />
         <span>{account?.points ?? 0} points</span>
       </span>
+
+      {passkeysSupported && !account && (
+        <button
+          className="btn btn-secondary btn-sm rounded-full"
+          disabled={busy}
+          title="Create an account with a passkey. No email or password."
+          onClick={() => run(savePointsWithPasskey, "Account created. Your passkey signs you in on any device.")}
+        >
+          <KeyIcon className="h-4 w-4" aria-hidden="true" />
+          Create account
+        </button>
+      )}
 
       {passkeysSupported && account && !account.hasPasskey && (
         <button

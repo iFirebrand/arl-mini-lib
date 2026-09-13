@@ -51,12 +51,24 @@ describe("AccountWidget", () => {
     await waitFor(() => expect(mocks.toast.success).toHaveBeenCalledWith("Signed in"));
   });
 
+  it("lets a new visitor create an account with a passkey", async () => {
+    render(<AccountWidget />);
+
+    await userEvent.click(await screen.findByRole("button", { name: "Create account" }));
+
+    expect(mocks.savePointsWithPasskey).toHaveBeenCalled();
+    await waitFor(() =>
+      expect(mocks.toast.success).toHaveBeenCalledWith("Account created. Your passkey signs you in on any device."),
+    );
+  });
+
   it("offers to save points with a passkey once an anonymous account has some", async () => {
     mocks.state.account = { displayName: "Reader K7Q2M", points: 45, hasPasskey: false };
     render(<AccountWidget />);
     expect(screen.getByText("45 points")).toBeInTheDocument();
     // They may already have a passkey account from another device; signing in merges these points.
     expect(await screen.findByRole("button", { name: "Sign in" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Create account" })).not.toBeInTheDocument();
 
     await userEvent.click(await screen.findByRole("button", { name: "Save with passkey" }));
 
