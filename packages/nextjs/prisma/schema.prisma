@@ -66,6 +66,28 @@ model Account {
   updatedAt     DateTime     @updatedAt
   passkeys      Passkey[]
   pointEvents   PointEvent[]
+  moderator     Moderator?
+}
+
+// Accounts allowed to hide libraries and books. The app can only read this table; a moderator is
+// added by running SQL as the database owner (see prisma/sql/2026-09-13-moderation.sql).
+model Moderator {
+  accountId String   @id
+  account   Account  @relation(fields: [accountId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+// Every hide and unhide, so moderation can be reviewed. Rows are never changed or deleted.
+model ModerationEvent {
+  id          String   @id @default(cuid())
+  moderatorId String
+  // "library" or "item"
+  targetType  String
+  targetId    String
+  hidden      Boolean
+  createdAt   DateTime @default(now())
+
+  @@index([targetType, targetId])
 }
 
 model Passkey {
@@ -108,6 +130,8 @@ model Item {
   isbn13 String? 
   libraryId String?
   itemInfo String?
+  // Hidden by a moderator: kept, but left out of every public list and count.
+  hidden Boolean @default(false)
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
   library Library? @relation("LibraryItems", fields: [libraryId], references: [id])

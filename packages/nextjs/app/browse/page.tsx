@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 async function fetchLibraries() {
   const libraries = await prisma.library.findMany({
     where: {
+      active: true,
       locationName: {
         not: {
           equals: "",
@@ -21,6 +22,7 @@ async function fetchLibraries() {
 
   const librariesCount = await prisma.library.count({
     where: {
+      active: true,
       locationName: {
         not: {
           equals: "",

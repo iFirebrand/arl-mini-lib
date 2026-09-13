@@ -100,6 +100,7 @@ describe("cataloging books", () => {
     ]);
     expect(await actions.getItemsByLibraryId(library.id)).toEqual([
       {
+        id: expect.any(String),
         title: "The Wager",
         coverUrl: bookInfo.thumbnail,
         itemInfo: `https://openlibrary.org/isbn/${bookInfo.isbn13}`,

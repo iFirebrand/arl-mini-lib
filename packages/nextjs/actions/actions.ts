@@ -15,6 +15,10 @@ const confirmBookLimiter = rateLimit({ interval: 60 * 1000, uniqueTokenPerInterv
 
 const MAX_LIBRARY_NAME = 80;
 
+// What the public sees: libraries a moderator hasn't hidden, and their books that aren't hidden.
+const VISIBLE_LIBRARY = { active: true } as const;
+const VISIBLE_BOOK = { hidden: false, library: VISIBLE_LIBRARY } as const;
+
 // Library photos must come from our own upload route (/api/upload).
 const isOwnLibraryImage = (url: string) =>
   Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
@@ -81,6 +85,7 @@ export async function checkLibraryExists(latitude: string, longitude: string) {
   try {
     const library = await prisma.library.findFirst({
       where: {
+        ...VISIBLE_LIBRARY,
         AND: [
           {
             latitude: {
@@ -130,6 +135,7 @@ export async function getLibraryData(libraryId: string) {
     const library = await prisma.library.findFirst({
       where: {
         id: libraryId,
+        ...VISIBLE_LIBRARY,
       },
       select: {
         id: true,
@@ -165,6 +171,7 @@ export async function getLibraryDescription(libraryId: string) {
     const library = await prisma.library.findFirst({
       where: {
         id: libraryId,
+        ...VISIBLE_LIBRARY,
       },
       select: {
         description: true,
@@ -185,15 +192,14 @@ export async function getLibraryDescription(libraryId: string) {
 // Function to get the number of libraries with a description
 export async function getLibrariesWithDescriptionCount(): Promise<number> {
   try {
-    const libraries = await prisma.library.findMany({
+    return await prisma.library.count({
       where: {
+        ...VISIBLE_LIBRARY,
         description: {
           not: null,
         },
       },
     });
-
-    return libraries.length;
   } catch (error) {
     console.error("Error getting libraries with description count:", error);
     throw new Error("Error getting libraries with description count");
@@ -204,14 +210,15 @@ export async function getLibrariesWithDescriptionCount(): Promise<number> {
 export async function getItemsByLibraryId(
   libraryId: string,
   page = 1,
-): Promise<{ title: string; coverUrl: string; itemInfo: string; updatedAt: Date }[]> {
+): Promise<{ id: string; title: string; coverUrl: string; itemInfo: string; updatedAt: Date }[]> {
   const pageSize = 50;
   const skip = (page - 1) * pageSize;
 
   try {
     const items = await prisma.item.findMany({
-      where: { libraryId },
+      where: { libraryId, ...VISIBLE_BOOK },
       select: {
+        id: true,
         title: true,
         thumbnail: true,
         itemInfo: true,
@@ -223,6 +230,7 @@ export async function getItemsByLibraryId(
     });
 
     return items.map(item => ({
+      id: item.id,
       title: item.title ?? "",
       coverUrl: item.thumbnail ?? "",
       itemInfo: item.itemInfo ? `https://openlibrary.org/isbn/${item.isbn13}` : "#",
@@ -269,7 +277,7 @@ export async function confirmBookInLibrary(
   if (!confirmBookLimiter.check(clientIp).success) return { confirmed: false, pointsAwarded: 0 };
   try {
     const latest = await prisma.item.findFirst({
-      where: { libraryId, isbn13: isbn },
+      where: { libraryId, isbn13: isbn, ...VISIBLE_BOOK },
       orderBy: { updatedAt: "desc" },
       select: { id: true, updatedAt: true },
     });
@@ -280,7 +288,7 @@ export async function confirmBookInLibrary(
 
     // Only the request that still sees the old time wins the bonus, so two scans can't both earn it.
     const { count } = await prisma.item.updateMany({
-      where: { libraryId, isbn13: isbn, updatedAt: { lte: latest.updatedAt } },
+      where: { libraryId, isbn13: isbn, hidden: false, updatedAt: { lte: latest.updatedAt } },
       data: { updatedAt: new Date() },
     });
     if (count === 0) return { confirmed: true, pointsAwarded: 0 };
@@ -299,14 +307,14 @@ export async function confirmBookInLibrary(
 
 export async function bookCount(libraryId: string) {
   const numberOfBooks = await prisma.item.count({
-    where: { libraryId: libraryId },
+    where: { libraryId: libraryId, ...VISIBLE_BOOK },
   });
   return numberOfBooks;
 }
 
 export async function totalBookCount() {
   try {
-    const totalBooks = await prisma.item.count();
+    const totalBooks = await prisma.item.count({ where: VISIBLE_BOOK });
     return totalBooks;
   } catch (error) {
     console.error("Error getting total book count:", error);
@@ -316,7 +324,7 @@ export async function totalBookCount() {
 
 export async function totalLibraryCount() {
   try {
-    const totalLibraries = await prisma.library.count();
+    const totalLibraries = await prisma.library.count({ where: VISIBLE_LIBRARY });
     return totalLibraries;
   } catch (error) {
     console.error("Error getting total library count:", error);
@@ -339,6 +347,7 @@ export async function getLast50Books(): Promise<
 > {
   try {
     const last50Books = await prisma.item.findMany({
+      where: VISIBLE_BOOK,
       take: 50,
       orderBy: { createdAt: "desc" },
       select: {
@@ -387,6 +396,7 @@ export async function getNewLibrariesCount(): Promise<number> {
   try {
     const newLibrariesCount = await prisma.library.count({
       where: {
+        ...VISIBLE_LIBRARY,
         createdAt: {
           gt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
         },
@@ -404,6 +414,7 @@ export async function getManyLibraryDescriptions() {
   try {
     const libraries = await prisma.library.findMany({
       where: {
+        ...VISIBLE_LIBRARY,
         description: { not: null }, // Only include libraries with a non-null description
       },
       select: {

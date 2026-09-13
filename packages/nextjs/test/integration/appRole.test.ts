@@ -31,10 +31,42 @@ describe("the arlib_app role", () => {
       update: { points: { increment: 5 } },
       create: { walletAddress: "0xabc", points: 5 },
     });
-    await appPrisma.poll.create({ data: { questionId: "rewards-pool", rating: 4 } });
+    await appPrisma.$executeRaw`UPDATE "Library" SET "active" = false WHERE "id" = ${library.id}`;
+    await appPrisma.$executeRaw`UPDATE "Item" SET "hidden" = true WHERE "id" = ${item.id}`;
+    await appPrisma.moderationEvent.create({
+      data: { moderatorId: "acc_1", targetType: "item", targetId: item.id, hidden: true },
+    });
 
     expect(await appPrisma.item.count()).toBe(1);
     expect(await appPrisma.arlibSettings.findMany()).toEqual([]);
+  });
+
+  it("can change only a library's visibility and a book's confirmed time and visibility", async () => {
+    const library = await createTestLibrary();
+    const item = await testPrisma.item.create({ data: { title: "The Wager", libraryId: library.id } });
+    await expect(
+      appPrisma.$executeRaw`UPDATE "Library" SET "locationName" = 'Renamed' WHERE "id" = ${library.id}`,
+    ).rejects.toThrow(PERMISSION_DENIED);
+    await expect(appPrisma.$executeRaw`UPDATE "Item" SET "title" = 'Renamed' WHERE "id" = ${item.id}`).rejects.toThrow(
+      PERMISSION_DENIED,
+    );
+  });
+
+  it("cannot make anyone a moderator or rewrite the moderation log", async () => {
+    const account = await testPrisma.account.create({ data: { displayName: "Reader TEST1" } });
+    await expect(appPrisma.moderator.create({ data: { accountId: account.id } })).rejects.toThrow(PERMISSION_DENIED);
+    const event = await testPrisma.moderationEvent.create({
+      data: { moderatorId: account.id, targetType: "library", targetId: "lib_1", hidden: true },
+    });
+    await expect(
+      appPrisma.moderationEvent.update({ where: { id: event.id }, data: { hidden: false } }),
+    ).rejects.toThrow(PERMISSION_DENIED);
+  });
+
+  it("can no longer add poll votes", async () => {
+    await expect(appPrisma.poll.create({ data: { questionId: "rewards-pool", rating: 4 } })).rejects.toThrow(
+      PERMISSION_DENIED,
+    );
   });
 
   it("cannot delete rows", async () => {

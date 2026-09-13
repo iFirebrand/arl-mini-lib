@@ -7,6 +7,8 @@ export interface Account {
   displayName: string;
   points: number;
   hasPasskey: boolean;
+  /** May hide libraries and books. */
+  isModerator?: boolean;
 }
 
 type Result = { ok: true } | { ok: false; error: string };
