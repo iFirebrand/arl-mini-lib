@@ -26,7 +26,11 @@ const nextConfig = {
     remotePatterns: imageHosts.map(hostname => ({ protocol: "https", hostname })),
   },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // The barcode reader's WebAssembly, in a folder named after its version (scripts/copy-zxing-wasm.mjs).
+      { source: "/zxing/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+    ];
   },
 };
 
