@@ -1,25 +1,48 @@
 import React from "react";
-import { HeartIcon } from "@heroicons/react/24/outline";
+import Image from "next/image";
+import Link from "next/link";
 
-/**
- * Site footer
- */
 export const Footer = () => {
   return (
-    <div className="min-h-0 py-5 px-1 mb-11 lg:mb-0">
-      <div></div>
-      <div className="w-full">
-        <ul className="menu menu-horizontal w-full">
-          <div className="flex justify-center items-center gap-2 text-sm w-full">
-            <div className="flex justify-center items-center gap-2">
-              <p className="m-0 text-center">
-                <HeartIcon className="inline-block h-4 w-4" />
-                {` `}Experimental public goods community project {` `} 🇺🇦 🇺🇸{" "}
-              </p>
-            </div>
-          </div>
+    <footer className="border-t border-base-300/70 bg-base-100">
+      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-base-content/70 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="flex items-center gap-3">
+          <Image alt="" src="/logo.svg" width={28} height={28} className="h-7 w-7" />
+          <p>
+            Experimental public goods community project{" "}
+            <span role="img" aria-label="Ukraine and United States flags">
+              🇺🇦 🇺🇸
+            </span>
+          </p>
+        </div>
+        <ul className="flex flex-wrap gap-x-5 gap-y-2">
+          <li>
+            <Link href="/about" className="hover:text-base-content">
+              About
+            </Link>
+          </li>
+          <li>
+            <Link href="/watch" className="hover:text-base-content">
+              How it works
+            </Link>
+          </li>
+          <li>
+            <Link href="/account" className="hover:text-base-content">
+              Your account
+            </Link>
+          </li>
+          <li>
+            <a
+              href="https://github.com/iFirebrand/arl-mini-lib"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-base-content"
+            >
+              Source code
+            </a>
+          </li>
         </ul>
       </div>
-    </div>
+    </footer>
   );
 };

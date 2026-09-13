@@ -2,6 +2,8 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { Container, PageHeader } from "~~/components/ui/Page";
 import { PLACEHOLDER_LIBRARY_IMAGE, safeImageSrc } from "~~/lib/media";
 
 interface PersonalityClientProps {
@@ -18,25 +20,26 @@ interface Library {
 }
 
 const LibraryItem: React.FC<{ library: Library }> = ({ library }) => (
-  <div className="flex flex-col items-center p-4 w-full">
+  <article className="flex h-full flex-col overflow-hidden rounded-box border border-base-300/70 bg-base-100 shadow-card">
     <Image
       src={safeImageSrc(library.imageUrl, PLACEHOLDER_LIBRARY_IMAGE)}
-      alt={`${library.locationName} library image`}
-      width={288}
-      height={288}
-      className="max-w-[288px] rounded-lg shadow-2xl mb-4"
+      alt={`${library.locationName} library`}
+      width={560}
+      height={420}
+      sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
+      className="aspect-[4/3] h-auto w-full bg-base-300 object-cover"
     />
-    <div className="text-left mb-8 w-full">
-      <h1 className="text-5xl font-bold">{library.locationName}</h1>
-      <p className="py-6">
+    <div className="flex flex-1 flex-col gap-3 p-5">
+      <h2 className="text-2xl font-semibold leading-tight">{library.locationName}</h2>
+      <p className="flex-1 leading-relaxed text-base-content/80">
         {library.description ||
-          "This mini library is brimming with potential but could use a few more books in its online catalog to truly shine! Cataloging just a handful of titles can help capture the mood and unique offerings of this space. Scan a few books to help activate AI narrative for this library and bring its story to life!"}
+          "This mini library could use a few more books in its online catalog to find its character. Scan a few next time you pass by."}
       </p>
-      <a href={`/browse/${library.id}`} className="btn btn-primary">
+      <Link href={`/browse/${library.id}`} className="btn btn-primary w-fit rounded-full">
         View Catalog
-      </a>
+      </Link>
     </div>
-  </div>
+  </article>
 );
 
 export default function PersonalityClient({
@@ -45,24 +48,17 @@ export default function PersonalityClient({
   libraryDescriptions,
 }: PersonalityClientProps) {
   return (
-    <main>
-      <div className="flex items-center flex-col flex-grow pt-10">
-        <div className="text-center mb-8">
-          <h1 className="text-xl font-semibold text-center">
-            Out of {totalLibraries} Libraries {librariesWithDescriptionCount} have a Character 😅
-          </h1>
-        </div>
+    <Container className="pb-12">
+      <PageHeader eyebrow="Libraries with character" title="Every shelf has a personality">
+        {librariesWithDescriptionCount} of {totalLibraries} libraries have enough books cataloged to have one. A few
+        scanned books is all it takes.
+      </PageHeader>
 
-        <div className="w-full bg-base-200 min-h-screen p-4">
-          <div className="container mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {libraryDescriptions.map(library => (
-                <LibraryItem key={library.id} library={library} />
-              ))}
-            </div>
-          </div>
-        </div>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {libraryDescriptions.map(library => (
+          <LibraryItem key={library.id} library={library} />
+        ))}
       </div>
-    </main>
+    </Container>
   );
 }
