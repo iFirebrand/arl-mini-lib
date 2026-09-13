@@ -28,7 +28,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    const library = await prisma.library.findUnique({ where: { id: libraryId }, select: { id: true } });
+    // A library a moderator hid takes no new books.
+    const library = await prisma.library.findFirst({ where: { id: libraryId, active: true }, select: { id: true } });
     if (!library) {
       return NextResponse.json({ error: "Library not found" }, { status: 404 });
     }

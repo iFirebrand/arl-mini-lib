@@ -59,6 +59,11 @@ test.describe("pages", () => {
     await expect(page.getByText("Library not found")).toBeVisible();
   });
 
+  test("moderation page is not found for visitors", async ({ page }) => {
+    const response = await page.goto("/moderate");
+    expect(response?.status()).toBe(404);
+  });
+
   test("add-library page asks for location when none is given", async ({ page }) => {
     const response = await page.goto("/libs");
     expect(response?.status()).toBe(200);

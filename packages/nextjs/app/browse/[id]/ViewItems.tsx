@@ -4,6 +4,8 @@ import React from "react";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { getItemsByLibraryId } from "../../../actions/actions";
+import { useAccountContext } from "~~/app/contexts/AccountContext";
+import { HideButton } from "~~/components/moderation/HideButton";
 import { PLACEHOLDER_BOOK_COVER, PLACEHOLDER_LIBRARY_IMAGE, safeImageSrc, safeLinkHref } from "~~/lib/media";
 
 interface ViewItemsProps {
@@ -20,7 +22,10 @@ interface ViewItemsProps {
 }
 
 export default function ViewItems({ libraryId, libraryData }: ViewItemsProps) {
-  const [items, setItems] = useState<Array<{ title: string; coverUrl: string; itemInfo: string; updatedAt: Date }>>([]);
+  const [items, setItems] = useState<
+    Array<{ id: string; title: string; coverUrl: string; itemInfo: string; updatedAt: Date }>
+  >([]);
+  const { account } = useAccountContext();
   // const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -44,8 +49,8 @@ export default function ViewItems({ libraryId, libraryData }: ViewItemsProps) {
         </thead>
         <tbody>
           {/* Dynamic rows from items */}
-          {items.map((item, index) => (
-            <tr key={index}>
+          {items.map(item => (
+            <tr key={item.id}>
               <td>
                 <div className="flex items-center gap-3">
                   <a
@@ -82,6 +87,15 @@ export default function ViewItems({ libraryId, libraryData }: ViewItemsProps) {
                   day: "numeric",
                   year: "2-digit",
                 })}
+                {account?.isModerator && (
+                  <HideButton
+                    target="item"
+                    id={item.id}
+                    hidden={false}
+                    className="ml-2"
+                    onChange={() => setItems(current => current.filter(other => other.id !== item.id))}
+                  />
+                )}
               </td>
             </tr>
           ))}

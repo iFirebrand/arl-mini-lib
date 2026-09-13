@@ -176,10 +176,10 @@ describe("library lookups", () => {
   });
 
   it("getLibrariesWithDescriptionCount counts libraries with a description", async () => {
-    prismaMock.library.findMany.mockResolvedValue([libraryRow, libraryRow]);
+    prismaMock.library.count.mockResolvedValue(2);
 
     expect(await actions.getLibrariesWithDescriptionCount()).toBe(2);
-    expect(prismaMock.library.findMany).toHaveBeenCalledWith({ where: { description: { not: null } } });
+    expect(prismaMock.library.count).toHaveBeenCalledWith({ where: { active: true, description: { not: null } } });
   });
 
   it("getManyLibraryDescriptions renames id to libraryId", async () => {
@@ -203,7 +203,7 @@ describe("getItemsByLibraryId", () => {
     await actions.getItemsByLibraryId("lib_1", 3);
 
     expect(prismaMock.item.findMany.mock.calls[0][0]).toMatchObject({
-      where: { libraryId: "lib_1" },
+      where: { libraryId: "lib_1", hidden: false, library: { active: true } },
       skip: 0,
       take: 50,
     });
@@ -213,23 +213,25 @@ describe("getItemsByLibraryId", () => {
   it("maps items for display and links to OpenLibrary by ISBN", async () => {
     prismaMock.item.findMany.mockResolvedValue([
       {
+        id: "item_1",
         title: "The Wager",
         thumbnail: "https://c/1.jpg",
         itemInfo: "https://ol/x",
         isbn13: "9780063345164",
         updatedAt,
       },
-      { title: null, thumbnail: null, itemInfo: null, isbn13: null, updatedAt },
+      { id: "item_2", title: null, thumbnail: null, itemInfo: null, isbn13: null, updatedAt },
     ]);
 
     expect(await actions.getItemsByLibraryId("lib_1")).toEqual([
       {
+        id: "item_1",
         title: "The Wager",
         coverUrl: "https://c/1.jpg",
         itemInfo: "https://openlibrary.org/isbn/9780063345164",
         updatedAt,
       },
-      { title: "", coverUrl: "", itemInfo: "#", updatedAt },
+      { id: "item_2", title: "", coverUrl: "", itemInfo: "#", updatedAt },
     ]);
   });
 
@@ -271,7 +273,7 @@ describe("confirmBookInLibrary", () => {
       total: 100,
     });
     expect(prismaMock.item.updateMany).toHaveBeenCalledWith({
-      where: { libraryId: "lib_1", isbn13: "9780063345164", updatedAt: { lte: latest.updatedAt } },
+      where: { libraryId: "lib_1", isbn13: "9780063345164", hidden: false, updatedAt: { lte: latest.updatedAt } },
       data: { updatedAt: expect.any(Date) },
     });
     expect(accounts.awardPoints).toHaveBeenCalledWith("acc_1", "CONFIRM_BOOK", 2, {
@@ -330,7 +332,9 @@ describe("stats", () => {
 
     expect(await actions.totalBookCount()).toBe(135);
     expect(await actions.bookCount("lib_1")).toBe(12);
-    expect(prismaMock.item.count).toHaveBeenLastCalledWith({ where: { libraryId: "lib_1" } });
+    expect(prismaMock.item.count).toHaveBeenLastCalledWith({
+      where: { libraryId: "lib_1", hidden: false, library: { active: true } },
+    });
     expect(await actions.totalLibraryCount()).toBe(60);
     expect(await actions.totalUserCount()).toBe(7);
   });
@@ -342,7 +346,7 @@ describe("stats", () => {
 
     expect(await actions.getNewLibrariesCount()).toBe(3);
     expect(prismaMock.library.count.mock.calls[0][0]).toEqual({
-      where: { createdAt: { gt: new Date("2026-09-04T12:00:00Z") } },
+      where: { active: true, createdAt: { gt: new Date("2026-09-04T12:00:00Z") } },
     });
     expect(await actions.getNewLibrariesCount()).toBe(0);
   });

@@ -5,7 +5,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AccountWidget } from "./AccountWidget";
-import { Bars3Icon, ChartBarIcon, FireIcon, InformationCircleIcon, MapIcon } from "@heroicons/react/24/outline";
+import {
+  Bars3Icon,
+  ChartBarIcon,
+  FireIcon,
+  InformationCircleIcon,
+  MapIcon,
+  ShieldCheckIcon,
+} from "@heroicons/react/24/outline";
+import { useAccountContext } from "~~/app/contexts/AccountContext";
 import { SwitchTheme } from "~~/components/SwitchTheme";
 import { useOutsideClick } from "~~/hooks/useOutsideClick";
 
@@ -52,12 +60,20 @@ export const menuLinks: HeaderMenuLink[] = [
   },
 ];
 
+const moderateLink: HeaderMenuLink = {
+  label: "Moderate",
+  href: "/moderate",
+  icon: <ShieldCheckIcon className="h-4 w-4" />,
+};
+
 export const HeaderMenuLinks = () => {
   const pathname = usePathname();
+  const { account } = useAccountContext();
+  const links = account?.isModerator ? [...menuLinks.slice(0, -1), moderateLink, ...menuLinks.slice(-1)] : menuLinks;
 
   return (
     <>
-      {menuLinks.map(({ label, href, icon }) => {
+      {links.map(({ label, href, icon }) => {
         const isActive = pathname === href;
         return (
           <li key={href}>

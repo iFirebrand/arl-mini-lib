@@ -20,7 +20,7 @@ let ipCounter = 0;
 describe("POST /api/saveBook", () => {
   beforeEach(() => {
     requestHeaders.current = new Headers({ referer: "https://arlib.me/libs/lib_1" });
-    prismaMock.library.findUnique.mockReset().mockResolvedValue({ id: "lib_1" });
+    prismaMock.library.findFirst.mockReset().mockResolvedValue({ id: "lib_1" });
     prismaMock.item.findFirst.mockReset().mockResolvedValue(null);
     prismaMock.item.create.mockReset().mockImplementation(async ({ data }) => ({ id: "item_1", ...data }));
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(openLibraryResponse)));
@@ -105,7 +105,7 @@ describe("POST /api/saveBook", () => {
   });
 
   it("returns 404 for an unknown library without calling OpenLibrary", async () => {
-    prismaMock.library.findUnique.mockResolvedValue(null);
+    prismaMock.library.findFirst.mockResolvedValue(null);
     expect((await post({ isbn: "9780063345164", libraryId: "nope" })).status).toBe(404);
     expect(fetch).not.toHaveBeenCalled();
   });
