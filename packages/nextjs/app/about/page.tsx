@@ -9,7 +9,7 @@ function AboutPage() {
       <div className="flex flex-col gap-8">
         <div id="intro" className="card bg-base-300 rounded-box p-6">
           <p className="text-lg">
-            ArLib.me is a public goods community project to map and catalog mini libraries by Jan. 31, 2025. Mini
+            ArLib.me is a public goods community project to map and catalog Arlington&apos;s mini libraries. Mini
             libraries are more than book collections—they&apos;re neighborhood gems of creativity and connection. ArLib
             puts these spaces on the map and in your pocket, making it easy to explore, share, and discover books
             nearby. Each cataloged book links to its openlibrary.org page, helping you decide your next great read
@@ -37,7 +37,7 @@ function AboutPage() {
             <li>Snap a pic of the library and name it to place it on the map. </li>
           </ol>
         </div>
-        <div id="map-and-catalog" className="card bg-base-300 rounded-box p-6">
+        <div id="catalog-books" className="card bg-base-300 rounded-box p-6">
           <h3 className="text-center mb-8">
             <span className="block text-2xl font-bold">📚 Catalog The Books!</span>
           </h3>
@@ -50,7 +50,7 @@ function AboutPage() {
             Over time the catalog can get stale. A 5 minute re-scan of the books will keep it up to date.
           </p>
         </div>
-        <div id="map-and-catalog" className="card bg-base-300 rounded-box p-6">
+        <div id="earn-points" className="card bg-base-300 rounded-box p-6">
           <h3 className="text-center mb-8">
             <span className="block text-2xl font-bold">⭐️ Earn Points!</span>
           </h3>
@@ -88,15 +88,15 @@ function AboutPage() {
           </h3>
 
           <p className="text-lg mt-4">
-            Mini libraries are a public goods. We need a burst to get as many mini-libraries online as possible by the
-            end of January. <strong>Enter quests.</strong> People hunt to discover new libraries and catalog its
-            contents to compete for points. Quests are more fun with real rewards! Sure, bragging rights are cool, but
-            how about points that can turn into something tangible, like money or gift cards to local businesses?
-            Imagine earning something of value for putting libraries online—or for refreshing the catalog while on a dog
-            walk. For some it is not about the money. But we know incentives work. The prize-to-points ratio?
-            That&apos;s the exciting part—it depends on how many sponsors and funds join the quest! Gamification ideas
-            are flowing, and we&apos;re just getting started. Will there be a golden ticket? Got thoughts or want to
-            chip in ideas or funds? Let&apos;s team up and make it happen—reach out{" "}
+            Mini libraries are a public good, and the map gets more useful with every library added.{" "}
+            <strong>Enter quests.</strong> People hunt to discover new libraries and catalog its contents to compete for
+            points. Quests are more fun with real rewards! Sure, bragging rights are cool, but how about points that can
+            turn into something tangible, like money or gift cards to local businesses? Imagine earning something of
+            value for putting libraries online—or for refreshing the catalog while on a dog walk. For some it is not
+            about the money. But we know incentives work. The prize-to-points ratio? That&apos;s the exciting part—it
+            depends on how many sponsors and funds join the quest! Gamification ideas are flowing, and we&apos;re just
+            getting started. Will there be a golden ticket? Got thoughts or want to chip in ideas or funds? Let&apos;s
+            team up and make it happen—reach out{" "}
             <a href="mailto:ArlingtonAndUkraine+arlib@gmail.com">ArlingtonAndUkraine+arlib@gmail.com</a> and help shape
             something awesome! This is a fun community project. Don&apos;t be shy.
           </p>
@@ -127,7 +127,7 @@ function AboutPage() {
             a community-driven way to make books more accessible while celebrating the stories in our neighborhoods.
           </p>
         </div>
-        <div id="epilogue" className="card bg-base-300 rounded-box p-6">
+        <div id="ukraine" className="card bg-base-300 rounded-box p-6">
           <h3 className="text-center mb-8">
             <span className="block text-lg font-bold">🇺🇦 🇺🇸 </span>
           </h3>

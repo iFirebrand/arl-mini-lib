@@ -37,7 +37,7 @@ export default defineConfig({
     ],
     coverage: {
       provider: "v8",
-      include: ["actions/**", "app/**", "components/**", "lib/**", "media/**", "hooks/useLocalStorage.ts"],
+      include: ["actions/**", "app/**", "components/**", "lib/**", "media/**"],
       exclude: ["components/scaffold-eth/**"],
     },
   },

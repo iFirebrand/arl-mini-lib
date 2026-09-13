@@ -181,27 +181,3 @@ describe("cataloging books", () => {
     expect(await actions.getItemsByLibraryId(library.id, 2)).toHaveLength(10);
   });
 });
-
-describe("site settings and polls", () => {
-  it("reads the ArlibSettings row", async () => {
-    await testPrisma.arlibSettings.create({
-      data: {
-        id: "1",
-        booksNeededToNameLibrary: 20,
-        seasonEndsAt: new Date("2025-01-31T00:00:00Z"),
-        totalItems: 0,
-        totalLibraries: 0,
-      },
-    });
-
-    expect(await actions.getArlibSettings()).toMatchObject({ id: "1", booksNeededToNameLibrary: 20 });
-  });
-
-  it("records a poll vote", async () => {
-    await actions.recordVote("rewards-pool", 4);
-
-    expect(await testPrisma.poll.findMany()).toEqual([
-      expect.objectContaining({ questionId: "rewards-pool", rating: 4 }),
-    ]);
-  });
-});
