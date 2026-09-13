@@ -123,3 +123,21 @@ test("points earned before signing in join the passkey account", async ({ browse
   await phoneContext.close();
   await tabletContext.close();
 });
+
+test("a new visitor creates an account with a passkey, without earning points first", async ({ browser }) => {
+  const phoneContext = await browser.newContext();
+  const phone = await newDevice(phoneContext);
+
+  await phone.page.goto("/");
+  await expect(phone.page.getByText("0 points")).toBeVisible();
+  await phone.page.getByRole("button", { name: "Create account" }).click();
+  await expect(phone.page.getByText("Account created. Your passkey signs you in on any device.")).toBeVisible();
+
+  const account = await db.account.findFirstOrThrow({ include: { passkeys: true } });
+  expect(account.passkeys).toHaveLength(1);
+  await expect(phone.page.getByText(account.displayName)).toBeVisible();
+  await expect(phone.page.getByRole("button", { name: "Create account" })).toHaveCount(0);
+  await expect(phone.page.getByRole("button", { name: "Sign in" })).toHaveCount(0);
+
+  await phoneContext.close();
+});

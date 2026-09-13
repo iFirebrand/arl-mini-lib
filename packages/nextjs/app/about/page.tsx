@@ -111,10 +111,12 @@ function AboutPage() {
             You start earning points the moment you add a library or a book—no sign-up. Your points belong to an
             anonymous account with a random name like &ldquo;Reader K7Q2M&rdquo;. To keep them if you clear your browser
             or switch devices, tap <strong>Save with passkey</strong>: your phone or password manager creates a passkey,
-            secured by Face ID, Touch ID or your device PIN, and you can sign in with it anywhere. The site stores no
-            email, name or password—only your random name, your points and the passkey&apos;s public key. Leaderboards
-            show random names only. If rewards are introduced in the future, points will determine eligibility, and you
-            will be able to link a wallet to your account then.
+            secured by Face ID, Touch ID or your device PIN, and you can sign in with it anywhere. You can also tap{" "}
+            <strong>Create account</strong> before earning anything. The site stores no email, name or password—only
+            your random name, your points and the passkey&apos;s public key. Leaderboards show random names only. If
+            rewards are introduced in the future, points will determine eligibility, and you will be able to link a
+            wallet to your account then. Points earned with a wallet before accounts existed are kept and can be claimed
+            by that wallet at that point.
           </p>
         </div>
         <div id="epilogue" className="card bg-base-300 rounded-box p-6">
