@@ -146,9 +146,13 @@ export default function AboutPage() {
                 Walks with a purpose: a route that takes you and a friend on a healthy walk to the libraries whose books
                 need refreshing.
               </li>
+              <li>
+                Turn points into <strong>Karlma</strong> tokens (yes, karma, but for Arlington) that get you discounts
+                at local businesses.
+              </li>
             </ul>
             <p>
-              Got an idea for a quest, or want to sponsor one? Email{" "}
+              What are your ideas? Email{" "}
               <a href="mailto:ArlingtonAndUkraine+arlib@gmail.com" className="break-all text-link underline">
                 ArlingtonAndUkraine+arlib@gmail.com
               </a>
