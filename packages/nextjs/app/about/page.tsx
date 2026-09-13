@@ -137,23 +137,22 @@ export default function AboutPage() {
 
           <Section id="sponsor-quest" title="Make this happen">
             <p>
-              Mini libraries are a public good, and the map gets more useful with every library added.{" "}
-              <strong>Enter quests.</strong> People hunt to discover new libraries and catalog its contents to compete
-              for points. Quests are more fun with real rewards! Sure, bragging rights are cool, but how about points
-              that can turn into something tangible, like money or gift cards to local businesses? Imagine earning
-              something of value for putting libraries online—or for refreshing the catalog while on a dog walk.
+              <strong>Quests</strong> are how Arlington&apos;s libraries stay on the map and their catalogs stay fresh.
+              A few ideas:
             </p>
+            <ul className="flex list-disc flex-col gap-2 pl-6 marker:text-base-content/60">
+              <li>Hide a small reward in a few libraries for whoever catalogs them next.</li>
+              <li>
+                Walks with a purpose: a route that takes you and a friend on a healthy walk to the libraries whose books
+                need refreshing.
+              </li>
+            </ul>
             <p>
-              For some it is not about the money. But we know incentives work. The prize-to-points ratio? That&apos;s
-              the exciting part—it depends on how many sponsors and funds join the quest! Gamification ideas are
-              flowing, and we&apos;re just getting started. Will there be a golden ticket?
-            </p>
-            <p>
-              Got thoughts or want to chip in ideas or funds? Let&apos;s team up and make it happen—reach out at{" "}
+              Got an idea for a quest, or want to sponsor one? Email{" "}
               <a href="mailto:ArlingtonAndUkraine+arlib@gmail.com" className="break-all text-link underline">
                 ArlingtonAndUkraine+arlib@gmail.com
-              </a>{" "}
-              and help shape something awesome! This is a fun community project. Don&apos;t be shy.
+              </a>
+              .
             </p>
           </Section>
 
