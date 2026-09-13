@@ -1,5 +1,6 @@
-// Turning an ISBN into the book details we store. Used by the browser (to show the book right
-// away) and by the server (which never trusts book details sent by the browser).
+// Turning an ISBN into the book details we store, from OpenLibrary. The server looks books up
+// (lib/bookLookup.ts) and never trusts book details sent by the browser.
+import { hasValidIsbn10CheckDigit, isbn10To13 } from "./isbn";
 
 export interface BookDetails {
   title: string;
@@ -10,7 +11,7 @@ export interface BookDetails {
   itemInfo: string;
 }
 
-const MAX_TEXT = { title: 300, authors: 300, description: 1000 };
+export const MAX_TEXT = { title: 300, authors: 300, description: 1000 };
 
 /** Digits of a valid-looking ISBN-10 or ISBN-13 (hyphens and spaces removed), or null. */
 export function normalizeIsbn(raw: unknown): string | null {
@@ -19,10 +20,10 @@ export function normalizeIsbn(raw: unknown): string | null {
   return /^(?:\d{9}[\dX]|\d{13})$/.test(isbn) ? isbn : null;
 }
 
-const text = (value: unknown, max: number) => (typeof value === "string" ? value.trim().slice(0, max) : "");
+export const text = (value: unknown, max: number) => (typeof value === "string" ? value.trim().slice(0, max) : "");
 
-// Only OpenLibrary's own pages and covers are kept; anything else becomes "".
-const openLibraryUrl = (value: unknown, host: string) => {
+/** An http(s) URL on exactly this host, upgraded to https; anything else becomes "". */
+export const httpsUrlOn = (value: unknown, host: string) => {
   try {
     const url = new URL(String(value));
     if (url.hostname !== host || (url.protocol !== "https:" && url.protocol !== "http:")) return "";
@@ -45,12 +46,16 @@ export function parseOpenLibraryResponse(data: unknown): BookDetails | null {
           subtitle?: unknown;
           authors?: { name?: unknown }[];
           cover?: { medium?: unknown };
-          identifiers?: { isbn_13?: unknown[] };
+          identifiers?: { isbn_13?: unknown[]; isbn_10?: unknown[] };
         };
       }
     | undefined;
   const info = record?.data;
-  const isbn13 = normalizeIsbn(info?.identifiers?.isbn_13?.[0]);
+  // Older editions often have only an ISBN-10 on record.
+  const isbn10 = normalizeIsbn(info?.identifiers?.isbn_10?.[0]);
+  const isbn13 =
+    normalizeIsbn(info?.identifiers?.isbn_13?.[0]) ??
+    (isbn10 && hasValidIsbn10CheckDigit(isbn10) ? isbn10To13(isbn10) : null);
   const title = text(info?.title, MAX_TEXT.title);
   if (!info || !isbn13 || !title) return null;
 
@@ -60,10 +65,10 @@ export function parseOpenLibraryResponse(data: unknown): BookDetails | null {
   return {
     title,
     authors: authors.join(", ").slice(0, MAX_TEXT.authors),
-    thumbnail: openLibraryUrl(info.cover?.medium, "covers.openlibrary.org"),
+    thumbnail: httpsUrlOn(info.cover?.medium, "covers.openlibrary.org"),
     description: text(info.subtitle, MAX_TEXT.description),
     isbn13,
-    itemInfo: openLibraryUrl(record?.recordURL, "openlibrary.org"),
+    itemInfo: httpsUrlOn(record?.recordURL, "openlibrary.org"),
   };
 }
 

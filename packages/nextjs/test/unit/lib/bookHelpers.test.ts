@@ -1,69 +1,45 @@
-import { bookInfo, jsonResponse, openLibraryResponse } from "../../fixtures/openLibrary";
+import { bookInfo, jsonResponse } from "../../fixtures/openLibrary";
 import { describe, expect, it, vi } from "vitest";
 import { fetchBookData } from "~~/app/libs/[id]/fetchBookData";
 import { saveBookToDatabase } from "~~/app/libs/[id]/saveBookToDatabase";
 
 describe("fetchBookData", () => {
-  it("asks our OpenLibrary proxy for the ISBN", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(openLibraryResponse));
+  const { libraryId, ...bookDetails } = bookInfo;
+
+  it("asks our book lookup for the ISBN", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ book: bookDetails }));
     vi.stubGlobal("fetch", fetchMock);
 
-    await fetchBookData("9780063345164", "lib_1");
+    await fetchBookData("9780063345164", libraryId);
 
-    expect(fetchMock).toHaveBeenCalledWith("/api/openlibrary?isbn=9780063345164");
+    expect(fetchMock).toHaveBeenCalledWith("/api/book?isbn=9780063345164");
   });
 
-  it("maps the first OpenLibrary record into the shape saved to the database", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(openLibraryResponse)));
+  it("adds the library and a timestamp to the book the server found", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse({ book: bookDetails })));
 
-    const result = await fetchBookData("9780063345164", "lib_1");
-
-    expect(result).toEqual({ ...bookInfo, updatedAt: expect.any(String) });
+    expect(await fetchBookData("9780063345164", libraryId)).toEqual({ ...bookInfo, updatedAt: expect.any(String) });
   });
 
-  it("joins multiple authors and tolerates missing optional fields", async () => {
-    const record = openLibraryResponse.records["/books/OL50548140M"];
-    const sparse = {
-      records: {
-        k: {
-          recordURL: record.recordURL,
-          data: {
-            title: "Good Omens",
-            authors: [{ name: "Terry Pratchett" }, { name: "Neil Gaiman" }],
-            identifiers: { isbn_13: ["9780060853983"] },
-          },
-        },
-      },
-    };
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(sparse)));
+  it("returns null when no catalog has the book", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse({ book: null })));
 
-    const result = await fetchBookData("9780060853983", "lib_1");
-
-    expect(result).toMatchObject({
-      title: "Good Omens",
-      authors: "Terry Pratchett, Neil Gaiman",
-      thumbnail: "",
-      description: "",
-      isbn13: "9780060853983",
-    });
+    expect(await fetchBookData("0000000000000", libraryId)).toBeNull();
   });
 
-  it("returns null when OpenLibrary has no record for the ISBN", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse({ records: {} })));
+  it("throws when the lookup fails, so the page doesn't call it not found", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(jsonResponse({ error: "Could not reach the book catalogs" }, 502)),
+    );
 
-    expect(await fetchBookData("0000000000000", "lib_1")).toBeNull();
-  });
-
-  it("returns null when the proxy returns an error body", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse({ error: "boom" }, 500)));
-
-    expect(await fetchBookData("9780063345164", "lib_1")).toBeNull();
+    await expect(fetchBookData("9780063345164", libraryId)).rejects.toThrow("status: 502");
   });
 
   it("propagates network failures", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
 
-    await expect(fetchBookData("9780063345164", "lib_1")).rejects.toThrow("Failed to fetch");
+    await expect(fetchBookData("9780063345164", libraryId)).rejects.toThrow("Failed to fetch");
   });
 });
 

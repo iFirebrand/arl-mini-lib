@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { googleBooksResponse } from "../../fixtures/googleBooks";
 import { bookInfo, jsonResponse, openLibraryResponse } from "../../fixtures/openLibrary";
 import { prismaMock } from "../../mocks/prisma";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -12,7 +13,7 @@ const accounts = vi.hoisted(() => ({ getOrCreateAccount: vi.fn(), newBookPoints:
 vi.mock("~~/lib/accounts", () => accounts);
 
 const { POST: saveBook } = await import("~~/app/api/saveBook/route");
-const { GET: openLibrary } = await import("~~/app/api/openlibrary/route");
+const { GET: bookLookup } = await import("~~/app/api/book/route");
 
 const { libraryId, ...storedFields } = bookInfo;
 let ipCounter = 0;
@@ -116,6 +117,26 @@ describe("POST /api/saveBook", () => {
     expect(prismaMock.item.create).not.toHaveBeenCalled();
   });
 
+  it("falls back to Google Books when OpenLibrary has no match", async () => {
+    vi.stubEnv("GOOGLE_BOOKS_API_KEY", "test-google-books-key");
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(jsonResponse({ records: {} }))
+      .mockResolvedValueOnce(jsonResponse(googleBooksResponse));
+
+    const res = await post({ isbn: "9780063345164", libraryId: "lib_1" });
+
+    expect(res.status).toBe(201);
+    expect(String(vi.mocked(fetch).mock.calls[1][0])).toMatch(
+      /^https:\/\/www\.googleapis\.com\/books\/v1\/volumes\?q=isbn:9780063345164&/,
+    );
+    expect(prismaMock.item.create.mock.calls[0][0].data).toMatchObject({
+      title: "The Wager",
+      thumbnail: "https://books.google.com/books/content?id=abc&printsec=frontcover&img=1&zoom=1",
+      itemInfo: "https://books.google.com/books?id=abc",
+    });
+    vi.unstubAllEnvs();
+  });
+
   it("returns 502 when OpenLibrary is down", async () => {
     vi.mocked(fetch).mockResolvedValue(new Response("down", { status: 503 }));
     expect((await post({ isbn: "9780063345164", libraryId: "lib_1" })).status).toBe(502);
@@ -139,38 +160,50 @@ describe("POST /api/saveBook", () => {
   });
 });
 
-describe("GET /api/openlibrary", () => {
+describe("GET /api/book", () => {
+  const get = (query: string) =>
+    bookLookup(
+      new Request(`https://arlib.me/api/book${query}`, { headers: { "x-forwarded-for": `10.5.0.${++ipCounter}` } }),
+    );
+
   it("requires an ISBN", async () => {
-    const res = await openLibrary(new Request("https://arlib.me/api/openlibrary"));
+    const res = await get("");
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ error: "ISBN is required" });
   });
 
-  it("rejects malformed ISBNs without calling OpenLibrary", async () => {
+  it("rejects malformed ISBNs without calling any catalog", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
-    const res = await openLibrary(new Request("https://arlib.me/api/openlibrary?isbn=..%2F..%2Fpeople"));
-    expect(res.status).toBe(400);
+    expect((await get("?isbn=..%2F..%2Fpeople")).status).toBe(400);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("proxies the OpenLibrary brief volumes API over https", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(openLibraryResponse));
-    vi.stubGlobal("fetch", fetchMock);
+  it("returns the book in the shape we store, cached at the edge for a day", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(openLibraryResponse)));
 
-    const res = await openLibrary(new Request("https://arlib.me/api/openlibrary?isbn=9780063345164"));
+    const res = await get("?isbn=9780063345164");
 
-    expect(fetchMock.mock.calls[0][0]).toBe("https://openlibrary.org/api/volumes/brief/isbn/9780063345164.json");
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual(openLibraryResponse);
+    expect(await res.json()).toEqual({ book: storedFields });
+    expect(res.headers.get("cache-control")).toContain("s-maxage=86400");
   });
 
-  it("returns 500 with the upstream status when OpenLibrary fails", async () => {
+  it("answers null, cached for an hour, when no catalog has the book", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse({ records: {} })));
+
+    const res = await get("?isbn=9780063345164");
+
+    expect(await res.json()).toEqual({ book: null });
+    expect(res.headers.get("cache-control")).toContain("s-maxage=3600");
+  });
+
+  it("returns 502 when the catalogs can't be reached", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("down", { status: 503 })));
 
-    const res = await openLibrary(new Request("https://arlib.me/api/openlibrary?isbn=9780063345164"));
+    const res = await get("?isbn=9780063345164");
 
-    expect(res.status).toBe(500);
-    expect(await res.json()).toEqual({ error: "OpenLibrary API responded with status: 503" });
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({ error: "Could not reach the book catalogs" });
   });
 });

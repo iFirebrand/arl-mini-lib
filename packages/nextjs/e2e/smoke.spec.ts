@@ -109,8 +109,8 @@ test.describe("in the browser", () => {
 });
 
 test.describe("API", () => {
-  test("OpenLibrary proxy requires an ISBN", async ({ request }) => {
-    const res = await request.get("/api/openlibrary");
+  test("book lookup requires an ISBN", async ({ request }) => {
+    const res = await request.get("/api/book");
     expect(res.status()).toBe(400);
     expect(await res.json()).toEqual({ error: "ISBN is required" });
   });

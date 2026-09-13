@@ -34,6 +34,9 @@ interface BookInfo {
   libraryId: string;
 }
 
+export const BOOK_NOT_FOUND =
+  "We couldn't find this ISBN in OpenLibrary or Google Books. Check the number, or skip this one for now.";
+
 // Matches MULTIPLIER_AFTER on the server: new books after the first three in a visit earn double.
 const MULTIPLIER_AFTER = 3;
 
@@ -122,7 +125,7 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
       const bookData: BookInfo | null = await fetchBookData(isbn, library.id);
 
       if (!bookData) {
-        toast.error("Not found. Try again? Newer books only for now.");
+        toast.error(BOOK_NOT_FOUND);
         return;
       }
 

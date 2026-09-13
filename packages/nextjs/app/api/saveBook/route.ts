@@ -1,8 +1,9 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { awardPoints, getOrCreateAccount, newBookPoints } from "../../../lib/accounts";
+import { findBook } from "../../../lib/bookLookup";
 import prisma from "../../../lib/db";
-import { lookupBook, normalizeIsbn } from "../../../lib/openLibrary";
+import { normalizeIsbn } from "../../../lib/openLibrary";
 import { rateLimit } from "../../../lib/rate-limit";
 import { getClientIp, isAllowedReferer } from "../../../lib/requestGuards";
 
@@ -36,10 +37,10 @@ export async function POST(req: Request) {
 
     let book;
     try {
-      book = await lookupBook(isbn);
+      book = await findBook(isbn);
     } catch (error) {
       console.error("Error looking up book:", error);
-      return NextResponse.json({ error: "Could not reach OpenLibrary" }, { status: 502 });
+      return NextResponse.json({ error: "Could not reach the book catalogs" }, { status: 502 });
     }
     if (!book) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 });

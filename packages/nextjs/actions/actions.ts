@@ -233,7 +233,12 @@ export async function getItemsByLibraryId(
       id: item.id,
       title: item.title ?? "",
       coverUrl: item.thumbnail ?? "",
-      itemInfo: item.itemInfo ? `https://openlibrary.org/isbn/${item.isbn13}` : "#",
+      // Books from Google Books link to their Google page; the rest to OpenLibrary by ISBN.
+      itemInfo: item.itemInfo?.startsWith("https://books.google.com/")
+        ? item.itemInfo
+        : item.itemInfo
+          ? `https://openlibrary.org/isbn/${item.isbn13}`
+          : "#",
       updatedAt: item.updatedAt,
     }));
   } catch (error) {
