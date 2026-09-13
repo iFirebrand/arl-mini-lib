@@ -1,3 +1,4 @@
+import { BARCODE_VIDEO_ISBN, writeBarcodeVideo } from "./e2e/fixtures/barcodeVideo";
 import { getTestAppDatabaseUrl, getTestDatabaseUrl } from "./test/setup/testDatabaseUrl";
 import { defineConfig, devices } from "@playwright/test";
 
@@ -39,6 +40,8 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 15_000 },
   retries: process.env.CI ? 1 : 0,
+  // Flow tests share one database and each prepares it first, so they run one at a time.
+  workers: flows ? 1 : undefined,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL,
@@ -48,7 +51,23 @@ export default defineConfig({
       : undefined,
   },
   projects: flows
-    ? [{ name: "flows", testDir: "e2e/flows", use: { ...devices["Desktop Chrome"] } }]
+    ? [
+        {
+          name: "flows",
+          testDir: "e2e/flows",
+          use: {
+            ...devices["Desktop Chrome"],
+            // A fake camera that shows a book's barcode (e2e/flows/scanning.spec.ts).
+            launchOptions: {
+              args: [
+                "--use-fake-device-for-media-stream",
+                "--use-fake-ui-for-media-stream",
+                `--use-file-for-fake-video-capture=${writeBarcodeVideo(BARCODE_VIDEO_ISBN)}`,
+              ],
+            },
+          },
+        },
+      ]
     : [
         { name: "desktop", testIgnore: "flows/**", use: { ...devices["Desktop Chrome"] } },
         { name: "mobile", testIgnore: "flows/**", use: { ...devices["Pixel 7"] } },
