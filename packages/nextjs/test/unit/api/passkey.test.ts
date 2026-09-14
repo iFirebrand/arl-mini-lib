@@ -32,10 +32,15 @@ const { POST: loginOptions } = await import("~~/app/api/passkey/login/options/ro
 const { POST: loginVerify } = await import("~~/app/api/passkey/login/verify/route");
 
 let ipCounter = 0;
-const request = (body?: unknown, ip = `10.6.0.${++ipCounter}`) =>
+const IPHONE_SAFARI =
+  "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1";
+const MAC_CHROME =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36";
+
+const request = (body?: unknown, ip = `10.6.0.${++ipCounter}`, userAgent?: string) =>
   new Request("http://localhost:3000/api/passkey", {
     method: "POST",
-    headers: { "x-forwarded-for": ip },
+    headers: { "x-forwarded-for": ip, ...(userAgent && { "user-agent": userAgent }) },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
 
@@ -74,6 +79,11 @@ describe("adding a passkey", () => {
       excludeCredentials: [{ id: "cred_old" }],
       authenticatorSelection: { residentKey: "required" },
     });
+    // A removed passkey may still be on this device; it mustn't block making a new one.
+    expect(prismaMock.passkey.findMany).toHaveBeenCalledWith({
+      where: { accountId: "acc_1", revokedAt: null },
+      select: { id: true },
+    });
     expect(new TextDecoder().decode(options.userID)).toBe("acc_1");
     expect(session.writeChallenge).toHaveBeenCalledWith("reg-challenge", "register");
   });
@@ -87,10 +97,11 @@ describe("adding a passkey", () => {
         credential: { id: "cred_new", publicKey: new Uint8Array([9, 9]), counter: 0, transports: ["internal"] },
         credentialDeviceType: "multiDevice",
         credentialBackedUp: true,
+        aaguid: "fbfc3007-154e-4ecc-8c0b-6e020557d7bd",
       },
     });
 
-    const res = await registerVerify(request({ id: "cred_new" }));
+    const res = await registerVerify(request({ id: "cred_new" }, undefined, IPHONE_SAFARI));
 
     expect(res.status).toBe(201);
     expect(webauthn.verifyRegistrationResponse.mock.calls[0][0]).toMatchObject({
@@ -107,6 +118,8 @@ describe("adding a passkey", () => {
         transports: "internal",
         deviceType: "multiDevice",
         backedUp: true,
+        aaguid: "fbfc3007-154e-4ecc-8c0b-6e020557d7bd",
+        createdFrom: "Safari on iPhone",
       },
     });
   });
@@ -147,7 +160,7 @@ describe("signing in with a passkey", () => {
     prismaMock.passkey.findUnique.mockResolvedValue(storedPasskey);
     webauthn.verifyAuthenticationResponse.mockResolvedValue({ verified: true, authenticationInfo: { newCounter: 5 } });
 
-    const res = await loginVerify(request({ id: "cred_1" }));
+    const res = await loginVerify(request({ id: "cred_1" }, undefined, MAC_CHROME));
 
     expect(res.status).toBe(200);
     expect(webauthn.verifyAuthenticationResponse.mock.calls[0][0]).toMatchObject({
@@ -156,7 +169,7 @@ describe("signing in with a passkey", () => {
     });
     expect(prismaMock.passkey.update).toHaveBeenCalledWith({
       where: { id: "cred_1" },
-      data: { counter: 5, lastUsedAt: expect.any(Date) },
+      data: { counter: 5, lastUsedAt: expect.any(Date), lastUsedFrom: "Chrome on Mac" },
     });
     expect(session.writeSession).toHaveBeenCalledWith("acc_owner");
     expect(accounts.mergeAccountInto).not.toHaveBeenCalled();
@@ -171,6 +184,18 @@ describe("signing in with a passkey", () => {
     await loginVerify(request({ id: "cred_1" }));
 
     expect(accounts.mergeAccountInto).toHaveBeenCalledWith("acc_anonymous", "acc_owner");
+  });
+
+  it("refuses a removed passkey, and lets the browser tell the password manager", async () => {
+    session.takeChallenge.mockResolvedValue("login-challenge");
+    prismaMock.passkey.findUnique.mockResolvedValue({ ...storedPasskey, revokedAt: new Date() });
+
+    const res = await loginVerify(request({ id: "cred_1" }));
+
+    expect(res.status).toBe(404);
+    expect(await res.json()).toMatchObject({ unknownCredential: true, error: expect.stringContaining("removed") });
+    expect(webauthn.verifyAuthenticationResponse).not.toHaveBeenCalled();
+    expect(session.writeSession).not.toHaveBeenCalled();
   });
 
   it("refuses an unknown passkey", async () => {

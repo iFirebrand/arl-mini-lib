@@ -1,15 +1,32 @@
 "use client";
 
 import Link from "next/link";
+import PasskeyList from "./PasskeyList";
 import { CheckCircleIcon, ExclamationTriangleIcon, KeyIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
 import { useAccountContext } from "~~/app/contexts/AccountContext";
 import { Card, Container, PageHeader } from "~~/components/ui/Page";
 import { usePasskeyActions } from "~~/hooks/usePasskeyActions";
 
+// What to do when a phone changes hands. Shown to everyone, since it matters before it happens.
+const RECOVERY = [
+  {
+    title: "New phone, same Apple or Google account",
+    text: "A passkey saved in Apple Passwords or Google Password Manager comes along. Sign in with it and your points are there.",
+  },
+  {
+    title: "Lost or sold a phone",
+    text: "Sign in on another device, then remove the old phone's passkey under Your passkeys so it can't sign in any more.",
+  },
+  {
+    title: "A passkey that doesn't sync",
+    text: "It lives on one device only. Sign in on a second device and add a passkey there too, so losing one device doesn't lose your points.",
+  },
+];
+
 const FACTS = [
   {
     title: "No email, no password",
-    text: "Your account is a random name like “Reader K7Q2M” and your points. Nothing else about you is stored.",
+    text: "Your account is a random name like “Reader K7Q2M” and your points. For each passkey we also note the kind of browser and device that added and last used it (like “Safari on iPhone”) so you can tell them apart. Nothing else about you is stored.",
   },
   {
     title: "Points create the account",
@@ -17,7 +34,7 @@ const FACTS = [
   },
   {
     title: "A passkey keeps it",
-    text: "Saving a passkey (Face ID, Touch ID or your device PIN) lets you sign in on any device. iCloud Keychain and Google Password Manager sync it to your other devices.",
+    text: "Saving a passkey (Face ID, Touch ID or your device PIN) lets you sign in on any device. Apple Passwords (iCloud Keychain) and Google Password Manager sync it to your other devices.",
   },
   {
     title: "Losing every passkey loses the account",
@@ -100,6 +117,26 @@ export default function AccountClient() {
           )}
         </Card>
       )}
+
+      {!loading && account?.hasPasskey && (
+        <div className="mt-10">
+          <PasskeyList />
+        </div>
+      )}
+
+      <section aria-labelledby="recovery" className="mt-10">
+        <h2 id="recovery" className="text-2xl font-semibold tracking-tight">
+          Changing or losing a phone
+        </h2>
+        <dl className="mt-4 grid gap-5 sm:grid-cols-3">
+          {RECOVERY.map(tip => (
+            <div key={tip.title} className="flex flex-col gap-1">
+              <dt className="font-semibold">{tip.title}</dt>
+              <dd className="text-base-content/75">{tip.text}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
 
       <section aria-labelledby="how" className="mt-10">
         <h2 id="how" className="text-2xl font-semibold tracking-tight">

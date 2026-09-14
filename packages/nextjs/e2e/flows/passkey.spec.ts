@@ -141,3 +141,54 @@ test("a new visitor creates an account with a passkey, without earning points fi
 
   await phoneContext.close();
 });
+
+test("rename and remove a passkey on the account page; a removed passkey no longer signs in", async ({ browser }) => {
+  const phoneContext = await browser.newContext();
+  const phone = await newDevice(phoneContext);
+  await phone.page.goto("/");
+  await phone.page.getByRole("button", { name: "Create account" }).click();
+  await expect(phone.page.getByText("Account created. Your passkey signs you in on any device.")).toBeVisible();
+
+  const { credentials } = (await phone.cdp.send("WebAuthn.getCredentials", {
+    authenticatorId: phone.authenticatorId,
+  })) as { credentials: Credential[] };
+  expect(credentials).toHaveLength(1);
+
+  await phone.page.goto("/account");
+  const passkeys = phone.page.getByRole("region", { name: "Your passkeys" });
+  await expect(passkeys.getByText(/Added .+ from Chrome on/)).toBeVisible();
+  await expect(passkeys.getByText("Not used to sign in yet.", { exact: false })).toBeVisible();
+
+  await passkeys.getByRole("button", { name: /^Rename / }).click();
+  await passkeys.getByLabel("Passkey name").fill("Test phone");
+  await passkeys.getByRole("button", { name: "Save" }).click();
+  await expect(passkeys.getByText("Test phone")).toBeVisible();
+  expect((await db.passkey.findFirstOrThrow()).name).toBe("Test phone");
+
+  await passkeys.getByRole("button", { name: "Remove Test phone" }).click();
+  await expect(passkeys.getByText(/This is your only passkey/)).toBeVisible();
+  await passkeys.getByRole("button", { name: "Remove passkey" }).click();
+  await expect(phone.page.getByText("Passkey removed. It no longer signs in.")).toBeVisible();
+  await expect(phone.page.getByText(/Only on this browser for now/)).toBeVisible();
+  expect((await db.passkey.findFirstOrThrow()).revokedAt).not.toBeNull();
+
+  // Chrome passes the site's signal on to the device, which forgets the removed passkey.
+  await expect
+    .poll(async () => {
+      const left = (await phone.cdp.send("WebAuthn.getCredentials", { authenticatorId: phone.authenticatorId })) as {
+        credentials: Credential[];
+      };
+      return left.credentials.length;
+    })
+    .toBe(0);
+
+  // A password manager that missed the signal still offers it, but the site no longer accepts it.
+  await phone.cdp.send("WebAuthn.addCredential", {
+    authenticatorId: phone.authenticatorId,
+    credential: credentials[0],
+  });
+  await phone.page.getByRole("button", { name: "I already have a passkey: Sign in" }).click();
+  await expect(phone.page.getByText(/This passkey was removed from its ArLib.me account/)).toBeVisible();
+
+  await phoneContext.close();
+});

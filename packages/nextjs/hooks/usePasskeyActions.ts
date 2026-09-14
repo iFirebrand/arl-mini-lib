@@ -15,12 +15,14 @@ export function usePasskeyActions() {
   // Checked only in the browser, so server and first client render agree.
   const supported = useIsClient() && browserSupportsWebAuthn();
 
+  // Resolves true if the action worked.
   const run = async (action: () => Promise<Result>, success: string) => {
     setBusy(true);
     const result = await action();
     setBusy(false);
     if (result.ok) toast.success(success);
     else toast.error(result.error);
+    return result.ok;
   };
 
   return {
@@ -30,5 +32,7 @@ export function usePasskeyActions() {
     createAccount: () => run(savePointsWithPasskey, "Account created. Your passkey signs you in on any device."),
     savePoints: () => run(savePointsWithPasskey, "Points saved to your passkey"),
     signIn: () => run(signInWithPasskey, "Signed in"),
+    // Another passkey for an account that has one, e.g. on a second device.
+    addPasskey: () => run(savePointsWithPasskey, "Passkey added. It signs you in from this device."),
   };
 }

@@ -133,8 +133,9 @@ changes attach before/after screenshots to the pull request.
 The running site connects as `arlib_app`, a role that can only do what the code does
 (`prisma/sql/app-role.sql`): read what the site shows, add libraries, books, accounts, passkeys and
 point history, and update a few specific columns (a library's visibility, a book's last-confirmed
-time and visibility, point totals). It can't delete anything, change the schema, or make anyone a
-moderator. The `postgres` owner role is only for schema changes and admin work.
+time and visibility, point totals, a passkey's counter, last use, name and removal). It can't delete
+anything, change the schema, or make anyone a moderator; a removed passkey is kept with the time it
+was removed and no longer signs in. The `postgres` owner role is only for schema changes and admin work.
 
 Changing the schema:
 

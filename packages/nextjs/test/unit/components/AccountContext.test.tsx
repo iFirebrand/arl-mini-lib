@@ -4,7 +4,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AccountProvider, useAccountContext } from "~~/app/contexts/AccountContext";
 
-const browser = vi.hoisted(() => ({ startRegistration: vi.fn(), startAuthentication: vi.fn() }));
+const browser = vi.hoisted(() => ({ startRegistration: vi.fn(), startAuthentication: vi.fn(), sendSignal: vi.fn() }));
 vi.mock("@simplewebauthn/browser", () => browser);
 
 const wrapper = ({ children }: { children: React.ReactNode }) => <AccountProvider>{children}</AccountProvider>;
@@ -21,6 +21,7 @@ describe("AccountContext", () => {
   beforeEach(() => {
     browser.startRegistration.mockReset().mockResolvedValue({ id: "cred_new" });
     browser.startAuthentication.mockReset().mockResolvedValue({ id: "cred_1" });
+    browser.sendSignal.mockReset().mockResolvedValue(undefined);
   });
 
   it("loads the visitor's account", async () => {
@@ -126,5 +127,61 @@ describe("AccountContext", () => {
     });
 
     expect(outcome).toEqual({ ok: false, error: "This passkey isn't registered with ArLib.me" });
+  });
+
+  it("asks the password manager to forget a passkey the site no longer accepts", async () => {
+    stubApi({
+      "/api/account": () => jsonResponse({ account: null }),
+      "/api/passkey/login/options": () => jsonResponse({ challenge: "login", rpId: "arlib.me" }),
+      "/api/passkey/login/verify": () =>
+        jsonResponse({ error: "This passkey was removed from its ArLib.me account.", unknownCredential: true }, 404),
+    });
+    const { result } = renderHook(() => useAccountContext(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    let outcome;
+    await act(async () => {
+      outcome = await result.current.signInWithPasskey();
+    });
+
+    expect(outcome).toEqual({ ok: false, error: "This passkey was removed from its ArLib.me account." });
+    expect(browser.sendSignal).toHaveBeenCalledWith({
+      signalName: "unknownCredential",
+      rpID: "arlib.me",
+      credentialID: "cred_1",
+    });
+  });
+
+  it("doesn't signal for other sign-in failures", async () => {
+    stubApi({
+      "/api/account": () => jsonResponse({ account: null }),
+      "/api/passkey/login/options": () => jsonResponse({ challenge: "login", rpId: "arlib.me" }),
+      "/api/passkey/login/verify": () => jsonResponse({ error: "The passkey could not be verified" }, 400),
+    });
+    const { result } = renderHook(() => useAccountContext(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      await result.current.signInWithPasskey();
+    });
+
+    expect(browser.sendSignal).not.toHaveBeenCalled();
+  });
+
+  it("says so when this device already has a passkey for the account", async () => {
+    stubApi({
+      "/api/account": () => jsonResponse({ account: { ...account, hasPasskey: true } }),
+      "/api/passkey/register/options": () => jsonResponse({ challenge: "reg" }),
+    });
+    browser.startRegistration.mockRejectedValue(Object.assign(new Error("excluded"), { name: "InvalidStateError" }));
+    const { result } = renderHook(() => useAccountContext(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    let outcome;
+    await act(async () => {
+      outcome = await result.current.savePointsWithPasskey();
+    });
+
+    expect(outcome).toEqual({ ok: false, error: "This device already has a passkey for your account." });
   });
 });
