@@ -1,7 +1,7 @@
 import prisma from "./db";
+import { Prisma } from "./generated/prisma/client";
 import { rateLimit } from "./rate-limit";
 import { readSessionAccountId, writeSession } from "./session";
-import { Prisma } from "@prisma/client";
 import { randomInt } from "node:crypto";
 import "server-only";
 

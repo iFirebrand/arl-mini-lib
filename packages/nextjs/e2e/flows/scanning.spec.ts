@@ -1,16 +1,16 @@
+import { createPrismaClient } from "../../lib/prismaClient";
 import { bookInfo } from "../../test/fixtures/openLibrary";
 import prepareTestDatabase from "../../test/setup/integrationGlobal";
 import { getTestDatabaseUrl } from "../../test/setup/testDatabaseUrl";
 import { BARCODE_VIDEO_ISBN } from "../fixtures/barcodeVideo";
 import { expect, test } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
 
 // Chrome's fake camera plays a video of a book's barcode (see playwright.config.ts), so this scans
 // a real barcode: camera, barcode reader (the WebAssembly one where Chrome has no built-in reader),
 // lookup and save. The book lookup and save responses are stubbed; their server side has its own
 // tests.
 
-const db = new PrismaClient({ datasourceUrl: getTestDatabaseUrl() });
+const db = createPrismaClient(getTestDatabaseUrl());
 const AT = { latitude: 38.883839, longitude: -77.107249 };
 
 test.beforeAll(() => {

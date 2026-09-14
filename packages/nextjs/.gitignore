@@ -48,3 +48,6 @@ next-env.d.ts
 
 # barcode reader WebAssembly, copied from node_modules by scripts/copy-zxing-wasm.mjs
 /public/zxing/
+
+# Prisma client, written by prisma generate
+/lib/generated/

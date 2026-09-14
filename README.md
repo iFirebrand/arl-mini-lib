@@ -74,7 +74,7 @@ those write real data. Keep `.env.local` out of Git (it already is) and don't sh
 | Variable | Needed for | Notes |
 | --- | --- | --- |
 | `DATABASE_URL` | everything | Postgres connection for the running site. In production it signs in as `arlib_app` (see below). |
-| `DIRECT_URL` | Prisma commands | Owner connection used by `prisma db push`/`migrate`; not needed by the running site. |
+| `DIRECT_URL` | Prisma commands | Owner connection for `prisma db push`, `db execute` and `migrate diff` (`prisma.config.ts`). Prisma commands don't read `.env` files, so set it in the shell. Not needed by the running site. |
 | `NEXT_PUBLIC_SUPABASE_URL` | photos | Supabase project URL. Photos must come from its `library-images` bucket. |
 | `SUPABASE_SECRET_KEY` | adding a library | Server-only key for photo uploads. Never give it a `NEXT_PUBLIC_` prefix. |
 | `SESSION_SECRET` | sign-in (production) | At least 32 characters; signs the session cookie. Development uses a built-in value. |
@@ -120,9 +120,9 @@ tables.
 ## Deploying
 
 Vercel deploys `main` to production automatically (project root `packages/nextjs`, Node 22). The
-build runs `prisma generate`, copies the ZXing WebAssembly file into `public/zxing/<version>/`, builds
-Next.js and scans the browser bundles for secrets. Environment variables live in the Vercel project
-settings.
+build runs `prisma generate` (the client goes to `lib/generated/prisma`, which isn't in Git), copies
+the ZXing WebAssembly file into `public/zxing/<version>/`, builds Next.js and scans the browser
+bundles for secrets. Environment variables live in the Vercel project settings.
 
 The workflow: open a pull request, wait for CI, squash-merge, then check production with the smoke
 tests above and Vercel's runtime logs. The Hobby plan builds no previews of branches, so for UI
@@ -140,9 +140,10 @@ was removed and no longer signs in. The `postgres` owner role is only for schema
 Changing the schema:
 
 1. Edit `prisma/schema.prisma`.
-2. Generate the SQL with `prisma migrate diff` (from the old schema to the new one) and save it as
-   `prisma/sql/<date>-<name>.sql`. Keep it additive where possible, so the code already deployed
-   keeps working.
+2. Generate the SQL from the old schema to the new one and save it as `prisma/sql/<date>-<name>.sql`:
+   `git show main:packages/nextjs/prisma/schema.prisma > /tmp/old.prisma`, then
+   `npx prisma migrate diff --from-schema /tmp/old.prisma --to-schema prisma/schema.prisma --script`.
+   Keep it additive where possible, so the code already deployed keeps working.
 3. Update `prisma/sql/app-role.sql`: grants and row-level security for new tables and columns. The
    integration tests apply it, so they show what the app can and can't do.
 4. After review, run the SQL file on production as the owner, then re-run `app-role.sql`.

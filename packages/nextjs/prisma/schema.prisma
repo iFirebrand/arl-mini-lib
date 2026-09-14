@@ -1,33 +1,18 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-
-
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
+// `prisma generate` writes the client to lib/generated/prisma (not in Git); import it from there.
 generator client {
-  provider = "prisma-client-js"
+  provider     = "prisma-client"
+  output       = "../lib/generated/prisma"
+  // CommonJS: Playwright loads the test files (which use the client) as CommonJS.
+  moduleFormat = "cjs"
 }
 
-// PROD
+// Connection strings live elsewhere: the site's in lib/prismaClient.ts, Prisma commands' in
+// prisma.config.ts.
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
-
-// DEV
-// datasource db {
-//   provider = "sqlite"
-//   url      = env("DATABASE_URL_DEV")
-// }
 
 model Library {
   id String @id @default(cuid())
