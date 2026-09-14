@@ -128,20 +128,6 @@ The workflow: open a pull request, wait for CI, squash-merge, then check product
 tests above and Vercel's runtime logs. The Hobby plan builds no previews of branches, so for UI
 changes attach before/after screenshots to the pull request.
 
-## Content Security Policy
-
-`proxy.ts` gives every page a fresh nonce and the policy in `lib/csp.ts`: only scripts carrying
-the nonce run (plus what they load), and images, connections and frames may come only from the
-hosts listed there, each with the reason it's needed. It is **report-only** for now: browsers
-report what it would block without blocking it. Reports arrive at `/api/csp-report` and show up
-in Vercel's runtime logs as `CSP violation: <rule> blocked <what> on <page>`. The hourly smoke
-tests fail on any violation too.
-
-- Adding a third-party service (a new image host, script or embed): add its host to `lib/csp.ts`
-  (and to `lib/imageHosts.json` for images) in the same pull request.
-- Enforcing it: once the logs stay clean, rename the header in `proxy.ts` to
-  `Content-Security-Policy`.
-
 ## Database
 
 The running site connects as `arlib_app`, a role that can only do what the code does

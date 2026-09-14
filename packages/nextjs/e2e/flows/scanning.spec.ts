@@ -29,14 +29,6 @@ for (const reader of ["the browser's reader", "the WebAssembly reader iPhones us
         delete (window as { BarcodeDetector?: unknown }).BarcodeDetector;
       });
     }
-    // The Content Security Policy must allow the camera, the reader and its WebAssembly.
-    await page.addInitScript(() => {
-      const found: string[] = [];
-      (window as unknown as { cspViolations: string[] }).cspViolations = found;
-      document.addEventListener("securitypolicyviolation", event =>
-        found.push(`${event.effectiveDirective} ${event.blockedURI || "inline"}`),
-      );
-    });
     const wasm: string[] = [];
     page.on("response", response => {
       if (response.url().endsWith(".wasm")) wasm.push(`${response.status()} ${new URL(response.url()).pathname}`);
@@ -59,7 +51,6 @@ for (const reader of ["the browser's reader", "the WebAssembly reader iPhones us
     await expect(page.getByText(/Scanned Books: 1/)).toBeVisible();
     expect(lookups[0]).toBe(BARCODE_VIDEO_ISBN);
     expect(saved[0]).toEqual({ isbn: BARCODE_VIDEO_ISBN, libraryId: library.id, via: "camera" });
-    expect(await page.evaluate(() => (window as unknown as { cspViolations: string[] }).cspViolations)).toEqual([]);
     if (reader.includes("WebAssembly")) {
       // Loaded once, from our own site rather than a CDN.
       expect(wasm).toEqual([expect.stringMatching(/^200 \/zxing\/[\d.]+\/zxing_reader\.wasm$/)]);
