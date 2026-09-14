@@ -294,7 +294,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading }) => {
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="relative overflow-hidden rounded-box bg-camera-frame shadow-card">
-        <video ref={videoRef} className="aspect-[4/3] w-full object-cover" muted playsInline autoPlay />
+        <video ref={videoRef} className="aspect-4/3 w-full object-cover" muted playsInline autoPlay />
 
         {scanning && (
           // Where to hold the barcode. The reader looks a little beyond this box.
@@ -339,7 +339,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading }) => {
         )}
 
         {scanning && (
-          <p className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-4 pb-3 pt-6 text-center text-sm text-white">
+          <p className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/60 to-transparent px-4 pb-3 pt-6 text-center text-sm text-white">
             {isLoading ? "Looking up the book…" : "Point at the barcode on the back of the book"}
           </p>
         )}
@@ -385,7 +385,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading }) => {
         {cameras.length > 1 && (
           <select
             id="sourceSelect"
-            className="select select-bordered select-sm ml-auto max-w-[12rem] rounded-full"
+            className="select select-bordered select-sm ml-auto max-w-48 rounded-full"
             value={cameraId}
             onChange={e => start(e.target.value)}
             aria-label="Camera"

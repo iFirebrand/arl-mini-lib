@@ -16,14 +16,14 @@ export const Header = () => {
   const links = [MAP, AT_A_LIBRARY, STATS, CHARACTER, ABOUT, ...(account?.isModerator ? [MODERATE] : [])];
 
   return (
-    <header className="sticky top-0 z-30 border-b border-base-300/70 bg-base-100/90 backdrop-blur supports-[backdrop-filter]:bg-base-100/75">
+    <header className="sticky top-0 z-30 border-b border-base-300/70 bg-base-100/90 backdrop-blur-sm supports-[backdrop-filter]:bg-base-100/75">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="ArLib.me home">
           <Image alt="" src="/logo.svg" width={36} height={36} className="h-9 w-9" priority />
           <span className="flex flex-col leading-none">
             <span className="flex items-center gap-1.5 font-display text-lg font-semibold tracking-tight">
               ArLib.me
-              <span className="rounded-full bg-secondary px-1.5 py-0.5 font-sans text-[0.625rem] font-semibold uppercase tracking-wider text-secondary-content">
+              <span className="rounded-full bg-secondary px-1.5 py-0.5 font-sans text-[0.625rem] leading-7 font-semibold uppercase tracking-wider text-secondary-content">
                 alpha
               </span>
             </span>

@@ -51,7 +51,7 @@ export default function ViewItems({ initialItems }: { initialItems: Item[] }) {
                 width={180}
                 height={270}
                 sizes="(min-width: 1280px) 150px, (min-width: 640px) 22vw, 30vw"
-                className="aspect-[2/3] h-auto w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                className="aspect-2/3 h-auto w-full object-cover transition duration-300 group-hover:scale-[1.03]"
               />
             </span>
             <span className="line-clamp-2 text-sm font-medium leading-snug group-hover:underline">{item.title}</span>

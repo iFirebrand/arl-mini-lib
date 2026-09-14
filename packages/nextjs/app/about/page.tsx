@@ -46,7 +46,9 @@ export default function AboutPage() {
         <article className="flex max-w-2xl flex-col gap-8">
           <header id="intro" className="flex flex-col gap-4">
             <p className="text-sm font-semibold uppercase tracking-wider text-link">About</p>
-            <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">About ArLib.me</h1>
+            <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl sm:leading-none">
+              About ArLib.me
+            </h1>
             <p className="text-xl leading-relaxed text-base-content/85">
               ArLib.me is a public goods community project to map and catalog Arlington&apos;s mini libraries. Mini
               libraries are more than book collections—they&apos;re neighborhood gems of creativity and connection.

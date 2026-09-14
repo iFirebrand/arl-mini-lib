@@ -9,13 +9,13 @@ export const VideoCard = ({ className = "" }: { className?: string }) => (
     href="/watch"
     className={`group flex items-center gap-4 rounded-box border border-base-300/70 bg-base-100 p-3 shadow-card transition hover:-translate-y-0.5 lg:flex-col lg:items-stretch lg:gap-3 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none ${className}`}
   >
-    <span className="relative block w-20 shrink-0 overflow-hidden rounded-xl bg-neutral shadow-card ring-1 ring-base-300 sm:w-24 lg:mx-auto lg:w-64 lg:rounded-[2rem] lg:ring-8 lg:ring-neutral">
+    <span className="relative block w-20 shrink-0 overflow-hidden rounded-xl bg-neutral shadow-card ring-1 ring-base-300 sm:w-24 lg:mx-auto lg:w-64 lg:rounded-4xl lg:ring-8 lg:ring-neutral">
       <Image
         src="/images/onboarding-video.jpg"
         alt=""
         width={332}
         height={720}
-        className="aspect-[332/720] h-auto w-full object-cover"
+        className="aspect-332/720 h-auto w-full object-cover"
         sizes="(min-width: 1024px) 256px, 96px"
       />
       <span className="absolute inset-0 flex items-center justify-center bg-neutral/10 transition group-hover:bg-neutral/20">

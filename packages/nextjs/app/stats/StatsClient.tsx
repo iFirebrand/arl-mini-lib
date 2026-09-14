@@ -143,7 +143,7 @@ export default function StatsClient({
                     alt={`Thumbnail of ${book.title}`}
                     width={40}
                     height={60}
-                    className="h-[60px] w-10 rounded bg-base-300 object-cover"
+                    className="h-[60px] w-10 rounded-sm bg-base-300 object-cover"
                     onError={e => {
                       e.currentTarget.src = PLACEHOLDER_BOOK_COVER;
                     }}

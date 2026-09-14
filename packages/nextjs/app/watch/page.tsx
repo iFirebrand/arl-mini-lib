@@ -17,7 +17,7 @@ export default function WatchPage() {
       <div className="mx-auto w-full max-w-[min(100%,calc((100dvh-10rem)*9/16),420px)] lg:mx-0 lg:w-[380px]">
         <div className="overflow-hidden rounded-[1.75rem] bg-neutral shadow-card ring-8 ring-neutral">
           <iframe
-            className="aspect-[9/16] h-auto w-full"
+            className="aspect-9/16 h-auto w-full"
             src={`https://www.youtube-nocookie.com/embed/${VIDEO_ID}?rel=0&playsinline=1`}
             title="ArLib.me library onboarding"
             loading="lazy"
@@ -30,7 +30,7 @@ export default function WatchPage() {
 
       <div className="flex max-w-xl flex-col gap-5">
         <p className="text-sm font-semibold uppercase tracking-wider text-link">How it works</p>
-        <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+        <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl sm:leading-10">
           Adding a library and scanning its books
         </h1>
         <p className="text-lg text-base-content/80">

@@ -158,7 +158,7 @@ export default function BookSearch({ onPick, onNoMatch, isLoading }: BookSearchP
                         height={72}
                         // Small and mostly seen once; not worth the image optimizer's quota.
                         unoptimized
-                        className="h-[72px] w-12 shrink-0 rounded bg-base-300 object-cover"
+                        className="h-[72px] w-12 shrink-0 rounded-sm bg-base-300 object-cover"
                       />
                       <span className="flex min-w-0 flex-1 flex-col">
                         <span className="font-semibold leading-snug">{book.title}</span>

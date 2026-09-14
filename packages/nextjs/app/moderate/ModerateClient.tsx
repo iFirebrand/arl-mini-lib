@@ -29,7 +29,7 @@ export default function ModerateClient({ queue }: { queue: ModerationQueue }) {
           {libraries.map(library => (
             <li key={library.id} className={`flex items-center gap-3 p-3 ${library.hidden ? "opacity-60" : ""}`}>
               <div className="flex-1 min-w-0">
-                <Link href={`/browse/${library.id}`} className="font-semibold hover:underline break-words">
+                <Link href={`/browse/${library.id}`} className="font-semibold hover:underline wrap-break-word">
                   {library.locationName}
                 </Link>
                 <div className="text-sm opacity-70">
@@ -58,7 +58,7 @@ export default function ModerateClient({ queue }: { queue: ModerationQueue }) {
           {books.map(book => (
             <li key={book.id} className={`flex items-center gap-3 p-3 ${book.hidden ? "opacity-60" : ""}`}>
               <div className="flex-1 min-w-0">
-                <div className="font-semibold break-words">{book.title || "Untitled"}</div>
+                <div className="font-semibold wrap-break-word">{book.title || "Untitled"}</div>
                 <div className="text-sm opacity-70">
                   <Link href={`/browse/${book.libraryId}`} className="hover:underline">
                     {book.libraryName}

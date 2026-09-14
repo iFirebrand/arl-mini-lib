@@ -62,7 +62,7 @@ export default async function LibraryBooks({ params }: { params: Promise<{ id: s
             height={528}
             priority
             sizes="(min-width: 1024px) 352px, 100vw"
-            className="aspect-[4/3] h-auto w-full rounded-box bg-base-300 object-cover shadow-card"
+            className="aspect-4/3 h-auto w-full rounded-box bg-base-300 object-cover shadow-card"
           />
           <div className="flex flex-col gap-1">
             <h1 className="text-3xl font-semibold leading-tight tracking-tight">{library.locationName}</h1>
