@@ -6,14 +6,16 @@ import { contentSecurityPolicy, createNonce } from "./lib/csp";
 export const CSP_HEADER = "Content-Security-Policy-Report-Only";
 
 // Gives every page a fresh nonce and its Content Security Policy (lib/csp.ts). Next.js reads the
-// nonce from the request's policy header and puts it on its own scripts; app/layout.tsx reads
-// x-nonce for the scripts we add.
+// nonce from the request's Content-Security-Policy header and puts it on its own scripts;
+// app/layout.tsx reads x-nonce for the scripts we add. The request header must use that name even
+// while the response is report-only: on Vercel a request header named ...-Report-Only didn't reach
+// the page (it did under `next start`), so Next's scripts went out without the nonce.
 export function proxy(request: NextRequest) {
   const nonce = createNonce();
   const policy = contentSecurityPolicy(nonce, { dev: process.env.NODE_ENV === "development" });
 
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set(CSP_HEADER, policy);
+  requestHeaders.set("Content-Security-Policy", policy);
   requestHeaders.set("x-nonce", nonce);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });

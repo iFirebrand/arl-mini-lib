@@ -14,7 +14,8 @@ describe("proxy", () => {
     expect(second.headers.get(CSP_HEADER)).not.toContain(nonce);
     // NextResponse.next({ request: { headers } }) forwards request headers this way.
     expect(first.headers.get("x-middleware-request-x-nonce")).toBe(nonce);
-    expect(first.headers.get(`x-middleware-request-${CSP_HEADER.toLowerCase()}`)).toBe(policy);
+    // Under the name Next.js reads on Vercel, whatever the response header is called.
+    expect(first.headers.get("x-middleware-request-content-security-policy")).toBe(policy);
   });
 
   it("is report-only for now", () => {
