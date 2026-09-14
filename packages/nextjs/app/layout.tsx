@@ -1,5 +1,4 @@
 import { Figtree, Fraunces } from "next/font/google";
-import { headers } from "next/headers";
 import Script from "next/script";
 import "leaflet/dist/leaflet.css";
 import { AppWithProviders } from "~~/components/AppWithProviders";
@@ -32,20 +31,13 @@ export const metadata = {
   },
 };
 
-const RootLayout = async ({ children }: { children: React.ReactNode }) => {
-  // This request's nonce from proxy.ts, for the scripts we add ourselves (Next.js tags its own).
-  // Reading it renders every page per request, which a nonce needs.
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
+const RootLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <html suppressHydrationWarning className={`${display.variable} ${body.variable}`}>
       <body className="font-sans antialiased">
         {/* next/script places these itself; inside a hand-written <head> React 19 warns. */}
-        <Script
-          strategy="afterInteractive"
-          src="https://www.googletagmanager.com/gtag/js?id=G-205LFRGM0L"
-          nonce={nonce}
-        />
-        <Script id="google-analytics" strategy="afterInteractive" nonce={nonce}>
+        <Script strategy="afterInteractive" src="https://www.googletagmanager.com/gtag/js?id=G-205LFRGM0L" />
+        <Script id="google-analytics" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
@@ -54,7 +46,7 @@ const RootLayout = async ({ children }: { children: React.ReactNode }) => {
             if (!navigator.webdriver) gtag('config', 'G-205LFRGM0L');
           `}
         </Script>
-        <ThemeProvider enableSystem nonce={nonce}>
+        <ThemeProvider enableSystem>
           <AppWithProviders>{children}</AppWithProviders>
         </ThemeProvider>
         <VercelInsights />

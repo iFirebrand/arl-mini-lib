@@ -1,8 +1,8 @@
 // @ts-check
 const imageHosts = require("./lib/imageHosts.json");
 
-// Sent with every response. This small Content Security Policy is enforced everywhere; the full one
-// (lib/csp.ts, with a nonce per page) is sent by proxy.ts, report-only for now.
+// Sent with every response. A full script-src Content Security Policy comes after the wallet
+// libraries are removed; they load scripts and open connections to many hosts.
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
