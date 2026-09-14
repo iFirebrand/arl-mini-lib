@@ -1,13 +1,13 @@
-import { getTestAppDatabaseUrl } from "../setup/testDatabaseUrl";
-import { PrismaClient } from "@prisma/client";
+import { createPrismaClient } from "../../lib/prismaClient";
+import { getTestAppDatabaseUrl, getTestDatabaseUrl } from "../setup/testDatabaseUrl";
 
 // Admin connection for setting up and inspecting test data.
-export const testPrisma = new PrismaClient();
+export const testPrisma = createPrismaClient(getTestDatabaseUrl());
 
 // What the app gets: the least-privilege arlib_app role, exactly as in production. Swap it in for
 // lib/db.ts, which would otherwise use DATABASE_URL:
 //   vi.mock("~~/lib/db", async () => ({ default: (await import("./db")).appPrisma }));
-export const appPrisma = new PrismaClient({ datasourceUrl: getTestAppDatabaseUrl() });
+export const appPrisma = createPrismaClient(getTestAppDatabaseUrl());
 
 export async function resetDatabase() {
   await testPrisma.$executeRawUnsafe(

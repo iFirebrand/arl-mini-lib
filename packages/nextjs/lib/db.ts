@@ -1,5 +1,6 @@
 // https://www.prisma.io/docs/orm/more/help-and-troubleshooting/help-articles/nextjs-prisma-client-dev-practices
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "./generated/prisma/client";
+import { createPrismaClient } from "./prismaClient";
 import "server-only";
 
 // Prisma connects with DATABASE_URL directly. There is deliberately no Supabase sign-in here:
@@ -7,7 +8,7 @@ import "server-only";
 // server instance answering "Database access denied".
 const globalForPrisma = globalThis as unknown as { prismaGlobal?: PrismaClient };
 
-const prisma = globalForPrisma.prismaGlobal ?? new PrismaClient();
+const prisma = globalForPrisma.prismaGlobal ?? createPrismaClient(process.env.DATABASE_URL);
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prismaGlobal = prisma;

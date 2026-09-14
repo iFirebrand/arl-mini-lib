@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { prismaMock } from "../../mocks/prisma";
-import { Prisma } from "@prisma/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { Prisma } from "~~/lib/generated/prisma/client";
 
 vi.mock("~~/lib/db", async () => ({ default: (await import("../../mocks/prisma")).prismaMock }));
 

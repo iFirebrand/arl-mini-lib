@@ -4,10 +4,10 @@
 import { getBookRecencyBonus } from "../app/libs/[id]/scoring";
 import { CREATE_LIBRARY_POINTS, awardPoints, getOrCreateAccount } from "../lib/accounts";
 import prisma from "../lib/db";
+import { Prisma } from "../lib/generated/prisma/client";
 import { normalizeIsbn } from "../lib/openLibrary";
 import { rateLimit } from "../lib/rate-limit";
 import { getActionClientIp } from "../lib/requestGuards";
-import { Prisma } from "@prisma/client";
 
 // Every exported function here is a public endpoint, so writes validate input and are rate-limited.
 const createLibraryLimiter = rateLimit({ interval: 60 * 60 * 1000, uniqueTokenPerInterval: 500, limit: 10 });

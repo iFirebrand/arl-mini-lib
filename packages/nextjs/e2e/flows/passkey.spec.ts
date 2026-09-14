@@ -1,12 +1,12 @@
+import { createPrismaClient } from "../../lib/prismaClient";
 import prepareTestDatabase from "../../test/setup/integrationGlobal";
 import { getTestDatabaseUrl } from "../../test/setup/testDatabaseUrl";
 import { type BrowserContext, type CDPSession, type Page, expect, test } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
 
 // Real passkey ceremonies in Chrome, using its virtual authenticator in place of Face ID or a
 // password manager. Runs only against the local test database (see playwright.config.ts).
 
-const db = new PrismaClient({ datasourceUrl: getTestDatabaseUrl() });
+const db = createPrismaClient(getTestDatabaseUrl());
 
 type Credential = {
   credentialId: string;
