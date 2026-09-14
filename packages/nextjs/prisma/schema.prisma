@@ -102,6 +102,15 @@ model Passkey {
   backedUp   Boolean
   createdAt  DateTime  @default(now())
   lastUsedAt DateTime?
+  // A name the owner gave it ("Work laptop").
+  name       String?
+  // Which password manager holds it (e.g. Apple Passwords), as the authenticator reported it.
+  aaguid     String?
+  // Browser and device type, like "Safari on iPhone", so the owner can tell passkeys apart.
+  createdFrom  String?
+  lastUsedFrom String?
+  // Removed by its owner: it no longer signs in. Kept because the app's database role can't delete.
+  revokedAt  DateTime?
 
   @@index([accountId])
 }

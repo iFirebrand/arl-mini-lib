@@ -3,7 +3,8 @@
 -- The app (Prisma at runtime) connects as arlib_app, which can only do what the code does:
 -- read everything it shows, add libraries/books/accounts/passkeys/point history/moderation log
 -- entries and a log of books no catalog found (which it can't read back), and update book "last
--- confirmed" times, point totals, passkey counters and the hidden/visible flags moderators set.
+-- confirmed" times, point totals, passkey counters, names and removals, and the hidden/visible
+-- flags moderators set.
 -- No DELETE, TRUNCATE or schema changes, and it can't make anyone a moderator. The postgres role is
 -- kept for migrations (DIRECT_URL) and never used by the running site.
 --
@@ -33,7 +34,10 @@ grant select, insert, update on "User"          to arlib_app;
 grant select                 on "Poll"          to arlib_app;
 grant select                 on "ArlibSettings" to arlib_app;
 grant select, insert, update on "Account"       to arlib_app;
-grant select, insert, update on "Passkey"       to arlib_app;
+grant select, insert         on "Passkey"       to arlib_app;
+-- Signing in moves the counter and last use; owners rename and remove their passkeys. The public
+-- key and account never change.
+grant update ("counter", "lastUsedAt", "lastUsedFrom", "name", "revokedAt") on "Passkey" to arlib_app;
 -- Update moves a player's history when an anonymous account is merged into a passkey account.
 grant select, insert, update on "PointEvent"    to arlib_app;
 -- Moderators are added only by the database owner; the app just checks the list.

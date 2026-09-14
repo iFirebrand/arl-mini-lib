@@ -120,7 +120,7 @@ export async function mergeAccountInto(fromId: string, intoId: string) {
   await prisma.$transaction(async tx => {
     const from = await tx.account.findUnique({
       where: { id: fromId },
-      include: { passkeys: { select: { id: true } } },
+      include: { passkeys: { where: { revokedAt: null }, select: { id: true } } },
     });
     // Never merge an account someone can still sign in to.
     if (!from || from.passkeys.length > 0 || from.points === 0) return;

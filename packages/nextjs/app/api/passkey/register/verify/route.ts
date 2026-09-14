@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "../../../../../lib/db";
+import { deviceLabel } from "../../../../../lib/deviceLabel";
 import { refusePasskeyRequest } from "../../../../../lib/passkeyGuards";
 import { readSessionAccountId, takeChallenge } from "../../../../../lib/session";
 import { relyingParty } from "../../../../../lib/webauthn";
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "The passkey could not be verified" }, { status: 400 });
   }
 
-  const { credential, credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
+  const { credential, credentialDeviceType, credentialBackedUp, aaguid } = verification.registrationInfo;
   await prisma.passkey.create({
     data: {
       id: credential.id,
@@ -44,6 +45,8 @@ export async function POST(request: Request) {
       transports: credential.transports?.join(",") ?? null,
       deviceType: credentialDeviceType,
       backedUp: credentialBackedUp,
+      aaguid,
+      createdFrom: deviceLabel(request.headers.get("user-agent")),
     },
   });
   return NextResponse.json({ ok: true }, { status: 201 });

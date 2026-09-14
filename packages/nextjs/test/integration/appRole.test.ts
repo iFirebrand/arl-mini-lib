@@ -72,6 +72,36 @@ describe("the arlib_app role", () => {
     );
   });
 
+  it("can rename and remove a passkey, but never change its key or owner", async () => {
+    const account = await testPrisma.account.create({ data: { displayName: "Reader KEYS1" } });
+    const other = await testPrisma.account.create({ data: { displayName: "Reader KEYS2" } });
+    await testPrisma.passkey.create({
+      data: {
+        id: "cred_1",
+        accountId: account.id,
+        publicKey: Buffer.from([1]),
+        deviceType: "multiDevice",
+        backedUp: true,
+      },
+    });
+
+    await appPrisma.passkey.updateMany({ where: { id: "cred_1" }, data: { name: "Phone", revokedAt: new Date() } });
+    await appPrisma.passkey.updateMany({
+      where: { id: "cred_1" },
+      data: { counter: 7, lastUsedAt: new Date(), lastUsedFrom: "Safari on iPhone" },
+    });
+
+    await expect(
+      appPrisma.$executeRaw`UPDATE "Passkey" SET "publicKey" = ${Buffer.from([9])} WHERE "id" = 'cred_1'`,
+    ).rejects.toThrow(PERMISSION_DENIED);
+    await expect(
+      appPrisma.$executeRaw`UPDATE "Passkey" SET "accountId" = ${other.id} WHERE "id" = 'cred_1'`,
+    ).rejects.toThrow(PERMISSION_DENIED);
+    const row = await testPrisma.passkey.findUniqueOrThrow({ where: { id: "cred_1" } });
+    expect(row).toMatchObject({ name: "Phone", counter: 7, accountId: account.id });
+    expect(Buffer.from(row.publicKey)).toEqual(Buffer.from([1]));
+  });
+
   it("can no longer add poll votes", async () => {
     await expect(appPrisma.poll.create({ data: { questionId: "rewards-pool", rating: 4 } })).rejects.toThrow(
       PERMISSION_DENIED,

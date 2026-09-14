@@ -16,7 +16,11 @@ export async function POST(request: Request) {
   if (!account) {
     return NextResponse.json({ error: "Too many new accounts from this connection" }, { status: 429 });
   }
-  const existing = await prisma.passkey.findMany({ where: { accountId: account.id }, select: { id: true } });
+  // A removed passkey may still be on the device; leaving it out lets that device make a new one.
+  const existing = await prisma.passkey.findMany({
+    where: { accountId: account.id, revokedAt: null },
+    select: { id: true },
+  });
 
   const { rpName, rpID } = relyingParty();
   const options = await generateRegistrationOptions({

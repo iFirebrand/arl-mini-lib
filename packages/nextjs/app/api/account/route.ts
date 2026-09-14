@@ -12,7 +12,8 @@ export async function GET() {
         select: {
           displayName: true,
           points: true,
-          _count: { select: { passkeys: true } },
+          // Removed passkeys no longer sign in, so they don't count.
+          _count: { select: { passkeys: { where: { revokedAt: null } } } },
           moderator: { select: { accountId: true } },
         },
       })
