@@ -90,14 +90,23 @@ test.describe("pages", () => {
 
 test.describe("in the browser", () => {
   for (const path of ["/", "/browse", "/stats", "/stats/personality", "/about", "/libs", "/watch", "/account"]) {
-    test(`${path} runs without uncaught errors`, async ({ page }) => {
+    test(`${path} runs without uncaught errors or Content Security Policy violations`, async ({ page }) => {
       const errors: string[] = [];
       page.on("pageerror", error => errors.push(error.message));
+      // While the policy is report-only, nothing is blocked; the browser still fires this event.
+      await page.addInitScript(() => {
+        const found: string[] = [];
+        (window as unknown as { cspViolations: string[] }).cspViolations = found;
+        document.addEventListener("securitypolicyviolation", event =>
+          found.push(`${event.effectiveDirective} ${event.blockedURI || "inline"}`),
+        );
+      });
       await page.goto(path, { waitUntil: "load" });
       // Hydration and effects run right after load. (Not "networkidle": lazy book covers and
       // analytics keep /stats busy.)
       await page.waitForTimeout(1500);
       expect(errors).toEqual([]);
+      expect(await page.evaluate(() => (window as unknown as { cspViolations: string[] }).cspViolations)).toEqual([]);
     });
   }
 
@@ -128,6 +137,11 @@ test.describe("security", () => {
     expect(headers["x-content-type-options"]).toBe("nosniff");
     expect(headers["x-frame-options"]).toBe("DENY");
     expect(headers["content-security-policy"]).toContain("frame-ancestors 'none'");
+    // The full policy, report-only for now, with a nonce that changes on every request.
+    const policy = headers["content-security-policy-report-only"];
+    expect(policy).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/=]+' 'strict-dynamic'/);
+    const again = (await request.get("/")).headers()["content-security-policy-report-only"];
+    expect(again.match(/'nonce-([^']+)'/)?.[1]).not.toBe(policy.match(/'nonce-([^']+)'/)?.[1]);
     expect(headers["permissions-policy"]).toContain("camera=(self)");
   });
 
