@@ -7,6 +7,7 @@ import Scan, { type ScanSource } from "./App";
 import BookSearch, { SEARCHED_BOOKS_PER_LIBRARY_PER_DAY } from "./BookSearch";
 import { Award, EarnPoints } from "./EarnPoints";
 import { reportLookupMiss } from "./bookSearchClient";
+import { CatalogsUnavailableError } from "./catalogRetry";
 import { fetchBookData } from "./fetchBookData";
 import { saveBookToDatabase } from "./saveBookToDatabase";
 import { getBookRecencyBonus } from "./scoring";
@@ -40,6 +41,8 @@ interface BookInfo {
 export const BOOK_NOT_FOUND =
   "We couldn't find this ISBN in OpenLibrary or Google Books. Check the number, or search by title below.";
 export const ALREADY_IN_CATALOG = "This book is already in the catalog.";
+export const CATALOGS_DOWN =
+  "Couldn't reach the book catalogs. Check your connection, or try this book again in a moment.";
 export const SEARCH_LIMIT_REACHED = `Book added! Searched books earn points for the first ${SEARCHED_BOOKS_PER_LIBRARY_PER_DAY} at a library each day.`;
 
 // Matches MULTIPLIER_AFTER on the server: new books after the first three in a visit earn double.
@@ -169,8 +172,8 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
       }
 
       toast.success("Book added successfully!");
-    } catch {
-      toast.error("Error processing book");
+    } catch (error) {
+      toast.error(error instanceof CatalogsUnavailableError ? CATALOGS_DOWN : "Error processing book");
     } finally {
       setIsProcessing(false);
       setIsLoading(false);
@@ -202,8 +205,8 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
       }
       toast.success(award?.searchLimitReached ? SEARCH_LIMIT_REACHED : "Book added successfully!");
       return true;
-    } catch {
-      toast.error("Error adding book");
+    } catch (error) {
+      toast.error(error instanceof CatalogsUnavailableError ? CATALOGS_DOWN : "Error adding book");
       return false;
     } finally {
       setIsProcessing(false);
@@ -224,7 +227,8 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
   }
 
   return (
-    <Container className="flex flex-col gap-6 py-6 sm:py-8">
+    // Clip sideways so confetti flying past the edge doesn't make the page scroll horizontally.
+    <Container className="flex flex-col gap-6 overflow-x-clip py-6 sm:py-8">
       <div className="flex flex-col gap-1">
         <p className="text-sm font-semibold uppercase tracking-wider text-link">Scan to catalog</p>
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{library.locationName}</h1>

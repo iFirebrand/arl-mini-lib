@@ -293,7 +293,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading }) => {
 
   return (
     <div className="flex w-full flex-col gap-4">
-      <div className="relative overflow-hidden rounded-box bg-neutral shadow-card">
+      <div className="relative overflow-hidden rounded-box bg-camera-frame shadow-card">
         <video ref={videoRef} className="aspect-[4/3] w-full object-cover" muted playsInline autoPlay />
 
         {scanning && (
@@ -307,7 +307,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading }) => {
         )}
 
         {!scanning && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-neutral/80 p-6 text-center text-neutral-content">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-camera-frame/80 p-6 text-center text-white">
             {status === "starting" ? (
               <>
                 <span className="loading loading-spinner loading-md" aria-hidden="true" />
@@ -316,7 +316,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading }) => {
             ) : (
               <button
                 type="button"
-                className="btn btn-primary rounded-full"
+                className="btn rounded-full border-0 bg-camera-button text-camera-frame hover:bg-camera-button/90"
                 onClick={() => start(cameraId || undefined)}
               >
                 <CameraIcon className="h-5 w-5" aria-hidden="true" />

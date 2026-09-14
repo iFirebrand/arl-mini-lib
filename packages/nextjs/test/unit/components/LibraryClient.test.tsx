@@ -7,8 +7,10 @@ import { MISS_NOTED, SEARCH_NO_RESULTS } from "~~/app/libs/[id]/BookSearch";
 import LibraryClient, {
   ALREADY_IN_CATALOG,
   BOOK_NOT_FOUND,
+  CATALOGS_DOWN,
   SEARCH_LIMIT_REACHED,
 } from "~~/app/libs/[id]/LibraryClient";
+import { CatalogsUnavailableError } from "~~/app/libs/[id]/catalogRetry";
 
 const mocks = vi.hoisted(() => ({
   account: null as null | { displayName: string; points: number; hasPasskey: boolean },
@@ -220,6 +222,16 @@ describe("LibraryClient", () => {
     await waitFor(() => expect(mocks.toast.error).toHaveBeenCalledWith("Error processing book"));
     expect(screen.getByText(/Scanned Books: 0/)).toBeInTheDocument();
     expect(sessionPoints()).toHaveTextContent("0");
+  });
+
+  it("says the catalogs didn't answer, rather than a vague error, when they stay down", async () => {
+    mocks.fetchBookData.mockRejectedValue(new CatalogsUnavailableError());
+    await renderAtLibrary();
+
+    await scan("9780063345164");
+
+    expect(mocks.toast.error).toHaveBeenCalledWith(CATALOGS_DOWN);
+    expect(mocks.reportLookupMiss).not.toHaveBeenCalled();
   });
 
   it("shows no points when the server awards none (e.g. the daily cap)", async () => {
