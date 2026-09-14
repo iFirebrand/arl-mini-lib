@@ -1,3 +1,5 @@
+import { withOneRetry } from "./catalogRetry";
+
 export interface BookAward {
   pointsAwarded: number;
   total: number;
@@ -22,17 +24,21 @@ export async function saveBookToDatabase(book: {
   editionKey?: string | null;
   via: "camera" | "photo" | "typed" | "search";
 }): Promise<SaveResult> {
-  const response = await fetch("/api/saveBook", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(
-      book.isbn13
-        ? { isbn: book.isbn13, libraryId: book.libraryId, via: book.via }
-        : { editionKey: book.editionKey, libraryId: book.libraryId, via: book.via },
-    ),
-  });
+  // A 502 means the server's own lookup failed before anything was saved, so retrying is safe. A
+  // network error isn't retried: the book may already be saved.
+  const response = await withOneRetry(() =>
+    fetch("/api/saveBook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(
+        book.isbn13
+          ? { isbn: book.isbn13, libraryId: book.libraryId, via: book.via }
+          : { editionKey: book.editionKey, libraryId: book.libraryId, via: book.via },
+      ),
+    }),
+  );
 
   if (!response.ok) {
     throw new Error(`Save book API failed with status: ${response.status}`);

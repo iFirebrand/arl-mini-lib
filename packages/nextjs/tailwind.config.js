@@ -69,6 +69,8 @@ module.exports = {
         // Links and small emphasis: the Ukrainian flag blue from the confetti and footer, lightened in dark mode.
         link: "var(--color-link)",
         flag: { blue: "#0057B7", yellow: "#FFDD00" },
+        // The camera viewfinder stays dark in both themes, like a camera app.
+        camera: { frame: "#212638", button: "#93BBFB" },
       },
       boxShadow: {
         center: "0 0 12px -2px rgb(0 0 0 / 0.05)",

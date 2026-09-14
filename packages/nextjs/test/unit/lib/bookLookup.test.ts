@@ -2,7 +2,7 @@
 import { googleBooksResponse } from "../../fixtures/googleBooks";
 import { jsonResponse, openLibraryResponse } from "../../fixtures/openLibrary";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { findBook } from "~~/lib/bookLookup";
+import { OPENLIBRARY_GRACE_MS, findBook } from "~~/lib/bookLookup";
 import { googleBooksUrlFor, parseGoogleBooksResponse } from "~~/lib/googleBooks";
 import { parseOpenLibraryResponse } from "~~/lib/openLibrary";
 
@@ -69,6 +69,15 @@ describe("parseOpenLibraryResponse", () => {
 
 describe("findBook", () => {
   const fetchMock = vi.fn();
+  // Answers each catalog by URL, since both are asked at once.
+  const catalogs = (openLibrary: () => Promise<Response> | Response, google: () => Promise<Response> | Response) =>
+    fetchMock.mockImplementation(async (url: string) =>
+      new URL(url).hostname === "openlibrary.org" ? openLibrary() : google(),
+    );
+  const IN_GOOGLE = () => jsonResponse(googleBooksResponse);
+  const IN_OPENLIBRARY = () => jsonResponse(openLibraryResponse);
+  const NOT_IN_GOOGLE = () => jsonResponse({});
+
   beforeEach(() => {
     fetchMock.mockReset();
     vi.stubGlobal("fetch", fetchMock);
@@ -77,48 +86,81 @@ describe("findBook", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllGlobals();
     vi.unstubAllEnvs();
   });
 
-  const catalogsAsked = () => fetchMock.mock.calls.map(([url]) => new URL(String(url)).hostname);
+  const catalogsAsked = () => fetchMock.mock.calls.map(([url]) => new URL(String(url)).hostname).sort();
 
-  it("uses OpenLibrary when it has the book, without asking Google", async () => {
-    fetchMock.mockResolvedValueOnce(jsonResponse(openLibraryResponse));
-    expect(await findBook("9780063345164")).toMatchObject({ title: "The Wager" });
-    expect(catalogsAsked()).toEqual(["openlibrary.org"]);
-  });
-
-  it("asks Google Books when OpenLibrary has no match", async () => {
-    fetchMock.mockResolvedValueOnce(NOT_IN_OPENLIBRARY()).mockResolvedValueOnce(jsonResponse(googleBooksResponse));
-    expect(await findBook("0063345161")).toMatchObject({ isbn13: "9780063345164" });
+  it("asks both catalogs at once and prefers OpenLibrary's record", async () => {
+    catalogs(IN_OPENLIBRARY, IN_GOOGLE);
+    expect(await findBook("9780063345164")).toMatchObject({ itemInfo: expect.stringContaining("openlibrary.org") });
     expect(catalogsAsked()).toEqual(["openlibrary.org", "www.googleapis.com"]);
   });
 
-  it("asks Google Books when OpenLibrary is down", async () => {
-    fetchMock.mockResolvedValueOnce(DOWN()).mockResolvedValueOnce(jsonResponse(googleBooksResponse));
+  it("uses Google Books when OpenLibrary has no match", async () => {
+    catalogs(NOT_IN_OPENLIBRARY, IN_GOOGLE);
+    expect(await findBook("0063345161")).toMatchObject({
+      isbn13: "9780063345164",
+      itemInfo: expect.stringContaining("books.google.com"),
+    });
+  });
+
+  it("uses Google Books when OpenLibrary is down, and logs the failure", async () => {
+    catalogs(DOWN, IN_GOOGLE);
     expect(await findBook("9780063345164")).toMatchObject({ title: "The Wager" });
+    expect(console.error).toHaveBeenCalledWith("OpenLibrary lookup failed:", expect.any(Error));
+  });
+
+  it("doesn't wait long for a slow OpenLibrary once Google Books has the book", async () => {
+    vi.useFakeTimers();
+    catalogs(() => new Promise(() => {}), IN_GOOGLE);
+
+    const book = findBook("9780063345164");
+    await vi.advanceTimersByTimeAsync(OPENLIBRARY_GRACE_MS);
+
+    expect(await book).toMatchObject({ itemInfo: expect.stringContaining("books.google.com") });
+  });
+
+  it("still takes OpenLibrary's record if it arrives within the grace period", async () => {
+    vi.useFakeTimers();
+    catalogs(
+      () => new Promise(resolve => setTimeout(() => resolve(IN_OPENLIBRARY()), OPENLIBRARY_GRACE_MS / 2)),
+      IN_GOOGLE,
+    );
+
+    const book = findBook("9780063345164");
+    await vi.advanceTimersByTimeAsync(OPENLIBRARY_GRACE_MS);
+
+    expect(await book).toMatchObject({ itemInfo: expect.stringContaining("openlibrary.org") });
   });
 
   it("returns null, and logs only the ISBN, when neither catalog has the book", async () => {
-    fetchMock.mockResolvedValueOnce(NOT_IN_OPENLIBRARY()).mockResolvedValueOnce(jsonResponse({}));
+    catalogs(NOT_IN_OPENLIBRARY, NOT_IN_GOOGLE);
     expect(await findBook("9780063345164")).toBeNull();
     expect(console.warn).toHaveBeenCalledWith("Book not found in any catalog: 9780063345164");
   });
 
   it("throws when OpenLibrary is down and Google Books can't confirm the book is missing", async () => {
-    fetchMock.mockResolvedValueOnce(DOWN()).mockResolvedValueOnce(DOWN());
+    catalogs(DOWN, DOWN);
+    await expect(findBook("9780063345164")).rejects.toThrow("OpenLibrary");
+  });
+
+  it("throws when OpenLibrary is down and Google Books doesn't have it either", async () => {
+    catalogs(DOWN, NOT_IN_GOOGLE);
     await expect(findBook("9780063345164")).rejects.toThrow("OpenLibrary");
   });
 
   it("returns null when OpenLibrary has no match and Google Books is down", async () => {
-    fetchMock.mockResolvedValueOnce(NOT_IN_OPENLIBRARY()).mockResolvedValueOnce(DOWN());
+    catalogs(NOT_IN_OPENLIBRARY, DOWN);
     expect(await findBook("9780063345164")).toBeNull();
+    expect(console.warn).not.toHaveBeenCalled();
   });
 
   it("only uses OpenLibrary without a Google Books key", async () => {
     vi.stubEnv("GOOGLE_BOOKS_API_KEY", "");
-    fetchMock.mockResolvedValueOnce(NOT_IN_OPENLIBRARY());
+    catalogs(NOT_IN_OPENLIBRARY, IN_GOOGLE);
     expect(await findBook("9780063345164")).toBeNull();
     expect(catalogsAsked()).toEqual(["openlibrary.org"]);
   });
