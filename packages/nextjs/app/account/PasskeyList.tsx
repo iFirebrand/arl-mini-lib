@@ -186,7 +186,7 @@ export default function PasskeyList() {
                       </div>
                     </form>
                   ) : (
-                    <p className="break-words font-semibold">{passkeyTitle(passkey)}</p>
+                    <p className="wrap-break-word font-semibold">{passkeyTitle(passkey)}</p>
                   )}
                   <p className="text-sm text-base-content/70">
                     {[

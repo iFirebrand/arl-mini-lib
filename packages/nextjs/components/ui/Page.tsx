@@ -30,7 +30,7 @@ export const PageHeader = ({
   <div className="flex flex-col gap-4 py-8 sm:flex-row sm:items-end sm:justify-between sm:py-10">
     <div className="flex max-w-2xl flex-col gap-2">
       {eyebrow && <p className="text-sm font-semibold uppercase tracking-wider text-link">{eyebrow}</p>}
-      <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">{title}</h1>
+      <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl sm:leading-10">{title}</h1>
       {children && <div className="text-base text-base-content/75 sm:text-lg">{children}</div>}
     </div>
     {actions && <div className="flex flex-wrap gap-2">{actions}</div>}

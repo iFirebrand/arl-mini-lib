@@ -27,11 +27,11 @@ export const ShowLibraryCard = ({
         width={640}
         height={480}
         sizes="(min-width: 768px) 480px, 100vw"
-        className="aspect-[4/3] h-full w-full bg-base-300 object-cover"
+        className="aspect-4/3 h-full w-full bg-base-300 object-cover"
       />
       <div className="flex flex-col gap-4 p-6 sm:p-8">
         {eyebrow && <p className="text-sm font-semibold uppercase tracking-wider text-link">{eyebrow}</p>}
-        <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+        <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl sm:leading-10">
           {existingLibrary.locationName}
         </h1>
         <p className="leading-relaxed text-base-content/80">

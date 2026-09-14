@@ -8,8 +8,8 @@ import { getMetadata } from "~~/lib/metadata";
 import "~~/styles/globals.css";
 
 // Fraunces for headings (a bookish serif), Figtree for everything else. Self-hosted by next/font.
-const display = Fraunces({ subsets: ["latin"], variable: "--font-display", axes: ["opsz", "SOFT"] });
-const body = Figtree({ subsets: ["latin"], variable: "--font-body" });
+const display = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", axes: ["opsz", "SOFT"] });
+const body = Figtree({ subsets: ["latin"], variable: "--font-figtree" });
 
 export const viewport = {
   // Lets the bottom tab bar sit above the iPhone home indicator (env(safe-area-inset-bottom)).

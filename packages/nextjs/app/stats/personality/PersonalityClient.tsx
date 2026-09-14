@@ -27,7 +27,7 @@ const LibraryItem: React.FC<{ library: Library }> = ({ library }) => (
       width={560}
       height={420}
       sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
-      className="aspect-[4/3] h-auto w-full bg-base-300 object-cover"
+      className="aspect-4/3 h-auto w-full bg-base-300 object-cover"
     />
     <div className="flex flex-1 flex-col gap-3 p-5">
       <h2 className="text-2xl font-semibold leading-tight">{library.locationName}</h2>

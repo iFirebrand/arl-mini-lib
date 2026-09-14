@@ -13,7 +13,7 @@ export const BottomNav = () => {
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-base-300/70 bg-base-100/95 pb-[env(safe-area-inset-bottom)] backdrop-blur xl:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-base-300/70 bg-base-100/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm xl:hidden"
     >
       <ul className="mx-auto grid max-w-md grid-cols-5">
         {TABS.map(tab => {

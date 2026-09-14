@@ -79,7 +79,7 @@ export default async function Home() {
         <Container className="grid items-center gap-8 py-10 sm:py-14 lg:grid-cols-[1.3fr_1fr] lg:gap-12 lg:py-20">
           <div className="flex flex-col gap-6">
             <p className="text-sm font-semibold uppercase tracking-wider text-link">Arlington, Virginia</p>
-            <h1 className="text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+            <h1 className="text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl sm:leading-none lg:text-6xl">
               Arlington Mini Libraries
             </h1>
             <p className="max-w-xl text-lg text-base-content/80 sm:text-xl">
@@ -155,7 +155,7 @@ export default async function Home() {
                         width={400}
                         height={300}
                         sizes="(min-width: 1024px) 270px, (min-width: 640px) 33vw, 50vw"
-                        className="aspect-[4/3] h-auto w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                        className="aspect-4/3 h-auto w-full object-cover transition duration-300 group-hover:scale-[1.03]"
                       />
                     </span>
                     <span className="line-clamp-2 font-medium group-hover:underline">{library.locationName}</span>

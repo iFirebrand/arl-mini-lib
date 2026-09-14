@@ -1,17 +1,207 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@import "tailwindcss";
 
-:root {
-  --color-link: #0057b7;
+/* Only the two themes below: daisyUI's own light and dark would override them. */
+@plugin "daisyui" {
+  themes: false;
 }
+
+/* next-themes sets data-theme on <html>: light, dark, or the system's choice. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@plugin "daisyui/theme" {
+  name: "light";
+  default: true;
+  color-scheme: light;
+  --color-primary: #93bbfb;
+  --color-primary-content: #212638;
+  --color-secondary: #dae8ff;
+  --color-secondary-content: #212638;
+  --color-accent: #93bbfb;
+  --color-accent-content: #212638;
+  --color-neutral: #212638;
+  --color-neutral-content: #ffffff;
+  --color-base-100: #ffffff;
+  --color-base-200: #f4f8ff;
+  --color-base-300: #dae8ff;
+  --color-base-content: #212638;
+  --color-info: #93bbfb;
+  --color-info-content: oklch(15.7468% 0.020306 259.601);
+  --color-success: #34eeb6;
+  --color-success-content: oklch(16.9422% 0.032684 166.928);
+  --color-warning: #ffcf72;
+  --color-warning-content: oklch(17.5575% 0.024753 82.4596);
+  --color-error: #ff8863;
+  --color-error-content: oklch(15.0249% 0.030738 37.9994);
+  --radius-field: 9999rem;
+  --radius-box: 1.25rem;
+  --radius-selector: 1.9rem;
+  --size-field: 0.25rem;
+  --size-selector: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "dark";
+  prefersdark: true;
+  color-scheme: dark;
+  --color-primary: #212638;
+  --color-primary-content: #f9fbff;
+  --color-secondary: #323f61;
+  --color-secondary-content: #f9fbff;
+  --color-accent: #4969a6;
+  --color-accent-content: #f9fbff;
+  --color-neutral: #f9fbff;
+  --color-neutral-content: #385183;
+  --color-base-100: #385183;
+  --color-base-200: #2a3655;
+  --color-base-300: #212638;
+  --color-base-content: #f9fbff;
+  --color-info: #385183;
+  --color-info-content: oklch(88.7872% 0.017671 263.104);
+  --color-success: #34eeb6;
+  --color-success-content: oklch(16.9422% 0.032684 166.928);
+  --color-warning: #ffcf72;
+  --color-warning-content: oklch(17.5575% 0.024753 82.4596);
+  --color-error: #ff8863;
+  --color-error-content: oklch(15.0249% 0.030738 37.9994);
+  --radius-field: 9999rem;
+  --radius-box: 1.25rem;
+  --radius-selector: 1.9rem;
+  --size-field: 0.25rem;
+  --size-selector: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@theme {
+  /* Set by next/font in app/layout.tsx. */
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, Cambria, Times New Roman, serif;
+
+  /* Links and small emphasis: the Ukrainian flag blue from the confetti and footer, lightened in dark mode. */
+  --color-link: #0057b7;
+  --color-flag-blue: #0057b7;
+  --color-flag-yellow: #ffdd00;
+  /* The camera viewfinder stays dark in both themes, like a camera app. */
+  --color-camera-frame: #212638;
+  --color-camera-button: #93bbfb;
+
+  --shadow-center: 0 0 12px -2px rgb(0 0 0 / 0.05);
+  --shadow-card: 0 1px 2px rgb(33 38 56 / 0.06), 0 8px 24px -12px rgb(33 38 56 / 0.18);
+
+  --animate-pulse-fast: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
 [data-theme="dark"] {
   --color-link: #b9d3fd;
 }
 
+/* daisyUI 4's sizes, where daisyUI 5 changed them, so the site keeps its look. This layer sits above
+   daisyUI's own (inside `utilities`) and below Tailwind's utility classes, which still win. */
+@layer utilities {
+  @layer daisyui-v4 {
+    .btn {
+      --size: 3rem;
+      --fontsize: 0.875rem;
+      --btn-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      gap: 0.5rem;
+      line-height: 1em;
+    }
+    .btn-sm {
+      --size: 2rem;
+      --fontsize: 0.875rem;
+    }
+    .btn-lg {
+      --size: 4rem;
+      --fontsize: 1.125rem;
+      --btn-p: 1.5rem;
+    }
+    .btn-ghost,
+    .btn-link {
+      --btn-shadow: 0 0 0 0 transparent;
+    }
+    .btn:is(.btn-disabled, :disabled, [disabled], [aria-disabled="true"]):not(.btn-ghost, .btn-link) {
+      background-color: color-mix(in oklab, var(--color-neutral) 20%, transparent);
+    }
+
+    .input,
+    .select,
+    .file-input {
+      width: auto;
+    }
+    /* 16px text also keeps iPhones from zooming in when a field is tapped. */
+    .input {
+      --in-size-mul: 12;
+      --font-size: 1rem;
+      padding-inline: 1rem;
+      line-height: 1.5rem;
+    }
+    .input-sm {
+      --in-size-mul: 8;
+      --font-size: 0.875rem;
+      padding-inline: 0.75rem;
+      line-height: 2rem;
+    }
+    .select {
+      --sl-size-mul: 12;
+      line-height: 2;
+    }
+    .select-sm {
+      --sl-size-mul: 8;
+      --font-size: 0.875rem;
+      line-height: 2rem;
+    }
+    /* A focused field keeps its light border and gets a light ring, instead of turning dark. */
+    :is(.input, .select, .file-input):is(:focus, :focus-within) {
+      --input-color: color-mix(in oklab, var(--color-base-content) 20%, transparent);
+    }
+    .file-input {
+      --size: 3rem;
+      padding-inline-end: 1rem;
+      font-size: 1rem;
+      line-height: 1.5rem;
+    }
+    .file-input::file-selector-button {
+      --btn-bg: var(--color-neutral);
+      --btn-fg: var(--color-neutral-content);
+      --btn-border: var(--color-neutral);
+      --btn-shadow: 0 0 0 0 transparent;
+      text-transform: uppercase;
+      line-height: 1em;
+    }
+  }
+}
+
+@layer base {
+  /* Tailwind 3 defaults that Tailwind 4 dropped: gray-200 borders (Tailwind 4 uses the text color)
+     and a pointer over buttons. */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+}
+
 :root,
 [data-theme] {
-  background: oklch(var(--b2));
+  background: var(--color-base-200);
 }
 
 body {
@@ -20,15 +210,11 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-h1,
-h2,
-h3 {
-  @apply font-display;
-  text-wrap: balance;
+.link {
+  text-underline-offset: 2px;
 }
-
-.btn {
-  @apply normal-case;
+.link:hover {
+  opacity: 80%;
 }
 
 /* The camera and map sit inside cards; keep Leaflet's own z-indexes inside them. */

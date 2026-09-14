@@ -8,7 +8,7 @@ to catalog them, earning points along the way. No email or password: accounts ar
 ## Stack
 
 - Next.js 16 (App Router, Turbopack) and React 19, hosted on Vercel
-- Tailwind CSS 3 and daisyUI 4
+- Tailwind CSS 4 and daisyUI 5 (themes and daisyUI 4 sizes in `styles/globals.css`)
 - PostgreSQL 17 on Supabase, through Prisma 6; photos in Supabase Storage
 - Book lookups: OpenLibrary, then Google Books
 - Barcode scanning: [`barcode-detector`](https://github.com/Sec-ant/barcode-detector) (the browser's
