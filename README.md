@@ -33,8 +33,8 @@ The app is in `packages/nextjs`; the repository root only holds the Yarn workspa
 
 ## Getting started
 
-You need Node 22 (20.9 or later works), Docker (for the test database) and Yarn 4, which Corepack
-provides:
+You need Node 22.12 or later (the site itself runs on 20.9; the tests need 22.12), Docker (for the
+test database) and Yarn 4, which Corepack provides:
 
 ```sh
 corepack enable

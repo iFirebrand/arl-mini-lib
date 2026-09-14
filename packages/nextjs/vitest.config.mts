@@ -30,7 +30,8 @@ export default defineConfig({
           setupFiles: ["test/setup/integration.ts"],
           // Tests share one database, so run every file in a single worker, one after another.
           pool: "forks",
-          poolOptions: { forks: { singleFork: true } },
+          maxWorkers: 1,
+          isolate: false,
           hookTimeout: 30_000,
         },
       },
