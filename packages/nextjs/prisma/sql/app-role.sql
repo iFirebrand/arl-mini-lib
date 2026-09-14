@@ -2,10 +2,10 @@
 --
 -- The app (Prisma at runtime) connects as arlib_app, which can only do what the code does:
 -- read everything it shows, add libraries/books/accounts/passkeys/point history/moderation log
--- entries, and update book "last confirmed" times, point totals, passkey counters and the
--- hidden/visible flags moderators set. No DELETE, TRUNCATE or schema changes, and it can't make
--- anyone a moderator. The postgres role is kept for migrations (DIRECT_URL) and never used by the
--- running site.
+-- entries and a log of books no catalog found (which it can't read back), and update book "last
+-- confirmed" times, point totals, passkey counters and the hidden/visible flags moderators set.
+-- No DELETE, TRUNCATE or schema changes, and it can't make anyone a moderator. The postgres role is
+-- kept for migrations (DIRECT_URL) and never used by the running site.
 --
 -- Safe to re-run. The role's password is set separately and never stored in the repo:
 --   alter role arlib_app with password '<generated>';
@@ -39,6 +39,8 @@ grant select, insert, update on "PointEvent"    to arlib_app;
 -- Moderators are added only by the database owner; the app just checks the list.
 grant select                 on "Moderator"       to arlib_app;
 grant select, insert         on "ModerationEvent" to arlib_app;
+-- Books no catalog could find. The app only adds them (createMany, so no RETURNING); the owner reads them.
+grant insert                 on "LookupMiss"      to arlib_app;
 
 -- Row-level security on every app table (Prisma creates new tables with it off), and arlib_app
 -- gets exactly the matching policies.
@@ -53,6 +55,7 @@ alter table "Passkey" enable row level security;
 alter table "PointEvent" enable row level security;
 alter table "Moderator" enable row level security;
 alter table "ModerationEvent" enable row level security;
+alter table "LookupMiss" enable row level security;
 
 -- The rewards-pool poll was removed from the site; votes stay, but nothing adds new ones.
 drop policy if exists "arlib_app insert" on "Poll";
@@ -72,7 +75,8 @@ begin
       ('Passkey', 'select'), ('Passkey', 'insert'), ('Passkey', 'update'),
       ('PointEvent', 'select'), ('PointEvent', 'insert'), ('PointEvent', 'update'),
       ('Moderator', 'select'),
-      ('ModerationEvent', 'select'), ('ModerationEvent', 'insert')
+      ('ModerationEvent', 'select'), ('ModerationEvent', 'insert'),
+      ('LookupMiss', 'insert')
     ) as t(tbl, cmd)
   loop
     execute format('drop policy if exists %I on %I', 'arlib_app ' || rule.cmd, rule.tbl);

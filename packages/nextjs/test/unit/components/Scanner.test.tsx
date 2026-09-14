@@ -53,7 +53,7 @@ describe("Scanner", () => {
     mocks.detect.mockResolvedValue([BOOK]);
     const onScan = renderScanner();
 
-    await waitFor(() => expect(onScan).toHaveBeenCalledWith("9780063345164"));
+    await waitFor(() => expect(onScan).toHaveBeenCalledWith("9780063345164", "camera"));
     expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({
       audio: false,
       video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } },
@@ -93,7 +93,7 @@ describe("Scanner", () => {
     await userEvent.type(screen.getByLabelText(/Type the ISBN/), "0-06-334516-1");
     await userEvent.click(screen.getByRole("button", { name: "Add" }));
 
-    expect(onScan).toHaveBeenCalledWith("9780063345164");
+    expect(onScan).toHaveBeenCalledWith("9780063345164", "typed");
   });
 
   it("rejects a typed number that isn't an ISBN", async () => {
@@ -125,7 +125,7 @@ describe("Scanner", () => {
       expect(await screen.findByText(message)).toBeInTheDocument();
       expect(onScan).not.toHaveBeenCalled();
     } else {
-      await waitFor(() => expect(onScan).toHaveBeenCalledWith("9780063345164"));
+      await waitFor(() => expect(onScan).toHaveBeenCalledWith("9780063345164", "photo"));
     }
   });
 });

@@ -4,6 +4,7 @@ import { vi } from "vitest";
 //   vi.mock("~~/lib/db", async () => ({ default: (await import("../../mocks/prisma")).prismaMock }));
 const model = () => ({
   create: vi.fn(),
+  createMany: vi.fn(),
   findFirst: vi.fn(),
   findUnique: vi.fn(),
   findMany: vi.fn(),
@@ -22,4 +23,5 @@ export const prismaMock = {
   account: model(),
   passkey: model(),
   pointEvent: model(),
+  lookupMiss: model(),
 };

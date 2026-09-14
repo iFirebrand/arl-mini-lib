@@ -146,6 +146,14 @@ Changing the schema:
    integration tests apply it, so they show what the app can and can't do.
 4. After review, run the SQL file on production as the owner, then re-run `app-role.sql`.
 
+Books no catalog could find (an ISBN neither OpenLibrary nor Google Books knew, or a title search
+that ended without a match) go into `LookupMiss`. The app can add rows but not read them; as the
+owner:
+
+```sql
+select kind, query, count(*) from "LookupMiss" group by kind, query order by count(*) desc;
+```
+
 Moderators are added by the owner, by the account's pseudonym (shown next to the points in the
 header):
 

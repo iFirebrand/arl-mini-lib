@@ -63,6 +63,15 @@ describe("the arlib_app role", () => {
     ).rejects.toThrow(PERMISSION_DENIED);
   });
 
+  it("can note books no catalog found, but not read them back", async () => {
+    await appPrisma.lookupMiss.createMany({ data: [{ kind: "isbn", query: "9780063345164" }] });
+    expect(await testPrisma.lookupMiss.count()).toBe(1);
+    await expect(appPrisma.lookupMiss.findMany()).rejects.toThrow(PERMISSION_DENIED);
+    await expect(appPrisma.lookupMiss.create({ data: { kind: "isbn", query: "9780063345164" } })).rejects.toThrow(
+      PERMISSION_DENIED,
+    );
+  });
+
   it("can no longer add poll votes", async () => {
     await expect(appPrisma.poll.create({ data: { questionId: "rewards-pool", rating: 4 } })).rejects.toThrow(
       PERMISSION_DENIED,

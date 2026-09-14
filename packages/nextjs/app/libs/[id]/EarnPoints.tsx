@@ -1,5 +1,5 @@
 export interface Award {
-  kind: "new" | "recency";
+  kind: "new" | "searched" | "recency";
   points: number;
 }
 
@@ -37,6 +37,14 @@ export function EarnPoints({
             <div className={label}>New Book Points</div>
             <div className={value}>{lastAward.points}</div>
             <div className={note}>First scan at library pays big</div>
+          </div>
+        )}
+
+        {lastAward?.kind === "searched" && lastAward.points > 0 && (
+          <div className={`${tile} bg-flag-yellow/40`}>
+            <div className={label}>Searched Book Points</div>
+            <div className={value}>{lastAward.points}</div>
+            <div className={note}>Scanning a barcode pays more</div>
           </div>
         )}
 
