@@ -1,46 +1,166 @@
-# ARLib: Arlington Mini Library App
+# ArLib.me
 
-## Overview
+[ArLib.me](https://arlib.me) maps and catalogs the little free libraries of Arlington, Virginia.
+Anyone can add a library (a photo and its GPS location) and scan the barcodes of the books inside
+to catalog them, earning points along the way. No email or password: accounts are anonymous
+("Reader K7Q2M") and can be saved with a passkey.
 
-ARLib is a web application designed to connect communities with mini libraries, allowing users to discover, catalog, and share books in their neighborhoods. The platform enables users to add new libraries, scan books for cataloging, and earn points through various activities. With a focus on community engagement and gamification, ARLib aims to make reading more accessible and enjoyable.
+## Stack
 
-## Features
+- Next.js 16 (App Router, Turbopack) and React 19, hosted on Vercel
+- Tailwind CSS 3 and daisyUI 4
+- PostgreSQL 17 on Supabase, through Prisma 6; photos in Supabase Storage
+- Book lookups: OpenLibrary, then Google Books
+- Barcode scanning: [`barcode-detector`](https://github.com/Sec-ant/barcode-detector) (the browser's
+  own reader where there is one, ZXing WebAssembly elsewhere, including iPhones)
+- Passkeys: SimpleWebAuthn
+- Tests: Vitest (unit and integration) and Playwright (browser)
 
-- **Discover Mini Libraries**: Users can find mini libraries in their area and browse their collections.
-- **Add Libraries**: Users can add new libraries to the platform by geotagging their locations and cataloging books.
-- **Scan Books**: Users can scan book barcodes to catalog them and earn points.
-- **Leaderboard**: A dynamic leaderboard showcasing the top users based on points earned.
-- **User Accounts**: Users can create accounts to track their points and library contributions.
-- **Gamification**: Users can participate in quests and earn rewards for their contributions.
+## Repository layout
 
-## Technologies Used
+The app is in `packages/nextjs`; the repository root only holds the Yarn workspace and CI.
 
-- **React**: For building the user interface.
-- **Next.js**: For server-side rendering and routing.
-- **TypeScript**: For type safety and better development experience.
-- **Tailwind CSS**: For styling the application.
-- **Next.js**: For handling API requests.
-- **Prisma**: For database interactions.
-- **PostgreSQL**: For data storage.
+| Path | What's there |
+| --- | --- |
+| `app/` | Pages and API routes (`app/api/*`: book lookup, saving books, photo upload, passkeys) |
+| `actions/` | Server actions (libraries, points, moderation) |
+| `lib/` | Server code: database, sessions, passkeys, book lookup, ISBN checks, rate limits |
+| `components/` | UI; `components/ui/Page.tsx` holds the page layout pieces |
+| `prisma/schema.prisma` | Database schema |
+| `prisma/sql/` | Reviewed SQL for production: schema changes and `app-role.sql` (database permissions) |
+| `scripts/` | Build helpers: copying the ZXing WebAssembly file, checking browser bundles for secrets |
+| `test/`, `e2e/` | Unit and integration tests; Playwright smoke and flow tests |
 
-## Getting Started
+## Getting started
 
-To run the ARLib application locally please use yarn.
+You need Node 22 (20.9 or later works), Docker (for the test database) and Yarn 4, which Corepack
+provides:
 
-## API Endpoints
+```sh
+corepack enable
+yarn install
+cd packages/nextjs
+```
 
-- **GET /api/openlibrary**: Fetch book data from OpenLibrary using ISBN.
-- **POST /api/points**: Add or retrieve user points.
-- **POST /api/saveBook**: Save book data to the database.
+### Run the site against a local database (recommended)
+
+This uses the same throwaway Postgres as the integration tests, so nothing you click touches real
+data.
+
+```sh
+yarn test:db:up        # starts Postgres in Docker on port 54329
+yarn test:integration  # creates the tables and the app's database role (and runs the tests)
+
+DATABASE_URL=postgresql://arlib_app:arlib_app_test_only@localhost:54329/arlib_test \
+DIRECT_URL=postgresql://arlib:arlib@localhost:54329/arlib_test \
+NEXT_PUBLIC_SUPABASE_URL=http://supabase.test \
+yarn dev
+```
+
+Open <http://localhost:3000>. The database starts empty, and the integration tests empty it again
+each time they run. Everything works except adding a library, which needs photo storage
+(`SUPABASE_SECRET_KEY`); book lookups use OpenLibrary alone unless `GOOGLE_BOOKS_API_KEY` is set.
+`yarn test:db:down` stops the database.
+
+### Run the site against production data
+
+`vercel env pull` writes the Vercel project's development variables to `packages/nextjs/.env.local`,
+and `yarn dev` then reads them. **That `DATABASE_URL` is the production database.** Use it only to
+look at pages or run the read-only smoke tests; don't add libraries, scan books or sign in, because
+those write real data. Keep `.env.local` out of Git (it already is) and don't share it.
+
+### Environment variables
+
+| Variable | Needed for | Notes |
+| --- | --- | --- |
+| `DATABASE_URL` | everything | Postgres connection for the running site. In production it signs in as `arlib_app` (see below). |
+| `DIRECT_URL` | Prisma commands | Owner connection used by `prisma db push`/`migrate`; not needed by the running site. |
+| `NEXT_PUBLIC_SUPABASE_URL` | photos | Supabase project URL. Photos must come from its `library-images` bucket. |
+| `SUPABASE_SECRET_KEY` | adding a library | Server-only key for photo uploads. Never give it a `NEXT_PUBLIC_` prefix. |
+| `SESSION_SECRET` | sign-in (production) | At least 32 characters; signs the session cookie. Development uses a built-in value. |
+| `GOOGLE_BOOKS_API_KEY` | book lookup | Optional. Books OpenLibrary doesn't know are looked up in Google Books. Server-only. |
+| `NEXT_PUBLIC_APP_URL` | production | The site's public URL, allowed as an origin for passkeys and form posts. |
+| `WEBAUTHN_RP_ID` | passkeys | Optional. Defaults to `arlib.me` in production and `localhost` in development. |
+
+`yarn build` fails if any server-only secret shows up in the JavaScript sent to browsers.
+
+## Tests
+
+All commands run from `packages/nextjs`.
+
+| Command | What it does | Database |
+| --- | --- | --- |
+| `yarn test` | Unit tests (Vitest, jsdom) | none |
+| `yarn test:integration` | Server actions and API routes against real Postgres, signed in as `arlib_app`, the same least-privilege role as production | local test database (`yarn test:db:up` first) |
+| `yarn test:e2e` | Read-only smoke tests in Chrome, desktop and phone sizes. Starts `yarn dev` unless `E2E_BASE_URL` is set | whatever the server uses |
+| `yarn test:e2e:flows` | Passkey sign-up and sign-in, and real barcode scanning through Chrome's fake camera. Starts its own server | local test database only |
+| `yarn check-types`, `yarn lint` | TypeScript and ESLint | none |
+
+The first Playwright run needs a browser: `npx playwright install chromium`.
+
+Smoke-test production (read-only, safe):
+
+```sh
+E2E_BASE_URL=https://www.arlib.me yarn test:e2e
+```
+
+The integration and flow tests refuse to run against anything but `localhost`, because they wipe
+tables.
+
+## Continuous integration and monitoring
+
+- **Every pull request** (`.github/workflows/test.yaml`): type check, lint, unit tests,
+  integration tests, a production build with the secret scan, and the flow tests, against a
+  Postgres service container.
+- **Every hour** (`.github/workflows/production-watch.yml`): the smoke tests run against
+  www.arlib.me. A failure opens an issue labeled `production-alert`; the next passing run closes it.
+- **In production**: Vercel Web Analytics and Speed Insights alongside Google Analytics. Automated
+  browsers (`navigator.webdriver`) are left out of all three.
+
+## Deploying
+
+Vercel deploys `main` to production automatically (project root `packages/nextjs`, Node 22). The
+build runs `prisma generate`, copies the ZXing WebAssembly file into `public/zxing/<version>/`, builds
+Next.js and scans the browser bundles for secrets. Environment variables live in the Vercel project
+settings.
+
+The workflow: open a pull request, wait for CI, squash-merge, then check production with the smoke
+tests above and Vercel's runtime logs. The Hobby plan builds no previews of branches, so for UI
+changes attach before/after screenshots to the pull request.
+
+## Database
+
+The running site connects as `arlib_app`, a role that can only do what the code does
+(`prisma/sql/app-role.sql`): read what the site shows, add libraries, books, accounts, passkeys and
+point history, and update a few specific columns (a library's visibility, a book's last-confirmed
+time and visibility, point totals). It can't delete anything, change the schema, or make anyone a
+moderator. The `postgres` owner role is only for schema changes and admin work.
+
+Changing the schema:
+
+1. Edit `prisma/schema.prisma`.
+2. Generate the SQL with `prisma migrate diff` (from the old schema to the new one) and save it as
+   `prisma/sql/<date>-<name>.sql`. Keep it additive where possible, so the code already deployed
+   keeps working.
+3. Update `prisma/sql/app-role.sql`: grants and row-level security for new tables and columns. The
+   integration tests apply it, so they show what the app can and can't do.
+4. After review, run the SQL file on production as the owner, then re-run `app-role.sql`.
+
+Moderators are added by the owner, by the account's pseudonym (shown next to the points in the
+header):
+
+```sql
+insert into "Moderator" ("accountId")
+select id from "Account" where "displayName" = 'Reader XXXXX';
+```
 
 ## Contributing
 
-Contributions are welcome! If you have suggestions for improvements or new features, please open an issue or submit a pull request.
+Issues and pull requests are welcome. Keep each pull request to one change, with tests, and run the
+tests above before opening it. Please report security problems by email to
+[ArlingtonAndUkraine+arlib@gmail.com](mailto:ArlingtonAndUkraine+arlib@gmail.com) rather than in a
+public issue.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Thanks to the contributors and the open-source community for their support and resources. Specifically big thanks to https://scaffoldeth.io/ that served as the starter.
+MIT. See [LICENCE](LICENCE). The project started from [Scaffold-ETH 2](https://scaffoldeth.io/).
