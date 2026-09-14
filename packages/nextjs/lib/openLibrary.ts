@@ -34,22 +34,19 @@ export const httpsUrlOn = (value: unknown, host: string) => {
   }
 };
 
-/** Details of the first record in an OpenLibrary brief-volumes response, or null if there is none. */
-export function parseOpenLibraryResponse(data: unknown): BookDetails | null {
-  const records = (data as { records?: Record<string, unknown> } | null)?.records;
-  if (!records || typeof records !== "object") return null;
-  const record = Object.values(records)[0] as
-    | {
-        recordURL?: unknown;
-        data?: {
-          title?: unknown;
-          subtitle?: unknown;
-          authors?: { name?: unknown }[];
-          cover?: { medium?: unknown };
-          identifiers?: { isbn_13?: unknown[]; isbn_10?: unknown[] };
-        };
-      }
-    | undefined;
+type BriefRecord = {
+  recordURL?: unknown;
+  data?: {
+    title?: unknown;
+    subtitle?: unknown;
+    authors?: { name?: unknown }[];
+    cover?: { medium?: unknown };
+    identifiers?: { isbn_13?: unknown[]; isbn_10?: unknown[]; openlibrary?: unknown[] };
+  };
+};
+
+// A brief-volumes record as the details we store; isbn13 is null for editions without one.
+function recordDetails(record: BriefRecord | undefined) {
   const info = record?.data;
   // Older editions often have only an ISBN-10 on record.
   const isbn10 = normalizeIsbn(info?.identifiers?.isbn_10?.[0]);
@@ -57,7 +54,7 @@ export function parseOpenLibraryResponse(data: unknown): BookDetails | null {
     normalizeIsbn(info?.identifiers?.isbn_13?.[0]) ??
     (isbn10 && hasValidIsbn10CheckDigit(isbn10) ? isbn10To13(isbn10) : null);
   const title = text(info?.title, MAX_TEXT.title);
-  if (!info || !isbn13 || !title) return null;
+  if (!info || !title) return null;
 
   const authors = Array.isArray(info.authors)
     ? info.authors.map(author => text(author?.name, 100)).filter(Boolean)
@@ -72,6 +69,35 @@ export function parseOpenLibraryResponse(data: unknown): BookDetails | null {
   };
 }
 
+const firstRecord = (data: unknown): BriefRecord | undefined => {
+  const records = (data as { records?: Record<string, unknown> } | null)?.records;
+  if (!records || typeof records !== "object") return undefined;
+  return Object.values(records)[0] as BriefRecord | undefined;
+};
+
+/** Details of the first record in an OpenLibrary brief-volumes response, or null if there is none. */
+export function parseOpenLibraryResponse(data: unknown): BookDetails | null {
+  const book = recordDetails(firstRecord(data));
+  return book?.isbn13 ? { ...book, isbn13: book.isbn13 } : null;
+}
+
+// OpenLibrary's id for one edition of a book, e.g. OL7353617M.
+export const EDITION_KEY = /^OL\d{1,10}M$/;
+
+/** A book found by title search: the details we store, with its edition id and an ISBN if it has one. */
+export interface EditionDetails extends Omit<BookDetails, "isbn13"> {
+  isbn13: string | null;
+  editionKey: string;
+}
+
+/** Details of this edition in an OpenLibrary brief-volumes response, or null if it isn't there. */
+export function parseOpenLibraryEdition(data: unknown, editionKey: string): EditionDetails | null {
+  const record = firstRecord(data);
+  if (!record?.data?.identifiers?.openlibrary?.includes(editionKey)) return null;
+  const book = recordDetails(record);
+  return book ? { ...book, editionKey } : null;
+}
+
 export const openLibraryUrlFor = (isbn: string) => `https://openlibrary.org/api/volumes/brief/isbn/${isbn}.json`;
 
 /** Server-side lookup. Throws if OpenLibrary is unreachable; returns null if it has no such book. */
@@ -81,4 +107,16 @@ export async function lookupBook(isbn: string): Promise<BookDetails | null> {
     throw new Error(`OpenLibrary API responded with status: ${response.status}`);
   }
   return parseOpenLibraryResponse(await response.json());
+}
+
+export const openLibraryEditionUrlFor = (editionKey: string) =>
+  `https://openlibrary.org/api/volumes/brief/olid/${editionKey}.json`;
+
+/** Looks up one edition by its OpenLibrary id. Throws if OpenLibrary is unreachable. */
+export async function lookupEdition(editionKey: string): Promise<EditionDetails | null> {
+  const response = await fetch(openLibraryEditionUrlFor(editionKey), { signal: AbortSignal.timeout(8000) });
+  if (!response.ok) {
+    throw new Error(`OpenLibrary API responded with status: ${response.status}`);
+  }
+  return parseOpenLibraryEdition(await response.json(), editionKey);
 }

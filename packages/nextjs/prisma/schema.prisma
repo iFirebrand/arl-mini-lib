@@ -111,7 +111,7 @@ model PointEvent {
   id        String   @id @default(cuid())
   accountId String
   account   Account  @relation(fields: [accountId], references: [id])
-  // ADD_BOOK, CONFIRM_BOOK, CREATE_LIBRARY, IMPORTED_WALLET_POINTS
+  // ADD_BOOK, ADD_SEARCHED_BOOK, CONFIRM_BOOK, CREATE_LIBRARY, IMPORTED_WALLET_POINTS
   action    String
   points    Int
   libraryId String?
@@ -130,11 +130,28 @@ model Item {
   isbn13 String? 
   libraryId String?
   itemInfo String?
+  // OpenLibrary edition id ("OL7353617M") of a book found by title search, for books without an ISBN.
+  editionKey String?
+  // How the book was added: "camera", "photo", "typed" or "search". Empty for books added before this was kept.
+  addedVia String?
   // Hidden by a moderator: kept, but left out of every public list and count.
   hidden Boolean @default(false)
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
   library Library? @relation("LibraryItems", fields: [libraryId], references: [id])
+}
+
+// Books no catalog could find: an ISBN neither OpenLibrary nor Google Books knew, or a title search
+// that ended without a match. Only what was looked up, when and where; nothing about the person.
+// The app can add rows but not read them.
+model LookupMiss {
+  id        String   @id @default(cuid())
+  // "isbn" or "search"
+  kind      String
+  // The ISBN, or the title and author searched for
+  query     String
+  libraryId String?
+  createdAt DateTime @default(now())
 }
 
 model ArlibSettings {

@@ -11,7 +11,7 @@ export const appPrisma = new PrismaClient({ datasourceUrl: getTestAppDatabaseUrl
 
 export async function resetDatabase() {
   await testPrisma.$executeRawUnsafe(
-    'TRUNCATE TABLE "ModerationEvent", "Moderator", "PointEvent", "Passkey", "Account", "Item", "_LibraryCurators", "Library", "User", "Poll", "ArlibSettings" CASCADE',
+    'TRUNCATE TABLE "LookupMiss", "ModerationEvent", "Moderator", "PointEvent", "Passkey", "Account", "Item", "_LibraryCurators", "Library", "User", "Poll", "ArlibSettings" CASCADE',
   );
 }
 

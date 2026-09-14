@@ -39,6 +39,8 @@ export interface ModerationQueue {
     libraryName: string;
     createdAt: Date;
     hidden: boolean;
+    // Books found by title search weren't scanned, so they're worth a second look.
+    addedBySearch: boolean;
   }[];
 }
 
@@ -58,6 +60,7 @@ export async function getModerationQueue(): Promise<ModerationQueue> {
         title: true,
         createdAt: true,
         hidden: true,
+        addedVia: true,
         library: { select: { id: true, locationName: true } },
       },
     }),
@@ -71,6 +74,7 @@ export async function getModerationQueue(): Promise<ModerationQueue> {
       libraryName: book.library?.locationName ?? "",
       createdAt: book.createdAt,
       hidden: book.hidden,
+      addedBySearch: book.addedVia === "search",
     })),
   };
 }

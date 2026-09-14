@@ -64,6 +64,7 @@ export default function ModerateClient({ queue }: { queue: ModerationQueue }) {
                     {book.libraryName}
                   </Link>{" "}
                   · {formatDate(book.createdAt)}
+                  {book.addedBySearch && " · added by title search"}
                   {book.hidden && " · hidden"}
                 </div>
               </div>

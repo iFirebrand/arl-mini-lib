@@ -11,10 +11,14 @@ export const MULTIPLIER_WINDOW_MS = 12 * 60 * 60 * 1000;
 // The first this-many new books in a window earn NEW_BOOK_POINTS; later ones earn double.
 export const MULTIPLIER_AFTER = 3;
 export const CREATE_LIBRARY_POINTS = 50;
+// A book found by title search wasn't scanned, so nothing shows it was in hand: fewer points, no
+// multiplier, and only for the first few such books at a library each day.
+export const SEARCHED_BOOK_POINTS = 2;
+export const SEARCHED_BOOKS_PER_LIBRARY_PER_DAY = 10;
 // Stops anyone from farming points with scripts; real sessions stay far below it.
 export const DAILY_POINTS_CAP = 500;
 
-export type PointAction = "ADD_BOOK" | "CONFIRM_BOOK" | "CREATE_LIBRARY";
+export type PointAction = "ADD_BOOK" | "ADD_SEARCHED_BOOK" | "CONFIRM_BOOK" | "CREATE_LIBRARY";
 
 const newAccountLimiter = rateLimit({ interval: 60 * 60 * 1000, uniqueTokenPerInterval: 500, limit: 10 });
 
@@ -64,6 +68,19 @@ export async function newBookPoints(accountId: string, libraryId: string, now = 
     points: recentNewBooks < MULTIPLIER_AFTER ? NEW_BOOK_POINTS : NEW_BOOK_POINTS * 2,
     newBooksThisVisit: recentNewBooks + 1,
   };
+}
+
+/** Points the next book found by title search earns at this library: 2, or 0 past the daily limit. */
+export async function searchedBookPoints(accountId: string, libraryId: string, now = new Date()) {
+  const searchedToday = await prisma.pointEvent.count({
+    where: {
+      accountId,
+      libraryId,
+      action: "ADD_SEARCHED_BOOK",
+      createdAt: { gt: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
+    },
+  });
+  return searchedToday < SEARCHED_BOOKS_PER_LIBRARY_PER_DAY ? SEARCHED_BOOK_POINTS : 0;
 }
 
 /**

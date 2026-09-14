@@ -5,8 +5,11 @@ import { type BarcodeReader, type DetectedBarcode, getBarcodeReader } from "./ba
 import { BoltIcon, BoltSlashIcon, CameraIcon, PhotoIcon, StopIcon } from "@heroicons/react/24/outline";
 import { classifyBarcode, parseTypedIsbn } from "~~/lib/isbn";
 
+// How the ISBN was read, kept with the book.
+export type ScanSource = "camera" | "photo" | "typed";
+
 interface ScannerProps {
-  onScan: (isbn: string) => Promise<void>;
+  onScan: (isbn: string, source: ScanSource) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -83,12 +86,12 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading }) => {
   }, [onScan, isLoading]);
 
   /** Hands a valid ISBN to the page, one at a time. */
-  const deliver = useCallback(async (isbn13: string) => {
+  const deliver = useCallback(async (isbn13: string, source: ScanSource) => {
     if (busyRef.current || isLoadingRef.current) return;
     busyRef.current = true;
     navigator.vibrate?.(40);
     try {
-      await onScanRef.current(isbn13);
+      await onScanRef.current(isbn13, source);
     } finally {
       busyRef.current = false;
     }
@@ -106,7 +109,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading }) => {
         return;
       }
       setMessage(null);
-      await deliver(result.isbn13);
+      await deliver(result.isbn13, "camera");
     },
     [deliver],
   );
@@ -265,7 +268,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading }) => {
       const results = (await reader.detect(source)).map(code => classifyBarcode(code.rawValue, code.format));
       bitmap.close?.();
       const book = results.find(result => result.kind === "isbn");
-      if (book?.kind === "isbn") await deliver(book.isbn13);
+      if (book?.kind === "isbn") await deliver(book.isbn13, "photo");
       else setMessage(results.some(result => result.kind === "store-code") ? STORE_CODE_HINT : NO_BARCODE_IN_PHOTO);
     } catch {
       setMessage("That photo couldn't be read. Try another, or type the ISBN below.");
@@ -283,7 +286,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScan, isLoading }) => {
     }
     setTypedError(null);
     setTyped("");
-    await deliver(isbn13);
+    await deliver(isbn13, "typed");
   };
 
   const scanning = status === "scanning";

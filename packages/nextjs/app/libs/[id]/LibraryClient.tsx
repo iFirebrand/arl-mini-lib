@@ -3,8 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { checkIfLocationMatches } from "../../../components/maps/checkIfLocationMatches";
-import Scan from "./App";
+import Scan, { type ScanSource } from "./App";
+import BookSearch, { SEARCHED_BOOKS_PER_LIBRARY_PER_DAY } from "./BookSearch";
 import { Award, EarnPoints } from "./EarnPoints";
+import { reportLookupMiss } from "./bookSearchClient";
 import { fetchBookData } from "./fetchBookData";
 import { saveBookToDatabase } from "./saveBookToDatabase";
 import { getBookRecencyBonus } from "./scoring";
@@ -13,6 +15,7 @@ import { toast } from "react-hot-toast";
 import { confirmBookInLibrary } from "~~/actions/actions";
 import { useAccountContext } from "~~/app/contexts/AccountContext";
 import { Container } from "~~/components/ui/Page";
+import type { SearchResult } from "~~/lib/bookSearch";
 
 interface LibraryClientProps {
   library: {
@@ -35,14 +38,17 @@ interface BookInfo {
 }
 
 export const BOOK_NOT_FOUND =
-  "We couldn't find this ISBN in OpenLibrary or Google Books. Check the number, or skip this one for now.";
+  "We couldn't find this ISBN in OpenLibrary or Google Books. Check the number, or search by title below.";
+export const ALREADY_IN_CATALOG = "This book is already in the catalog.";
+export const SEARCH_LIMIT_REACHED = `Book added! Searched books earn points for the first ${SEARCHED_BOOKS_PER_LIBRARY_PER_DAY} at a library each day.`;
 
 // Matches MULTIPLIER_AFTER on the server: new books after the first three in a visit earn double.
 const MULTIPLIER_AFTER = 3;
 
 export default function LibraryClient({ library, isbn13s }: LibraryClientProps) {
   const [isAtLibrary, setIsAtLibrary] = useState(false);
-  const [scannedBooks, setScannedBooks] = useState<BookInfo[]>([]);
+  // Books added or confirmed this visit; books found by title search may have no ISBN.
+  const [scannedBooks, setScannedBooks] = useState<{ isbn13: string | null; title: string }[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentBookTitle, setCurrentBookTitle] = useState("");
   // Everything below comes from the server's response; the browser never decides points.
@@ -113,7 +119,7 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
     checkLocation();
   }, [library, isbn13s]);
 
-  const handleScan = async (isbn: string) => {
+  const handleScan = async (isbn: string, source: ScanSource) => {
     if (isProcessing || isLoading) return;
 
     setIsProcessing(true);
@@ -126,6 +132,7 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
 
       if (!bookData) {
         toast.error(BOOK_NOT_FOUND);
+        reportLookupMiss({ kind: "isbn", isbn }, library.id);
         return;
       }
 
@@ -153,10 +160,10 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
         return;
       }
 
-      const award = await saveBookToDatabase(bookData);
+      const { award } = await saveBookToDatabase({ isbn13: bookData.isbn13, libraryId: library.id, via: source });
       setScannedBooks(prev => [...prev, bookData]);
       if (award) {
-        setNewBooksThisVisit(award.newBooksThisVisit);
+        if (award.newBooksThisVisit !== undefined) setNewBooksThisVisit(award.newBooksThisVisit);
         recordAward("new", award.pointsAwarded, award.total);
         handleConfettiAction();
       }
@@ -164,6 +171,40 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
       toast.success("Book added successfully!");
     } catch {
       toast.error("Error processing book");
+    } finally {
+      setIsProcessing(false);
+      setIsLoading(false);
+    }
+  };
+
+  // A book chosen from title search results. Resolves true once it's in the catalog.
+  const handlePick = async (book: SearchResult): Promise<boolean> => {
+    if (!library || isProcessing || isLoading) return false;
+    setIsProcessing(true);
+    setIsLoading(true);
+    setLastAward(null);
+    try {
+      const { added, award } = await saveBookToDatabase({
+        libraryId: library.id,
+        isbn13: book.isbn13,
+        editionKey: book.editionKey,
+        via: "search",
+      });
+      setCurrentBookTitle(book.title);
+      if (!added) {
+        toast(ALREADY_IN_CATALOG, { icon: "ℹ️" });
+        return true;
+      }
+      setScannedBooks(prev => [...prev, book]);
+      if (award) {
+        recordAward("searched", award.pointsAwarded, award.total);
+        if (award.pointsAwarded > 0) handleConfettiAction();
+      }
+      toast.success(award?.searchLimitReached ? SEARCH_LIMIT_REACHED : "Book added successfully!");
+      return true;
+    } catch {
+      toast.error("Error adding book");
+      return false;
     } finally {
       setIsProcessing(false);
       setIsLoading(false);
@@ -196,6 +237,11 @@ export default function LibraryClient({ library, isbn13s }: LibraryClientProps) 
             <p className="text-sm text-base-content/65">
               Hold the barcode on the back of the book inside the frame, in good light. Books scan one at a time.
             </p>
+            <BookSearch
+              onPick={handlePick}
+              onNoMatch={query => reportLookupMiss({ kind: "search", ...query }, library.id)}
+              isLoading={isLoading}
+            />
           </div>
 
           <aside

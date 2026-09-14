@@ -9,7 +9,12 @@ vi.mock("~~/lib/db", async () => ({ default: (await import("../../mocks/prisma")
 const requestHeaders = vi.hoisted(() => ({ current: new Headers({ referer: "https://arlib.me/libs/lib_1" }) }));
 vi.mock("next/headers", () => ({ headers: () => requestHeaders.current }));
 
-const accounts = vi.hoisted(() => ({ getOrCreateAccount: vi.fn(), newBookPoints: vi.fn(), awardPoints: vi.fn() }));
+const accounts = vi.hoisted(() => ({
+  getOrCreateAccount: vi.fn(),
+  newBookPoints: vi.fn(),
+  searchedBookPoints: vi.fn(),
+  awardPoints: vi.fn(),
+}));
 vi.mock("~~/lib/accounts", () => accounts);
 
 const { POST: saveBook } = await import("~~/app/api/saveBook/route");
@@ -27,6 +32,7 @@ describe("POST /api/saveBook", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse(openLibraryResponse)));
     accounts.getOrCreateAccount.mockReset().mockResolvedValue({ id: "acc_1" });
     accounts.newBookPoints.mockReset().mockResolvedValue({ points: 5, newBooksThisVisit: 1 });
+    accounts.searchedBookPoints.mockReset().mockResolvedValue(2);
     accounts.awardPoints.mockReset().mockResolvedValue({ pointsAwarded: 5, total: 45 });
   });
 
@@ -45,8 +51,16 @@ describe("POST /api/saveBook", () => {
     expect(res.status).toBe(201);
     expect(vi.mocked(fetch).mock.calls[0][0]).toBe("https://openlibrary.org/api/volumes/brief/isbn/9780063345164.json");
     expect(prismaMock.item.create).toHaveBeenCalledWith({
-      data: { ...storedFields, library: { connect: { id: libraryId } } },
+      data: { ...storedFields, addedVia: null, library: { connect: { id: libraryId } } },
     });
+  });
+
+  it("keeps how the book was found, if it's one we know", async () => {
+    vi.mocked(fetch).mockImplementation(async () => jsonResponse(openLibraryResponse));
+    await post({ isbn: "9780063345164", libraryId: "lib_1", via: "photo" });
+    await post({ isbn: "9780063345164", libraryId: "lib_1", via: "<script>" });
+
+    expect(prismaMock.item.create.mock.calls.map(([{ data }]) => data.addedVia)).toEqual(["photo", null]);
   });
 
   it("awards the server's points for a new book and reports them", async () => {
@@ -147,6 +161,82 @@ describe("POST /api/saveBook", () => {
     const res = await post({ isbn: "9780063345164", libraryId: "lib_1" });
     expect(res.status).toBe(500);
     expect(await res.json()).toEqual({ error: "Failed to save book" });
+  });
+
+  describe("a book found by title search", () => {
+    const edition = {
+      records: {
+        OL6014553M: {
+          recordURL: "http://openlibrary.org/books/OL6014553M/Controversial_essays",
+          data: {
+            title: "Controversial essays",
+            authors: [{ name: "John Hanbury Angus Sparrow" }],
+            cover: { medium: "https://covers.openlibrary.org/b/id/10066834-M.jpg" },
+            identifiers: { openlibrary: ["OL6014553M"], lccn: ["66071398"] },
+          },
+        },
+      },
+    };
+
+    it("looks up a book without an ISBN by its OpenLibrary edition and stores it under that", async () => {
+      vi.mocked(fetch).mockResolvedValue(jsonResponse(edition));
+
+      const res = await post({ editionKey: "OL6014553M", libraryId: "lib_1", title: "Spoofed" });
+
+      expect(res.status).toBe(201);
+      expect(vi.mocked(fetch).mock.calls[0][0]).toBe("https://openlibrary.org/api/volumes/brief/olid/OL6014553M.json");
+      expect(prismaMock.item.findFirst).toHaveBeenCalledWith({
+        where: { libraryId: "lib_1", editionKey: "OL6014553M" },
+      });
+      expect(prismaMock.item.create.mock.calls[0][0].data).toMatchObject({
+        title: "Controversial essays",
+        isbn13: null,
+        editionKey: "OL6014553M",
+        addedVia: "search",
+        itemInfo: "https://openlibrary.org/books/OL6014553M/Controversial_essays",
+      });
+    });
+
+    it("awards the searched-book points, never the scanning ones", async () => {
+      const res = await post({ isbn: "9780063345164", libraryId: "lib_1", via: "search" });
+
+      expect((await res.json()).award).toEqual({ pointsAwarded: 5, total: 45, searchLimitReached: false });
+      expect(accounts.searchedBookPoints).toHaveBeenCalledWith("acc_1", "lib_1");
+      expect(accounts.newBookPoints).not.toHaveBeenCalled();
+      expect(accounts.awardPoints).toHaveBeenCalledWith("acc_1", "ADD_SEARCHED_BOOK", 2, {
+        libraryId: "lib_1",
+        itemId: "item_1",
+      });
+    });
+
+    it("says when the day's searched books at this library have used up their points", async () => {
+      accounts.searchedBookPoints.mockResolvedValue(0);
+      accounts.awardPoints.mockResolvedValue({ pointsAwarded: 0, total: 60 });
+      vi.mocked(fetch).mockResolvedValue(jsonResponse(edition));
+
+      const res = await post({ editionKey: "OL6014553M", libraryId: "lib_1" });
+
+      expect(res.status).toBe(201);
+      expect((await res.json()).award).toEqual({ pointsAwarded: 0, total: 60, searchLimitReached: true });
+    });
+
+    it.each([
+      ["a malformed edition id", { editionKey: "../../people", libraryId: "lib_1" }],
+      ["a work id instead of an edition", { editionKey: "OL4316364W", libraryId: "lib_1" }],
+    ])("rejects %s", async (_label, body) => {
+      expect((await post(body)).status).toBe(400);
+      expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it("returns 404 when OpenLibrary doesn't have that edition", async () => {
+      vi.mocked(fetch).mockResolvedValue(jsonResponse({ records: {} }));
+      expect((await post({ editionKey: "OL6014553M", libraryId: "lib_1" })).status).toBe(404);
+    });
+
+    it("returns 502 when OpenLibrary is down", async () => {
+      vi.mocked(fetch).mockResolvedValue(new Response("down", { status: 503 }));
+      expect((await post({ editionKey: "OL6014553M", libraryId: "lib_1" })).status).toBe(502);
+    });
   });
 
   it("rejects other sites", async () => {
