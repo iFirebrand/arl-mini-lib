@@ -50,7 +50,9 @@ describe("uploadToSupabase", () => {
     expect(storage.from).toHaveBeenCalledWith("library-images");
     const [path, , options] = storage.upload.mock.calls[0];
     expect(path).toMatch(/^uploads\/[0-9a-f-]{36}-my_library_.._photo_1\.jpg$/);
-    expect(options).toEqual({ contentType: "image/jpeg" });
+    // A year of caching: Supabase otherwise answers `no-cache`, which makes Vercel's image
+    // optimizer transform the photo again every few hours.
+    expect(options).toEqual({ contentType: "image/jpeg", cacheControl: "31536000" });
     expect(url).toBe(`http://supabase.test/storage/v1/object/public/library-images/${path}`);
   });
 

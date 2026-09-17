@@ -60,6 +60,9 @@ async function uploadToSupabase(file: File): Promise<string> {
   // Upload file
   const { data, error } = await getSupabase().storage.from("library-images").upload(`uploads/${uniqueFileName}`, file, {
     contentType: file.type,
+    // A photo never changes once uploaded (each gets its own name). Without this Supabase answers
+    // `no-cache`, and Vercel's image optimizer then re-transforms the photo every few hours.
+    cacheControl: "31536000",
   });
 
   if (error) {
