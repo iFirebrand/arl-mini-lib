@@ -50,7 +50,8 @@ export default function ViewItems({ initialItems }: { initialItems: Item[] }) {
                 alt={item.title}
                 width={180}
                 height={270}
-                sizes="(min-width: 1280px) 150px, (min-width: 640px) 22vw, 30vw"
+                // Catalog covers are a few kilobytes as they come; see BookSearch.
+                unoptimized
                 className="aspect-2/3 h-auto w-full object-cover transition duration-300 group-hover:scale-[1.03]"
               />
             </span>

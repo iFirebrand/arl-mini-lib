@@ -128,6 +128,15 @@ The workflow: open a pull request, wait for CI, squash-merge, then check product
 tests above and Vercel's runtime logs. The Hobby plan builds no previews of branches, so for UI
 changes attach before/after screenshots to the pull request.
 
+### Images
+
+Only library photos go through Vercel's image optimizer; book covers come from the catalogs small
+already and are marked `unoptimized`. Vercel's free plan allows 5,000 transformations a month and
+counts one whenever its copy of an image is missing or stale, per width — so `next.config.js` keeps
+them for 31 days and offers few widths, and photos are uploaded with a year's `cache-control`. Past
+the allowance, images that aren't cached yet return 402 and the page shows their alt text. When
+taking screenshots in bulk, point the browser at a local build or block `/_next/image`.
+
 ## Database
 
 The running site connects as `arlib_app`, a role that can only do what the code does
